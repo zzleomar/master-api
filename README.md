@@ -1,6 +1,5 @@
-# Prueba Nestjs Dockerizado
-
-Una prueba de implementación de nestjs y mongodb Dockerizado
+# API MEGASHOP 
+ Desarrollada en Nestjs
 
 ## Requisitos Previos
 
@@ -14,7 +13,7 @@ Asegúrate de tener instalados los siguientes requisitos en tu sistema antes de 
 1. Clona este repositorio en tu máquina local:
 
    ```bash
-   git clone https://github.com/zzleomar/testnestjs
+   git clone git@gitlab.com:megashopty/megashop-api.git
 
 2. Crea un archivo .env basado en el archivo .env.example. Puedes utilizar este último como guía. Asegúrate de definir las siguientes variables:
 
