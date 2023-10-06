@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 
-export const IS_SUPERADMIN = 'isSupAdmin';
+export const IS_SUPERADMIN = 'isSuperAdmin';
 export const SuperAdmin = () => SetMetadata(IS_SUPERADMIN, true);
 
 export const IS_MASTER = 'isMaster';
