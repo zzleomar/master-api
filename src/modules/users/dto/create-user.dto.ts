@@ -24,11 +24,11 @@ export class CreateUserDto {
   cell: string;
 
   @IsString()
-  prefix: string;
+  prefix?: string;
 
   @IsEnum(Role)
-  @IsNotEmpty()
-  role: Role;
+  @IsString()
+  role: string;
 
   @IsString()
   password: string;

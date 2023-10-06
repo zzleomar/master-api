@@ -9,6 +9,7 @@ import * as dotenv from 'dotenv';
 import { AuthGuard } from './modules/auth/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './modules/auth/utils/constants';
+import { DataPreloadModule } from './modules/data-preload/data-preload.module';
 dotenv.config();
 
 @Module({
@@ -21,6 +22,7 @@ dotenv.config();
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '1d' }, // Opciones de firma
     }),
+    DataPreloadModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthGuard],
