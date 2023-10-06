@@ -66,43 +66,44 @@ export class DataPreloadService {
     const workshops = await this.workshopService.findAll();
     const users = await this.userService.findAll();
     if (workshops.length === 1 && users.length == 2) {
-      const password = await this.authService.hashPassword(
-        process.env.PASSWORDSUPER,
-      );
       const admin: CreateUserDto = {
-        firstName: 'Admin',
-        lastName: 'Admin',
-        email: 'admin@gmail.com',
-        cell: process.env.CELLSUPER,
+        firstName: 'José',
+        lastName: 'Perez',
+        email: 'cmoreno@megashopty.com',
+        cell: '8339911',
         role: 'Admin',
-        password,
+        password: await this.authService.hashPassword('master123'),
+        workshop: workshops[0].id,
       };
       await this.userService.create(admin);
       const cotizador: CreateUserDto = {
-        firstName: 'Cotizador',
-        lastName: 'Cotizador',
-        email: 'cotizador@gmail.com',
-        cell: process.env.CELLSUPER,
+        firstName: 'Eli',
+        lastName: 'Acme',
+        email: 'cotizador@prueba.com',
+        cell: '8338226',
         role: 'Cotizador',
-        password,
+        password: await this.authService.hashPassword('cotizador123'),
+        workshop: workshops[0].id,
       };
       await this.userService.create(cotizador);
       const recepcion: CreateUserDto = {
-        firstName: 'Recepcion',
-        lastName: 'Recepcion',
-        email: 'recepcion@gmail.com',
-        cell: process.env.CELLSUPER,
+        firstName: 'Luisa',
+        lastName: 'Gomez',
+        email: 'recepcion@prueba.com',
+        cell: '8338848',
         role: 'Recepcion',
-        password,
+        password: await this.authService.hashPassword('recepcion123'),
+        workshop: workshops[0].id,
       };
       await this.userService.create(recepcion);
       const repuesto: CreateUserDto = {
-        firstName: 'Repuesto',
-        lastName: 'Repuesto',
-        email: 'repuesto@gmail.com',
-        cell: process.env.CELLSUPER,
+        firstName: 'Leo',
+        lastName: 'Susu',
+        email: 'repuestos@prueba.com',
+        cell: '8337340',
         role: 'Repuesto',
-        password,
+        password: await this.authService.hashPassword('repuestos123'),
+        workshop: workshops[0].id,
       };
       await this.userService.create(repuesto);
       return { admin, cotizador, recepcion, repuesto };
