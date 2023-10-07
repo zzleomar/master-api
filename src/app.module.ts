@@ -10,6 +10,9 @@ import { AuthGuard } from './modules/auth/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './modules/auth/utils/constants';
 import { DataPreloadModule } from './modules/data-preload/data-preload.module';
+import { MakesModelsModule } from './modules/makes-models/makes-models.module';
+import { ColorsModule } from './modules/colors/colors.module';
+import { InsurancesModule } from './modules/insurances/insurances.module';
 dotenv.config();
 
 @Module({
@@ -18,11 +21,14 @@ dotenv.config();
     AuthModule,
     UsersModule,
     WorkshopsModule,
+    DataPreloadModule,
+    MakesModelsModule,
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '1d' }, // Opciones de firma
     }),
-    DataPreloadModule,
+    ColorsModule,
+    InsurancesModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthGuard],

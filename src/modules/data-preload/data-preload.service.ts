@@ -4,6 +4,12 @@ import { AuthService } from '../auth/auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { WorkshopsService } from '../workshops/workshops.service';
 import { CreateWorkshopDto } from '../workshops/dto/create-workshop.dto';
+import * as fs from 'fs';
+import * as path from 'path';
+import { map, replace, filter, groupBy } from 'lodash';
+import { MakesModelsService } from '../makes-models/makes-models.service';
+import { ColorsService } from '../colors/colors.service';
+import { InsurancesService } from '../insurances/insurances.service';
 
 @Injectable()
 export class DataPreloadService {
@@ -11,6 +17,9 @@ export class DataPreloadService {
     private readonly userService: UsersService,
     private readonly workshopService: WorkshopsService,
     private readonly authService: AuthService,
+    private readonly makesModelsService: MakesModelsService,
+    private readonly colorsService: ColorsService,
+    private readonly insurancesService: InsurancesService,
   ) {}
 
   async loadSuper() {
@@ -53,11 +62,94 @@ export class DataPreloadService {
         name: 'MegaShop',
         url: 'logo',
       };
-      const data = await this.userService.createMasterAndWorkshop(
-        createUserDto,
-        createWorkshopDto,
+      const { master, workshop } =
+        await this.userService.createMasterAndWorkshop(
+          createUserDto,
+          createWorkshopDto,
+        );
+
+      //carga de los modelos y marcas
+      let relativePath = './utils/marcamodelos.json';
+      let absolutePath = path.join(
+        replace(__dirname, 'dist', 'src'),
+        relativePath,
       );
-      return data;
+      let rawData = fs.readFileSync(absolutePath, 'utf8');
+      let jsonData = JSON.parse(rawData);
+      const formattedData = map(
+        groupBy(
+          filter(
+            jsonData,
+            (item2) =>
+              item2.Make !== null &&
+              item2.Model !== null &&
+              item2.Model !== 'Elije el Modelo',
+          ),
+          'Make',
+        ),
+        (models, make) => ({
+          make,
+          models: map(models, (item) => ({
+            model: item.Model,
+            year: item.Year,
+            paint: item.Picture,
+          })),
+        }),
+      );
+
+      const createdMakesModels =
+        await this.makesModelsService.createMany(formattedData);
+
+      //carga de los colores
+      relativePath = './utils/vehiclecolor.json';
+      absolutePath = path.join(replace(__dirname, 'dist', 'src'), relativePath);
+      rawData = fs.readFileSync(absolutePath, 'utf8');
+      jsonData = JSON.parse(rawData);
+      const formattedDataColor = map(
+        filter(
+          jsonData,
+          (item2) => item2.Color !== null && item2.RGBCode !== '',
+        ),
+        (item) => {
+          return {
+            color: item.Color,
+            rgbcode: item.RGBCode,
+            nameEnglish: item.ColorEnglish,
+          };
+        },
+      );
+
+      const createdColors =
+        await this.colorsService.createMany(formattedDataColor);
+
+      //carga de las aseguradoras
+      relativePath = './utils/insurance.json';
+      absolutePath = path.join(replace(__dirname, 'dist', 'src'), relativePath);
+      rawData = fs.readFileSync(absolutePath, 'utf8');
+      jsonData = JSON.parse(rawData);
+      const formattedDataInsurance = map(
+        filter(jsonData, (item2) => item2.InsuranceCompany !== null),
+        (item) => {
+          return {
+            oldId: item.InsuranceID,
+            name: item.InsuranceCompany,
+            phone: item.InsurancePhone,
+            address: item.InsuranceAddress,
+          };
+        },
+      );
+
+      const createdInsurances = await this.insurancesService.createMany(
+        formattedDataInsurance,
+      );
+
+      return {
+        createdMakesModels: `${createdMakesModels.length} marcas y modelos`,
+        createdColors: `${createdColors.length} colores`,
+        createdInsurances: `${createdInsurances.length} aseguradoras`,
+        master,
+        workshop,
+      };
     }
     return 'workshop ya registrado';
   }
@@ -72,7 +164,7 @@ export class DataPreloadService {
         email: 'cmoreno@megashopty.com',
         cell: '8339911',
         role: 'Admin',
-        password: await this.authService.hashPassword('master123'),
+        password: await this.authService.hashPassword('admin123'),
         workshop: workshops[0].id,
       };
       await this.userService.create(admin);

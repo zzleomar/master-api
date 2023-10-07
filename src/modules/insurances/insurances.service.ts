@@ -1,0 +1,39 @@
+import { Injectable } from '@nestjs/common';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { Insurance } from './entities/insurance.entity';
+
+@Injectable()
+export class InsurancesService {
+  constructor(
+    @InjectModel('Insurance') private readonly insuranceModel: Model<any>,
+  ) {}
+
+  async create(insurancesData: any): Promise<Insurance> {
+    const createdInsurance = new this.insuranceModel(insurancesData);
+    return createdInsurance.save();
+  }
+
+  async createMany(data: any[]): Promise<Insurance[]> {
+    const createdInsurance = await this.insuranceModel.create(data);
+    return createdInsurance;
+  }
+
+  async findAll(): Promise<Insurance[]> {
+    return this.insuranceModel.find().exec();
+  }
+
+  async findOne(id: string): Promise<Insurance | null> {
+    return this.insuranceModel.findById(id).exec();
+  }
+
+  async update(id: string, insurancesData: any): Promise<Insurance | null> {
+    return this.insuranceModel
+      .findByIdAndUpdate(id, insurancesData, { new: true })
+      .exec();
+  }
+
+  async remove(id: string): Promise<any> {
+    return this.insuranceModel.findByIdAndRemove(id).exec();
+  }
+}
