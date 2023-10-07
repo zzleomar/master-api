@@ -1,0 +1,482 @@
+[
+  {
+    "ID": 1,
+    "Color": "AMARILLO CLARO",
+    "RGBCode": "#FFFFE0",
+    "ColorEnglish": "LIGHT YELLOW"
+  },
+  {
+    "ID": 4,
+    "Color": "TAN",
+    "RGBCode": "#D2B48C",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 5,
+    "Color": "ALMENDRA",
+    "RGBCode": "#F5DEB3",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 6,
+    "Color": "AMARILLO",
+    "RGBCode": "#FFFF00",
+    "ColorEnglish": "YELLOW"
+  },
+  {
+    "ID": 8,
+    "Color": "ANARANJADO",
+    "RGBCode": "#FFA500",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 11,
+    "Color": "AZUL",
+    "RGBCode": "#0000FF",
+    "ColorEnglish": "BLUE"
+  },
+  {
+    "ID": 13,
+    "Color": "AZUL CIELO",
+    "RGBCode": "#87CEEB",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 15,
+    "Color": "AZUL MARINO",
+    "RGBCode": "#000080",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 16,
+    "Color": "AZUL METALICO",
+    "RGBCode": "#4682B4",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 17,
+    "Color": "AZUL ROYAL",
+    "RGBCode": "#4169e1",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 18,
+    "Color": "VERDE LIMON",
+    "RGBCode": "#00FF00",
+    "ColorEnglish": "LIME"
+  },
+  {
+    "ID": 24,
+    "Color": "CAQUI OSCURO",
+    "RGBCode": "#BDB76B",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 25,
+    "Color": "BEIGE METALICO",
+    "RGBCode": "#F5F5DC",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 26,
+    "Color": "BLANCO",
+    "RGBCode": "#FFFFFF",
+    "ColorEnglish": "WHITE"
+  },
+  {
+    "ID": 27,
+    "Color": "BLANCO ANTIGUO",
+    "RGBCode": "#FAEBD7",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 28,
+    "Color": "BLANCO PERLA",
+    "RGBCode": "#FFFFFF",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 32,
+    "Color": "BRONCE",
+    "RGBCode": "#CD7F32",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 33,
+    "Color": "MARRON",
+    "RGBCode": "#A52A2A",
+    "ColorEnglish": "BROWN"
+  },
+  {
+    "ID": 34,
+    "Color": "CAMUFLAJE",
+    "RGBCode": "#78866B",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 38,
+    "Color": "AZUL CELESTE",
+    "RGBCode": "#00FFFF",
+    "ColorEnglish": "CYAN"
+  },
+  {
+    "ID": 40,
+    "Color": "CREMA",
+    "RGBCode": "#F5FFFA",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 45,
+    "Color": "VERDE TURQUESA",
+    "RGBCode": "#008080",
+    "ColorEnglish": "TEAL"
+  },
+  {
+    "ID": 46,
+    "Color": "MARRON OSCURO",
+    "RGBCode": "#643200",
+    "ColorEnglish": "DARK BROWN"
+  },
+  {
+    "ID": 47,
+    "Color": "MARRON CLARO",
+    "RGBCode": "#C86400",
+    "ColorEnglish": "LIGHT BROWN"
+  },
+  {
+    "ID": 48,
+    "Color": "ANARANJADO OSCURO",
+    "RGBCode": "#FF8C00",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 49,
+    "Color": "ANARANJADO ROJO",
+    "RGBCode": "#FF4500",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 50,
+    "Color": "DORADO",
+    "RGBCode": "#FFD700",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 60,
+    "Color": "ORO",
+    "RGBCode": "#FFD700",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 61,
+    "Color": "GRIS",
+    "RGBCode": "#808080",
+    "ColorEnglish": "GRAY"
+  },
+  {
+    "ID": 62,
+    "Color": "GRIS CLARO",
+    "RGBCode": "#D3D3D3",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 63,
+    "Color": "GRIS OSCURO",
+    "RGBCode": "#A9A9A9",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 64,
+    "Color": "GRIS RATON",
+    "RGBCode": "#696969",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 65,
+    "Color": "INDIGO",
+    "RGBCode": "#4B0082",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 73,
+    "Color": "GUAYABA",
+    "RGBCode": "#EE5549",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 79,
+    "Color": "METALICO",
+    "RGBCode": "#BCC6CC",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 81,
+    "Color": "NARANJA",
+    "RGBCode": "#FFA500",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 87,
+    "Color": "NEGRO",
+    "RGBCode": "#000000",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 88,
+    "Color": "NUES",
+    "RGBCode": "#FFFFF0",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 89,
+    "Color": "AZUL CLARO",
+    "RGBCode": "#ADD8E6",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 90,
+    "Color": "CHOCOLATE",
+    "RGBCode": "#D2691E",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 94,
+    "Color": "ROJO",
+    "RGBCode": "#FF0000",
+    "ColorEnglish": "RED"
+  },
+  {
+    "ID": 96,
+    "Color": "ROJO METALICO",
+    "RGBCode": "#8B0000",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 97,
+    "Color": "CIRUELA",
+    "RGBCode": "#DDA0DD",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 98,
+    "Color": "ROJO VINO",
+    "RGBCode": "#B22222",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 103,
+    "Color": "ROSA",
+    "RGBCode": "#FFC0CB",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 105,
+    "Color": "ROSA VIEJO",
+    "RGBCode": "#FFB6C1",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 106,
+    "Color": "BRONCEADO",
+    "RGBCode": "#D2B48C",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 107,
+    "Color": "PLATA",
+    "RGBCode": "#C0C0C0",
+    "ColorEnglish": "SILVER"
+  },
+  {
+    "ID": 108,
+    "Color": "TERRACOTA",
+    "RGBCode": "#8B0000",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 109,
+    "Color": "TURQUESA PALIDO",
+    "RGBCode": "#AFEEEE",
+    "ColorEnglish": "fucsia"
+  },
+  {
+    "ID": 110,
+    "Color": "VIOLETA OSCURO",
+    "RGBCode": "#9400D3",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 111,
+    "Color": "VERDE",
+    "RGBCode": "#008000",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 112,
+    "Color": "VERDE ACEITUNA",
+    "RGBCode": "#808000",
+    "ColorEnglish": "OLIVE"
+  },
+  {
+    "ID": 113,
+    "Color": "CAQUI",
+    "RGBCode": "#F0D58C",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 114,
+    "Color": "VERDE CLARO",
+    "RGBCode": "#90EE90",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 116,
+    "Color": "VERDE METALICO",
+    "RGBCode": "#8FBC8F",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 117,
+    "Color": "VERDE CESPED",
+    "RGBCode": "#7CFC00",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 118,
+    "Color": "TURQUESA OSCURO",
+    "RGBCode": "#00CED1",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 119,
+    "Color": "VERDE MAR",
+    "RGBCode": "#2E8B57",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 120,
+    "Color": "VERDE BOSQUE",
+    "RGBCode": "#228B22",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 121,
+    "Color": "TURQUESA",
+    "RGBCode": "#40E0D0",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 122,
+    "Color": "SALMON OSCURO",
+    "RGBCode": "#E9967A",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 123,
+    "Color": "VERDE PRIMAVERA",
+    "RGBCode": "#00FA9A",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 124,
+    "Color": "VERDE OSCURO",
+    "RGBCode": "#006400",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 125,
+    "Color": "PURPURA MEDIO",
+    "RGBCode": "#9370DB",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 126,
+    "Color": "VIOLETA",
+    "RGBCode": "#EE82EE",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 127,
+    "Color": "PURPURA",
+    "RGBCode": "#800080",
+    "ColorEnglish": "PURPLE"
+  },
+  {
+    "ID": 134,
+    "Color": "VERDE MANZANA",
+    "RGBCode": "#629632",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 135,
+    "Color": "LADRILLO",
+    "RGBCode": "#B22222",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 153,
+    "Color": "NARANJA ROJO",
+    "RGBCode": "#FF4500",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 159,
+    "Color": "AZUL OSCURO",
+    "RGBCode": "#000080",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 160,
+    "Color": "AZUL PERLADO",
+    "RGBCode": "#102c54",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 161,
+    "Color": "BEIGE",
+    "RGBCode": "#F5FFFA",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 162,
+    "Color": "CHAMPAGNE",
+    "RGBCode": "#F7E7CE",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 165,
+    "Color": "COBRE",
+    "RGBCode": "#B87333",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 166,
+    "Color": "CHERY",
+    "RGBCode": "#6A1616",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 167,
+    "Color": "GRIS METALICO",
+    "RGBCode": "#D3D3D3",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 169,
+    "Color": "AMARILLO MOSTAZA",
+    "RGBCode": "#E9BD15",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 171,
+    "Color": "VINO",
+    "RGBCode": "#5e2129",
+    "ColorEnglish": ""
+  },
+  {
+    "ID": 172,
+    "Color": "UVA",
+    "RGBCode": "#421C52",
+    "ColorEnglish": ""
+  }
+]

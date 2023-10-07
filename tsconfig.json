@@ -1,5 +1,7 @@
 {
+  "include": ["src/**/*.ts", "src/**/*.json"],
   "compilerOptions": {
+    "types": ["@nestjs/common"],
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
