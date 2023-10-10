@@ -13,6 +13,10 @@ import { DataPreloadModule } from './modules/data-preload/data-preload.module';
 import { MakesModelsModule } from './modules/makes-models/makes-models.module';
 import { ColorsModule } from './modules/colors/colors.module';
 import { InsurancesModule } from './modules/insurances/insurances.module';
+import { BudgetsModule } from './modules/budgets/budgets.module';
+import { ClientsModule } from './modules/clients/clients.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { HistoriesModule } from './modules/histories/histories.module';
 dotenv.config();
 
 @Module({
@@ -29,6 +33,10 @@ dotenv.config();
     }),
     ColorsModule,
     InsurancesModule,
+    BudgetsModule,
+    ClientsModule,
+    VehiclesModule,
+    HistoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthGuard],
