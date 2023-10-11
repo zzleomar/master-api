@@ -10,6 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserPayload } from './entities/user.payload';
 import { CreateWorkshopDto } from 'src/modules/workshops/dto/create-workshop.dto';
 import { WorkshopsService } from 'src/modules/workshops/workshops.service';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -48,7 +49,7 @@ export class UsersService {
     }
   }
 
-  async create(body: CreateUserDto): Promise<UserPayload> {
+  async create(body: CreateUserDto): Promise<User> {
     if (body.workshop) {
       await this.workshopsService.findOne(body.workshop);
     }
