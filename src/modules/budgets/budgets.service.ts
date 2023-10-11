@@ -70,7 +70,10 @@ export class BudgetsService {
     return lastCode + 1; // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }
 
-  async findAll(): Promise<any[]> {
-    return this.budgetModel.find().exec();
+  async findAll(filter: any): Promise<any[]> {
+    return this.budgetModel
+      .find(filter)
+      .populate(['vehicle', 'insuranceCompany', 'quoter'])
+      .exec();
   }
 }

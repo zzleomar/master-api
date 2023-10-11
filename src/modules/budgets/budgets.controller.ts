@@ -14,6 +14,7 @@ import { CreateClientDto } from '../clients/dto/create-client.dto';
 import { CreateVehicleDto } from '../vehicles/dto/create-vehicle.dto';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { ClientsService } from '../clients/clients.service';
+import { Admin, Master, Recepcion, Repuesto } from '../auth/utils/decorator';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -24,6 +25,9 @@ export class BudgetsController {
     private readonly clientsService: ClientsService,
   ) {}
 
+  @Recepcion()
+  @Master()
+  @Admin()
   @UseGuards(AuthGuard)
   @Post()
   async create(
@@ -66,9 +70,15 @@ export class BudgetsController {
     return newBufget;
   }
 
+  @Recepcion()
+  @Master()
+  @Repuesto()
+  @Recepcion()
+  @UseGuards(AuthGuard)
   @Get()
-  findAll() {
-    return this.budgetsService.findAll();
+  findAll(@Request() request) {
+    const user = request['user'];
+    return this.budgetsService.findAll({ workshop: user.workshop });
   }
 
   //TODO
