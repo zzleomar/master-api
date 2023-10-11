@@ -36,25 +36,33 @@ export class BudgetsController {
     //TODO falta el flujo para cuando es un vehiculo registrado pero se cambia de dueño u otra info que pueda actualizarse del vehiculo
     if (!createBudgetDto.client) {
       const newClient = await this.clientsService.create(createClientDto);
-      createBudgetDto.client = newClient._id;
+      createBudgetDto.client = newClient.id;
       await this.historiesService.createHistory({
         message: `Registro de un nuevo cliente`,
         user: user._id,
-        client: newClient._id,
+        client: newClient.id,
       });
     }
     if (!createBudgetDto.vehicle) {
+      createVehicleDto.owner = createBudgetDto.client;
       const newVehicle = await this.vehiclesService.create(createVehicleDto);
-      createBudgetDto.vehicle = newVehicle._id;
+      createBudgetDto.vehicle = newVehicle.id;
+      await this.historiesService.createHistory({
+        message: `Registro de un nuevo vehiculo`,
+        user: user._id,
+        vehicle: newVehicle.id,
+      });
     }
     const newBufget = await this.budgetsService.create(createBudgetDto);
-    await this.historiesService.createHistory({
+    const log = await this.historiesService.createHistory({
       message: `Creación del presupuesto ${newBufget.code
         .toString()
         .padStart(6, '0')}`,
       user: user._id,
-      budget: newBufget._id,
+      budget: newBufget.id,
     });
+    newBufget.history.push(log.id);
+    newBufget.save();
     return newBufget;
   }
 

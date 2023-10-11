@@ -10,7 +10,7 @@ export class Vehicle extends Document {
   model: string;
 
   @Prop({ required: true })
-  year: string;
+  year: number;
 
   @Prop({ required: true })
   color: string;

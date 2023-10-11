@@ -16,19 +16,17 @@ export class CreateBudgetDto {
   @IsString()
   vehicle?: string;
 
-  @IsNotEmpty()
   @IsString()
   @IsMongoId()
-  workshop: string;
+  workshop?: string;
 
   @IsOptional()
   @IsString()
   client?: string;
 
-  @IsNotEmpty()
   @IsString()
   @Length(1, 12)
-  claimNumber: string;
+  claimNumber?: string;
 
   @IsNotEmpty()
   @IsString()

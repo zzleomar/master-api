@@ -16,9 +16,8 @@ export class CreateVehicleDto {
   @IsString()
   model: string;
 
-  @IsNotEmpty()
-  @IsString()
-  year: string;
+  @IsNumber()
+  year: number;
 
   @IsString()
   color: string;
@@ -40,8 +39,8 @@ export class CreateVehicleDto {
   mileage?: number;
 
   @IsMongoId() // Debe ser un ID válido de MongoDB
-  workshop: string;
+  workshop?: string;
 
   @IsMongoId() // Debe ser un ID válido de MongoDB
-  owner: string;
+  owner?: string;
 }
