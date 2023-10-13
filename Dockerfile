@@ -1,5 +1,5 @@
 # Usar una imagen base de Node.js con la versión que necesites
-FROM node:18
+FROM node:18-alpine
 
 # Directorio de trabajo en el contenedor
 WORKDIR /app
@@ -12,13 +12,11 @@ COPY ./src ./src
 # Instalar las dependencias de la aplicación
 RUN npm install
 
+#Efectuar build
+RUN npm run build
+
 # Exponer el puerto en el que se ejecutará la aplicación NestJS
-EXPOSE $PORT
+EXPOSE 8000
 
 # Comando para ejecutar la aplicación
-#CMD ["npm", "start"]
-CMD if [ "$NODE_ENV" = "production" ]; then \
-      npm start; \
-    else \
-      npm run start:dev; \
-    fi
+CMD ["npm", "start"]
