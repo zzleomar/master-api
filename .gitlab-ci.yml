@@ -22,7 +22,7 @@ deploy:
   image: alpine:latest
   stage: deploy
   tags:
-    - deployment
+    - docker
   script:
     - chmod og= $ID_ED25519
     - apk update && apk add openssh-client
