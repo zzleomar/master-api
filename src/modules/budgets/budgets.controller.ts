@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Body,
+  Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -74,11 +75,16 @@ export class BudgetsController {
   @Master()
   @Repuesto()
   @Recepcion()
-  @UseGuards(AuthGuard)
+  @UseGuards() // AuthGuard
   @Get()
   findAll(@Request() request) {
     const user = request['user'];
-    return this.budgetsService.findAll({ workshop: user.workshop });
+    const search = request['query']['search'] || null;
+
+    return this.budgetsService.findAll({
+      workshop: user.workshop,
+      search: search,
+    });
   }
 
   //TODO

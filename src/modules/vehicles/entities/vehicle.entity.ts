@@ -1,13 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'vehicles', timestamps: true })
 export class Vehicle extends Document {
   @Prop({ required: true })
   vehicleMake: string;
 
   @Prop({ required: true })
-  model: string;
+  modelo: string;
 
   @Prop({ required: true })
   year: number;

@@ -71,6 +71,8 @@ export class BudgetsService {
   }
 
   async findAll(filter: any): Promise<any[]> {
+    // console.log('filter.search: ', filter.search);
+
     return this.budgetModel
       .find(filter)
       .populate(['vehicle', 'insuranceCompany', 'quoter'])

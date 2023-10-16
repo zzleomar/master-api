@@ -1,27 +1,29 @@
 import {
   IsString,
-  IsNotEmpty,
   IsOptional,
   IsNumber,
   IsMongoId,
   Length,
 } from 'class-validator';
 
-export class CreateVehicleDto {
-  @IsNotEmpty()
+export class UpdateVehicleDto {
+  @IsOptional()
   @IsString()
   vehicleMake: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   modelo: string;
 
+  @IsOptional()
   @IsNumber()
   year: number;
 
+  @IsOptional()
   @IsString()
   color: string;
 
+  @IsOptional()
   @IsString()
   colorType: string;
 
@@ -30,6 +32,7 @@ export class CreateVehicleDto {
   @Length(17)
   chassis?: string;
 
+  @IsOptional()
   @IsString()
   @Length(5, 6)
   plate: string;
@@ -38,9 +41,11 @@ export class CreateVehicleDto {
   @IsNumber()
   mileage?: number;
 
+  @IsOptional()
   @IsMongoId() // Debe ser un ID válido de MongoDB
   workshop?: string;
 
+  @IsOptional()
   @IsMongoId() // Debe ser un ID válido de MongoDB
   owner?: string;
 }

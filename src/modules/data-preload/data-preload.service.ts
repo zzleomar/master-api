@@ -102,7 +102,7 @@ export class DataPreloadService {
         (models, make) => ({
           make,
           models: map(models, (item) => ({
-            model: item.Model,
+            modelo: item.Model,
             year: item.Year,
             paint: item.Picture,
           })),
@@ -224,7 +224,7 @@ export class DataPreloadService {
         },
         {
           vehicleMake: 'JENSEN',
-          model: 'HEALEY',
+          modelo: 'HEALEY',
           year: 1994,
           color: 'VERDE LIMON',
           colorType: 'Perlado',
@@ -249,7 +249,7 @@ export class DataPreloadService {
         },
         {
           vehicleMake: 'TOYOTA',
-          model: 'FJ CRUISER',
+          modelo: 'FJ CRUISER',
           year: 1994,
           color: 'CAQUI OSCURO',
           colorType: 'Perlado',
@@ -281,6 +281,7 @@ export class DataPreloadService {
   ) {
     const newClient = await this.clientsService.create(createClientDto);
     createBudgetDto.client = newClient.id;
+
     await this.historiesService.createHistory({
       message: `Registro de un nuevo cliente`,
       user: user._id,
@@ -289,6 +290,7 @@ export class DataPreloadService {
     createVehicleDto.workshop = createClientDto.workshop;
     createVehicleDto.owner = createBudgetDto.client;
     const newVehicle = await this.vehiclesService.create(createVehicleDto);
+
     await this.historiesService.createHistory({
       message: `Registro de un nuevo vehiculo`,
       user: user._id,
@@ -297,6 +299,7 @@ export class DataPreloadService {
     createBudgetDto.vehicle = newVehicle.id;
     createBudgetDto.workshop = createClientDto.workshop;
     const newBufget = await this.budgetsService.create(createBudgetDto);
+
     const log = await this.historiesService.createHistory({
       message: `Creación del presupuesto ${newBufget.code
         .toString()
@@ -307,5 +310,118 @@ export class DataPreloadService {
     newBufget.history.push(log.id);
     newBufget.save();
     return newBufget;
+  }
+
+  async loadClient() {
+    const workshops = await this.workshopService.findAll();
+    const clients = await this.clientsService.findAll();
+
+    if (workshops.length > 0 && clients.length === 0) {
+      const client1: CreateClientDto = {
+        fullName: 'Pedro Fuentes',
+        documentType: 'Cedula',
+        document: '24001001',
+        address: 'cumana',
+        email: 'client1@email.com',
+        phonePrefix: '+58',
+        phone: 4120102123,
+        cellPrefix: '+58',
+        cell: 2930102123,
+        workshop: workshops[0].id,
+      };
+      await this.clientsService.create(client1);
+
+      const client2: CreateClientDto = {
+        fullName: 'Jose Carvajal',
+        documentType: 'Cedula',
+        document: '24001011',
+        address: 'cumana',
+        email: 'client2@email.com',
+        phonePrefix: '+58',
+        phone: 4120102456,
+        cellPrefix: '+58',
+        cell: 2930102456,
+        workshop: workshops[0].id,
+      };
+      await this.clientsService.create(client2);
+
+      const client3: CreateClientDto = {
+        fullName: 'Pedro Fuentes',
+        documentType: 'Cedula',
+        document: '24001001',
+        address: 'cumana',
+        email: 'client3@email.com',
+        phonePrefix: '+58',
+        phone: 4120102789,
+        cellPrefix: '+58',
+        cell: 2930102789,
+        workshop: workshops[0].id,
+      };
+      await this.clientsService.create(client3);
+
+      return {
+        client1,
+        client2,
+        client3,
+      };
+    }
+    return 'datos ya cargados';
+  }
+
+  async loadVehicle() {
+    const workshops = await this.workshopService.findAll();
+    const clients = await this.clientsService.findAll();
+    const vehicles = await this.vehiclesService.findAll();
+
+    if (workshops.length > 0 && clients.length > 0 && vehicles.length == 0) {
+      const car1: CreateVehicleDto = {
+        vehicleMake: 'porshe',
+        modelo: 'MONTA CARGA',
+        year: 1994,
+        color: 'red',
+        colorType: 'brillo',
+        chassis: '',
+        plate: 'mega10',
+        mileage: 12000,
+        workshop: workshops[0].id,
+        owner: clients[0].id,
+      };
+      await this.vehiclesService.create(car1);
+
+      const car2: CreateVehicleDto = {
+        vehicleMake: 'porshe',
+        modelo: 'CF-506',
+        year: 1995,
+        color: 'blue',
+        colorType: 'mate',
+        chassis: '',
+        plate: 'mega11',
+        mileage: 13540,
+        workshop: workshops[0].id,
+        owner: clients[1].id,
+      };
+      await this.vehiclesService.create(car2);
+
+      const car3: CreateVehicleDto = {
+        vehicleMake: 'misubichi',
+        modelo: 'CF-486',
+        year: 1985,
+        color: 'red',
+        colorType: 'red',
+        chassis: '',
+        plate: 'mega20',
+        mileage: 12387,
+        workshop: workshops[0].id,
+        owner: clients[2].id,
+      };
+      await this.vehiclesService.create(car3);
+
+      return {
+        car1,
+        car2,
+        car3,
+      };
+    }
+    return 'datos ya cargados';
   }
 }

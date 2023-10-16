@@ -52,4 +52,28 @@ export class DataPreloadController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Post('/clients')
+  preloadClient() {
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        return this.dataPreload.loadClient();
+      }
+      throw new NotFoundException();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Post('/vehicles')
+  preloadVehicle() {
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        return this.dataPreload.loadVehicle();
+      }
+      throw new NotFoundException();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }
