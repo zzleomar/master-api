@@ -4,8 +4,9 @@ import {
   Post,
   Body,
   Query,
-  UseGuards,
   Request,
+  BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { BudgetsService } from './budgets.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
@@ -16,6 +17,7 @@ import { CreateVehicleDto } from '../vehicles/dto/create-vehicle.dto';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { ClientsService } from '../clients/clients.service';
 import { Admin, Master, Recepcion, Repuesto } from '../auth/utils/decorator';
+import { FilterBudgetDto } from './dto/filter-bugget.dto';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -75,28 +77,22 @@ export class BudgetsController {
   @Master()
   @Repuesto()
   @Recepcion()
-  @UseGuards() // AuthGuard
-  @Get()
-  findAll(@Request() request) {
-    const filter: any = {};
+  @UseGuards(AuthGuard)
+  @Post('/list')
+  findAll(@Request() request, @Body() filters: FilterBudgetDto) {
     const user = request['user'];
-    if (user && user?.workshop) {
-      filter['workshop'] = user?.workshop;
-    }
-    const search = request['query']['search'] || '';
-    if (search && search !== '') {
-      filter['search'] = {
-        // vehicle: '652e0716187e97cad86d707e',
-        /* vehicle: {
-          $all: ['652e0716187e97cad86d707e', '652e0716187e97cad86d7095'],
-        }, */
-        // 'vehicle.plate': search,
-        'vehicle.plate': {
-          $regex: `.*${search}.*`,
+    if (!filters.filter || filters.filter === 'all') {
+      return this.budgetsService.findAll({ workshop: user.workshop });
+    } else if (filters.filter === 'plate' && filters.value) {
+      return this.budgetsService.findBudgetsByPlate(
+        {
+          workshop: user.workshop,
         },
-      };
+        filters.value,
+      );
+    } else {
+      return new BadRequestException('value requerid');
     }
-    return this.budgetsService.findAll(filter);
   }
 
   //TODO

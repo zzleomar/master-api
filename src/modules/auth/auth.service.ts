@@ -24,7 +24,7 @@ export class AuthService {
     });
     return {
       token,
-      user,
+      user: payload,
     };
   }
 

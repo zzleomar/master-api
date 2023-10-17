@@ -76,4 +76,50 @@ export class BudgetsService {
       .populate(['vehicle', 'insuranceCompany', 'quoter'])
       .exec();
   }
+
+  async findBudgetsByPlate(filter: any, value: string): Promise<any[]> {
+    return this.budgetModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'vehicles', // Nombre de la colección Vehicle
+            localField: 'vehicle', // Campo en Budget que hace referencia a Vehicle
+            foreignField: '_id', // Campo en Vehicle que se relaciona con Budget
+            as: 'vehicle',
+          },
+        },
+        {
+          $lookup: {
+            from: 'insurances', // Nombre de la colección Insurance
+            localField: 'insuranceCompany',
+            foreignField: '_id',
+            as: 'insuranceCompany',
+          },
+        },
+        {
+          $lookup: {
+            from: 'users', // Nombre de la colección User
+            localField: 'quoter',
+            foreignField: '_id',
+            as: 'quoter',
+          },
+        },
+        {
+          $match: {
+            'vehicle.plate': { $regex: value },
+            workshop: filter.workshop,
+          },
+        },
+        {
+          $unwind: '$vehicle', // Desagrupa el resultado del $lookup de Vehicle
+        },
+        {
+          $unwind: '$insuranceCompany', // Desagrupa el resultado del $lookup de Insurance
+        },
+        {
+          $unwind: '$quoter', // Desagrupa el resultado del $lookup de User
+        },
+      ])
+      .exec();
+  }
 }

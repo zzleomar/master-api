@@ -102,13 +102,12 @@ export class DataPreloadService {
         (models, make) => ({
           make,
           models: map(models, (item) => ({
-            modelo: item.Model,
+            model: item.Model,
             year: item.Year,
             paint: item.Picture,
           })),
         }),
       );
-
       const createdMakesModels =
         await this.makesModelsService.createMany(formattedData);
 
@@ -228,11 +227,11 @@ export class DataPreloadService {
           year: 1994,
           color: 'VERDE LIMON',
           colorType: 'Perlado',
-          plate: 'RE1234',
+          plate: 'RE12H4',
         },
         {
-          insuranceCompany: insurances[0].id,
-          quoter: contizadorData.id,
+          insuranceCompany: insurances[0],
+          quoter: contizadorData,
         },
         recepcionData,
       );
@@ -256,8 +255,8 @@ export class DataPreloadService {
           plate: 'RE1234',
         },
         {
-          insuranceCompany: insurances[0].id,
-          quoter: contizadorData.id,
+          insuranceCompany: insurances[0],
+          quoter: contizadorData,
         },
         recepcionData,
       );
@@ -276,7 +275,7 @@ export class DataPreloadService {
   async loadBudgetsTest(
     createClientDto: CreateClientDto,
     createVehicleDto: CreateVehicleDto,
-    createBudgetDto: CreateBudgetDto,
+    createBudgetDto: any,
     user: User,
   ) {
     const newClient = await this.clientsService.create(createClientDto);
@@ -296,7 +295,7 @@ export class DataPreloadService {
       user: user._id,
       vehicle: newVehicle.id,
     });
-    createBudgetDto.vehicle = newVehicle.id;
+    createBudgetDto.vehicle = newVehicle;
     createBudgetDto.workshop = createClientDto.workshop;
     const newBufget = await this.budgetsService.create(createBudgetDto);
 

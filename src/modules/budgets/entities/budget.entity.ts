@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, ObjectId, Types } from 'mongoose';
 import { Client } from 'src/modules/clients/entities/client.entity';
 
 export enum StatusBudget {
@@ -35,14 +35,14 @@ export class Budget extends Document {
   })
   type: [TypeBudget];
 
-  @Prop({ required: true, type: String, ref: 'Vehicle' })
-  vehicle: string;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Vehicle' })
+  vehicle: Types.ObjectId;
 
-  @Prop({ required: true, type: String, ref: 'Workshop' })
-  workshop: string;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Workshop' })
+  workshop: Types.ObjectId;
 
-  @Prop({ required: true, type: String, ref: 'Client' })
-  client: string;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Client' })
+  client: Types.ObjectId;
 
   @Prop({ type: Client, required: true })
   clientData: Client;
@@ -53,8 +53,8 @@ export class Budget extends Document {
   @Prop()
   claimNumber: string;
 
-  @Prop({ required: true, type: String, ref: 'Insurance' })
-  insuranceCompany: string;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'Insurance' })
+  insuranceCompany: Types.ObjectId;
 
   @Prop()
   adjuster: string;
@@ -68,8 +68,8 @@ export class Budget extends Document {
   @Prop()
   adjusterCell: number;
 
-  @Prop({ required: true, type: String, ref: 'User' })
-  quoter: string;
+  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
+  quoter: Types.ObjectId;
 
   @Prop()
   statusChange: Array<StatusChangeBudget>;
