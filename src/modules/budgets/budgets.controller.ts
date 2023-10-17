@@ -78,13 +78,25 @@ export class BudgetsController {
   @UseGuards() // AuthGuard
   @Get()
   findAll(@Request() request) {
+    const filter: any = {};
     const user = request['user'];
-    const search = request['query']['search'] || null;
-
-    return this.budgetsService.findAll({
-      workshop: user.workshop,
-      search: search,
-    });
+    if (user && user?.workshop) {
+      filter['workshop'] = user?.workshop;
+    }
+    const search = request['query']['search'] || '';
+    if (search && search !== '') {
+      filter['search'] = {
+        // vehicle: '652e0716187e97cad86d707e',
+        /* vehicle: {
+          $all: ['652e0716187e97cad86d707e', '652e0716187e97cad86d7095'],
+        }, */
+        // 'vehicle.plate': search,
+        'vehicle.plate': {
+          $regex: `.*${search}.*`,
+        },
+      };
+    }
+    return this.budgetsService.findAll(filter);
   }
 
   //TODO
