@@ -213,11 +213,11 @@ export class DataPreloadService {
       const budgetTest1 = await this.loadBudgetsTest(
         {
           fullName: 'Leomar Esparragoza',
-          documentType: 'Cedula',
+          documentType: 'Cédula',
           document: '12345',
           address: 'al lado por alli mismo',
           email: 'co@asdsa.com',
-          phone: 78123123,
+          phone: 781231123,
           cell: 78123777,
           workshop: workshops[0].id,
         },
@@ -226,7 +226,7 @@ export class DataPreloadService {
           model: 'HEALEY',
           year: 1994,
           color: 'VERDE LIMON',
-          colorType: 'Perlado',
+          colorType: 'Tricapa perla especial',
           plate: 'RE12H4',
         },
         {
@@ -238,20 +238,20 @@ export class DataPreloadService {
       const budgetTest2 = await this.loadBudgetsTest(
         {
           fullName: 'Samuel Barreto',
-          documentType: 'Cedula',
+          documentType: 'Cédula',
           document: '543221',
           address: 'al lado por alli mismo',
           email: 'co@asdsa.com',
-          phone: 78123123,
+          phone: 781231123,
           cell: 78123777,
           workshop: workshops[0].id,
         },
         {
           vehicleMake: 'TOYOTA',
-          model: 'FJ CRUISER',
+          model: 'FORTUNER',
           year: 1994,
           color: 'CAQUI OSCURO',
-          colorType: 'Perlado',
+          colorType: 'Tricapa',
           plate: 'RE1234',
         },
         {
@@ -260,6 +260,17 @@ export class DataPreloadService {
         },
         recepcionData,
       );
+      const budgetTest3 = await this.loadBudgetsTest(
+        budgetTest2.clientData,
+        budgetTest2.vehicle,
+        {
+          insuranceCompany: insurances[1],
+          quoter: contizadorData,
+        },
+        recepcionData,
+        'express',
+      );
+
       return {
         admin,
         cotizador,
@@ -267,48 +278,68 @@ export class DataPreloadService {
         repuesto,
         budgetTest1,
         budgetTest2,
+        budgetTest3,
       };
     }
     return 'datos ya cargados';
   }
 
   async loadBudgetsTest(
-    createClientDto: CreateClientDto,
-    createVehicleDto: CreateVehicleDto,
+    createClientDto: any,
+    createVehicleDto: any,
     createBudgetDto: any,
     user: User,
+    mode: string = 'normal',
   ) {
-    const newClient = await this.clientsService.create(createClientDto);
-    createBudgetDto.client = newClient.id;
+    if (mode === 'normal') {
+      const newClient = await this.clientsService.create(createClientDto);
+      createBudgetDto.client = newClient.id;
 
-    await this.historiesService.createHistory({
-      message: `Registro de un nuevo cliente`,
-      user: user._id,
-      client: newClient.id,
-    });
-    createVehicleDto.workshop = createClientDto.workshop;
-    createVehicleDto.owner = createBudgetDto.client;
-    const newVehicle = await this.vehiclesService.create(createVehicleDto);
+      await this.historiesService.createHistory({
+        message: `Registro de un nuevo cliente`,
+        user: user._id,
+        client: newClient.id,
+      });
+      createVehicleDto.workshop = createClientDto.workshop;
+      createVehicleDto.owner = createBudgetDto.client;
+      const newVehicle = await this.vehiclesService.create(createVehicleDto);
 
-    await this.historiesService.createHistory({
-      message: `Registro de un nuevo vehiculo`,
-      user: user._id,
-      vehicle: newVehicle.id,
-    });
-    createBudgetDto.vehicle = newVehicle;
-    createBudgetDto.workshop = createClientDto.workshop;
-    const newBufget = await this.budgetsService.create(createBudgetDto);
+      await this.historiesService.createHistory({
+        message: `Registro de un nuevo vehiculo`,
+        user: user._id,
+        vehicle: newVehicle.id,
+      });
+      createBudgetDto.vehicle = newVehicle;
+      createBudgetDto.workshop = createClientDto.workshop;
+      const newBufget = await this.budgetsService.create(createBudgetDto);
 
-    const log = await this.historiesService.createHistory({
-      message: `Creación del presupuesto ${newBufget.code
-        .toString()
-        .padStart(6, '0')}`,
-      user: user._id,
-      budget: newBufget.id,
-    });
-    newBufget.history.push(log.id);
-    newBufget.save();
-    return newBufget;
+      const log = await this.historiesService.createHistory({
+        message: `Creación del presupuesto ${newBufget.code
+          .toString()
+          .padStart(6, '0')}`,
+        user: user._id,
+        budget: newBufget.id,
+      });
+      newBufget.history.push(log.id);
+      newBufget.save();
+      return newBufget;
+    } else {
+      createBudgetDto.client = createClientDto.id;
+      createBudgetDto.vehicle = createVehicleDto;
+      createBudgetDto.workshop = createClientDto.workshop;
+      const newBufget = await this.budgetsService.create(createBudgetDto);
+
+      const log = await this.historiesService.createHistory({
+        message: `Creación del presupuesto ${newBufget.code
+          .toString()
+          .padStart(6, '0')}`,
+        user: user._id,
+        budget: newBufget.id,
+      });
+      newBufget.history.push(log.id);
+      newBufget.save();
+      return newBufget;
+    }
   }
 
   async loadClient() {
@@ -318,7 +349,7 @@ export class DataPreloadService {
     if (workshops.length > 0 && clients.length === 0) {
       const client1: CreateClientDto = {
         fullName: 'Pedro Fuentes',
-        documentType: 'Cedula',
+        documentType: 'Cédula',
         document: '24001001',
         address: 'cumana',
         email: 'client1@email.com',
@@ -332,7 +363,7 @@ export class DataPreloadService {
 
       const client2: CreateClientDto = {
         fullName: 'Jose Carvajal',
-        documentType: 'Cedula',
+        documentType: 'Cédula',
         document: '24001011',
         address: 'cumana',
         email: 'client2@email.com',
@@ -346,7 +377,7 @@ export class DataPreloadService {
 
       const client3: CreateClientDto = {
         fullName: 'Pedro Fuentes',
-        documentType: 'Cedula',
+        documentType: 'Cédula',
         document: '24001001',
         address: 'cumana',
         email: 'client3@email.com',
