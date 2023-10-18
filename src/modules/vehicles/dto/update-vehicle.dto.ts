@@ -46,6 +46,5 @@ export class UpdateVehicleDto {
   workshop?: string;
 
   @IsOptional()
-  @IsMongoId() // Debe ser un ID válido de MongoDB
   owner?: string;
 }
