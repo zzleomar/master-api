@@ -16,6 +16,7 @@ export class CreateBudgetDto {
   @IsString()
   vehicle?: string;
 
+  @IsOptional()
   @IsString()
   @IsMongoId()
   workshop?: string;
@@ -24,8 +25,8 @@ export class CreateBudgetDto {
   @IsString()
   client?: string;
 
+  @IsOptional()
   @IsString()
-  @Length(1, 12)
   claimNumber?: string;
 
   @IsNotEmpty()
@@ -35,12 +36,10 @@ export class CreateBudgetDto {
 
   @IsOptional()
   @IsString()
-  @IsMongoId()
   adjuster?: string;
 
   @IsOptional()
   @IsString()
-  @IsEmail()
   adjusterEmail?: string;
 
   @IsOptional()
@@ -49,7 +48,6 @@ export class CreateBudgetDto {
 
   @IsOptional()
   @IsNumber()
-  @MaxLength(8)
   adjusterCell?: number;
 
   @IsNotEmpty()

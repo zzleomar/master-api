@@ -16,6 +16,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersSchema } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { InsurancesSchema } from '../insurances/entities/insurance.entity';
+import { InsurancesService } from '../insurances/insurances.service';
 
 @Module({
   imports: [
@@ -28,11 +30,15 @@ import { AuthGuard } from '../auth/auth.guard';
     MongooseModule.forFeature([{ name: 'Vehicle', schema: VehicleSchema }]),
     MongooseModule.forFeature([{ name: 'Client', schema: ClientsSchema }]),
     MongooseModule.forFeature([{ name: 'Budget', schema: BudgetSchema }]),
+    MongooseModule.forFeature([
+      { name: 'Insurance', schema: InsurancesSchema },
+    ]),
     MongooseModule.forFeature([{ name: 'Workshop', schema: WorkshopSchema }]),
     MongooseModule.forFeature([{ name: 'User', schema: UsersSchema }]), // Registra el modelo User
   ],
   controllers: [BudgetsController],
   providers: [
+    InsurancesService,
     BudgetsService,
     HistoriesService,
     ClientsService,

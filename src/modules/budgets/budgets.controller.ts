@@ -1,9 +1,7 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Query,
   Request,
   BadRequestException,
   UseGuards,
@@ -42,6 +40,7 @@ export class BudgetsController {
     const user = request['user'];
     //TODO falta el flujo para cuando es un vehiculo registrado pero se cambia de dueño u otra info que pueda actualizarse del vehiculo
     if (!createBudgetDto.client) {
+      createClientDto.workshop = user.workshop;
       const newClient = await this.clientsService.create(createClientDto);
       createBudgetDto.client = newClient.id;
       await this.historiesService.createHistory({
@@ -52,14 +51,16 @@ export class BudgetsController {
     }
     if (!createBudgetDto.vehicle) {
       createVehicleDto.owner = createBudgetDto.client;
+      createVehicleDto.workshop = user.workshop;
       const newVehicle = await this.vehiclesService.create(createVehicleDto);
-      createBudgetDto.vehicle = newVehicle.id;
+      createBudgetDto.vehicle = newVehicle;
       await this.historiesService.createHistory({
         message: `Registro de un nuevo vehiculo`,
         user: user._id,
         vehicle: newVehicle.id,
       });
     }
+    createBudgetDto.workshop = user.workshop;
     const newBufget = await this.budgetsService.create(createBudgetDto);
     const log = await this.historiesService.createHistory({
       message: `Creación del presupuesto ${newBufget.code

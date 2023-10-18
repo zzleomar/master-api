@@ -35,7 +35,6 @@ export class CreateClientDto {
 
   @IsOptional()
   @IsNumber()
-  @MaxLength(8)
   phone?: number;
 
   @IsOptional()
@@ -44,7 +43,6 @@ export class CreateClientDto {
 
   @IsOptional()
   @IsNumber()
-  @MaxLength(8)
   cell?: number;
 
   @IsOptional()

@@ -11,6 +11,7 @@ import { ClientsService } from '../clients/clients.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { UsersService } from '../users/users.service';
 import { Budget } from './entities/budget.entity';
+import { InsurancesService } from '../insurances/insurances.service';
 
 @Injectable()
 export class BudgetsService {
@@ -20,13 +21,20 @@ export class BudgetsService {
     private readonly clientsService: ClientsService,
     private readonly vehiclesService: VehiclesService,
     private readonly usersService: UsersService,
+    private readonly insurancesService: InsurancesService,
   ) {}
 
-  async create(body: CreateBudgetDto): Promise<Budget> {
+  async create(data: CreateBudgetDto): Promise<Budget> {
+    const body: any = { ...data };
     await this.workshopsService.findOne(body.workshop);
     const owner = await this.clientsService.findOne(body.client);
     await this.vehiclesService.findOne(body.vehicle);
-    await this.usersService.findOne(body.quoter);
+    const quoter = await this.usersService.findOne(body.quoter);
+    const insurances = await this.insurancesService.findOne(
+      body.insuranceCompany,
+    );
+    body.quoter = quoter;
+    body.insuranceCompany = insurances;
 
     const createdBudge = new this.budgetModel(body);
 
