@@ -11,6 +11,7 @@ import { UserPayload } from './entities/user.payload';
 import { CreateWorkshopDto } from 'src/modules/workshops/dto/create-workshop.dto';
 import { WorkshopsService } from 'src/modules/workshops/workshops.service';
 import { User } from './entities/user.entity';
+import { map, omit } from 'lodash';
 
 @Injectable()
 export class UsersService {
@@ -83,9 +84,9 @@ export class UsersService {
     return user;
   }
 
-  async findAll(): Promise<UserPayload[]> {
-    const users = await this.userModel.find();
-    return users;
+  async findAll(filter: any): Promise<UserPayload[]> {
+    const users = await this.userModel.find(filter);
+    return map(users, (obj) => omit(obj, 'password'));
   }
 
   async update(id: string, body: UpdateUserDto): Promise<UserPayload> {

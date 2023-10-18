@@ -11,7 +11,7 @@ import { MakesModelsService } from './makes-models.service';
 import { CreateMakesModelDto } from './dto/create-makes-model.dto';
 import { UpdateMakesModelDto } from './dto/update-makes-model.dto';
 
-@Controller('makes-models')
+@Controller('makesModels')
 export class MakesModelsController {
   constructor(private readonly makesModelsService: MakesModelsService) {}
 

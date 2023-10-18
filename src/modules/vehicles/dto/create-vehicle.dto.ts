@@ -14,7 +14,7 @@ export class CreateVehicleDto {
 
   @IsNotEmpty()
   @IsString()
-  modelo: string;
+  model: string;
 
   @IsNumber()
   year: number;
@@ -27,7 +27,6 @@ export class CreateVehicleDto {
 
   @IsOptional()
   @IsString()
-  @Length(17)
   chassis?: string;
 
   @IsString()
@@ -38,9 +37,11 @@ export class CreateVehicleDto {
   @IsNumber()
   mileage?: number;
 
+  @IsOptional()
   @IsMongoId() // Debe ser un ID válido de MongoDB
   workshop?: string;
 
+  @IsOptional()
   @IsMongoId() // Debe ser un ID válido de MongoDB
   owner?: string;
 }

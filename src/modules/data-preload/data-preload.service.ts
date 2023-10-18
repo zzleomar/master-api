@@ -167,7 +167,7 @@ export class DataPreloadService {
 
   async loadDataTest() {
     const workshops = await this.workshopService.findAll();
-    const users = await this.userService.findAll();
+    const users = await this.userService.findAll(null);
     const insurances = await this.insurancesService.findAll();
     if (workshops.length === 1 && users.length == 2) {
       const admin: CreateUserDto = {
@@ -223,7 +223,7 @@ export class DataPreloadService {
         },
         {
           vehicleMake: 'JENSEN',
-          modelo: 'HEALEY',
+          model: 'HEALEY',
           year: 1994,
           color: 'VERDE LIMON',
           colorType: 'Perlado',
@@ -248,7 +248,7 @@ export class DataPreloadService {
         },
         {
           vehicleMake: 'TOYOTA',
-          modelo: 'FJ CRUISER',
+          model: 'FJ CRUISER',
           year: 1994,
           color: 'CAQUI OSCURO',
           colorType: 'Perlado',
@@ -375,7 +375,7 @@ export class DataPreloadService {
     if (workshops.length > 0 && clients.length > 0 && vehicles.length == 0) {
       const car1: CreateVehicleDto = {
         vehicleMake: 'porshe',
-        modelo: 'MONTA CARGA',
+        model: 'MONTA CARGA',
         year: 1994,
         color: 'red',
         colorType: 'brillo',
@@ -389,7 +389,7 @@ export class DataPreloadService {
 
       const car2: CreateVehicleDto = {
         vehicleMake: 'porshe',
-        modelo: 'CF-506',
+        model: 'CF-506',
         year: 1995,
         color: 'blue',
         colorType: 'mate',
@@ -403,7 +403,7 @@ export class DataPreloadService {
 
       const car3: CreateVehicleDto = {
         vehicleMake: 'misubichi',
-        modelo: 'CF-486',
+        model: 'CF-486',
         year: 1985,
         color: 'red',
         colorType: 'red',
