@@ -66,6 +66,8 @@ export class CreateBudgetDto {
   type?: string;
 
   @IsOptional()
-  @IsNumber()
-  code?: number;
+  mode?: string;
+
+  @IsOptional()
+  newOwner?: boolean;
 }

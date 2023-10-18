@@ -114,7 +114,7 @@ export class BudgetsService {
         },
         {
           $match: {
-            'vehicle.plate': { $regex: value },
+            'vehicle.plate': { $regex: value, $options: 'i' },
             workshop: filter.workshop,
           },
         },

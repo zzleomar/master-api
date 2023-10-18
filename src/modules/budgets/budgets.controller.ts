@@ -39,7 +39,7 @@ export class BudgetsController {
   ) {
     const user = request['user'];
     //TODO falta el flujo para cuando es un vehiculo registrado pero se cambia de dueño u otra info que pueda actualizarse del vehiculo
-    if (!createBudgetDto.client) {
+    if (!createBudgetDto.client && createBudgetDto.mode === 'normal') {
       createClientDto.workshop = user.workshop;
       const newClient = await this.clientsService.create(createClientDto);
       createBudgetDto.client = newClient.id;
@@ -48,8 +48,19 @@ export class BudgetsController {
         user: user._id,
         client: newClient.id,
       });
+    } else if (createBudgetDto.mode === 'express' && createBudgetDto.newOwner) {
+      createClientDto.workshop = user.workshop;
+      const newClient = await this.clientsService.create(createClientDto);
+      createBudgetDto.client = newClient.id;
+      await this.historiesService.createHistory({
+        message: `Registro de un nuevo cliente`,
+        user: user._id,
+        client: newClient.id,
+      });
+    } else {
+      createBudgetDto.client = createVehicleDto.owner;
     }
-    if (!createBudgetDto.vehicle) {
+    if (!createBudgetDto.vehicle && createBudgetDto.mode === 'normal') {
       createVehicleDto.owner = createBudgetDto.client;
       createVehicleDto.workshop = user.workshop;
       const newVehicle = await this.vehiclesService.create(createVehicleDto);
@@ -59,6 +70,11 @@ export class BudgetsController {
         user: user._id,
         vehicle: newVehicle.id,
       });
+    } else {
+      const newVehicle = await this.vehiclesService.findOne(
+        createBudgetDto.vehicle,
+      );
+      createBudgetDto.vehicle = newVehicle;
     }
     createBudgetDto.workshop = user.workshop;
     const newBufget = await this.budgetsService.create(createBudgetDto);

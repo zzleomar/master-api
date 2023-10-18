@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, ObjectId, Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Client } from 'src/modules/clients/entities/client.entity';
 
 export enum StatusBudget {
@@ -24,7 +24,12 @@ export class Budget extends Document {
   @Prop({ required: true, unique: false }) // Permitir duplicados
   code: number;
 
-  @Prop({ type: String, enum: StatusBudget, required: true, default: 'Espera' })
+  @Prop({
+    type: String,
+    enum: StatusBudget,
+    required: true,
+    default: 'Estimado',
+  })
   status: [StatusBudget];
 
   @Prop({
