@@ -23,15 +23,18 @@ deploy:
   stage: deploy
   tags:
     - docker
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   script:
+    - apk update && apk add openssh-client
     - mkdir -p ~/.ssh
     - echo "$ID_ED25519" | tr -d '\r' > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
-    - apk update && apk add openssh-client
-    - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
-    - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $IMAGE_TAG"
-    - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f megashopty-api || true"
-    - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 8000:8000 --name megashopty-api $IMAGE_TAG"
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh $SERVER_USER@$SERVER_IP "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+    - ssh $SERVER_USER@$SERVER_IP "docker pull $IMAGE_TAG"
+    - ssh $SERVER_USER@$SERVER_IP "docker container rm -f megashopty-api || true"
+    - ssh $SERVER_USER@$SERVER_IP "docker run -d -p 8000:8000 --name megashopty-api $IMAGE_TAG"
   environment:
     name: docker
     url: http://$SERVER_IP
