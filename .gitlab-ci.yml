@@ -29,7 +29,7 @@ deploy:
     - eval $(ssh-agent -s)
     - echo "${SSH_PRIVATE_KEY}" | tr -d ' ' | base64 --decode > private.ssh_key
     - chmod 600 private.ssh_key
-    - echo private.ssh_key
+    - cat private.ssh_key
     - ssh-add private.ssh_key
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
