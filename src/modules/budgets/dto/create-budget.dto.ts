@@ -70,4 +70,7 @@ export class CreateBudgetDto {
 
   @IsOptional()
   newOwner?: boolean;
+
+  @IsOptional()
+  editVehicle?: boolean;
 }

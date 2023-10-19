@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Client } from 'src/modules/clients/entities/client.entity';
+import { Vehicle } from 'src/modules/vehicles/entities/vehicle.entity';
 
 export enum StatusBudget {
   Espera,
@@ -51,6 +52,9 @@ export class Budget extends Document {
 
   @Prop({ type: Client, required: true })
   clientData: Client;
+
+  @Prop({ type: Vehicle, required: true })
+  vehicleData: Vehicle;
 
   @Prop()
   history: Array<History>;

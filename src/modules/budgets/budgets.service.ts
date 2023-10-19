@@ -28,7 +28,7 @@ export class BudgetsService {
     const body: any = { ...data };
     await this.workshopsService.findOne(body.workshop);
     const owner = await this.clientsService.findOne(body.client);
-    await this.vehiclesService.findOne(body.vehicle);
+    const vehicle = await this.vehiclesService.findOne(body.vehicle);
     const quoter = await this.usersService.findOne(body.quoter);
     const insurances = await this.insurancesService.findOne(
       body.insuranceCompany,
@@ -48,6 +48,7 @@ export class BudgetsService {
       createdBudge.code = await this.getLastCode();
     }
     createdBudge.clientData = owner.toObject();
+    createdBudge.vehicleData = vehicle.toObject();
     createdBudge.statusChange = [
       {
         initDate: new Date(),
