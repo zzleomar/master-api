@@ -27,9 +27,9 @@ deploy:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - mkdir -p ~/.ssh
     - eval $(ssh-agent -s)
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 --decode)
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - echo "$SSH_PRIVATE_KEY" | base64 --decode | tr -d '\r' | ssh-add - > /dev/null
     - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
     - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $IMAGE_TAG"
     - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f megashopty-api || true"
