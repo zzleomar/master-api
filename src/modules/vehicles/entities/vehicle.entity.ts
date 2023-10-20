@@ -7,7 +7,7 @@ export class Vehicle extends Document {
   vehicleMake: string;
 
   @Prop({ required: true })
-  model: string;
+  vehicleModel: string;
 
   @Prop({ required: true })
   year: number;

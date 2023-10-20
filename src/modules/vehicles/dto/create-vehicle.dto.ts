@@ -14,7 +14,7 @@ export class CreateVehicleDto {
 
   @IsNotEmpty()
   @IsString()
-  model: string;
+  vehicleModel: string;
 
   @IsNumber()
   year: number;

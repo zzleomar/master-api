@@ -10,7 +10,6 @@ import { map, replace, filter, groupBy } from 'lodash';
 import { MakesModelsService } from '../makes-models/makes-models.service';
 import { ColorsService } from '../colors/colors.service';
 import { InsurancesService } from '../insurances/insurances.service';
-import { CreateBudgetDto } from '../budgets/dto/create-budget.dto';
 import { CreateVehicleDto } from '../vehicles/dto/create-vehicle.dto';
 import { CreateClientDto } from '../clients/dto/create-client.dto';
 import { User } from '../users/entities/user.entity';
@@ -223,7 +222,7 @@ export class DataPreloadService {
         },
         {
           vehicleMake: 'JENSEN',
-          model: 'HEALEY',
+          vehicleModel: 'HEALEY',
           year: 1994,
           color: 'VERDE LIMON',
           colorType: 'Tricapa perla especial',
@@ -248,7 +247,7 @@ export class DataPreloadService {
         },
         {
           vehicleMake: 'TOYOTA',
-          model: 'FORTUNER',
+          vehicleModel: 'FORTUNER',
           year: 1994,
           color: 'CAQUI OSCURO',
           colorType: 'Tricapa',
@@ -406,7 +405,7 @@ export class DataPreloadService {
     if (workshops.length > 0 && clients.length > 0 && vehicles.length == 0) {
       const car1: CreateVehicleDto = {
         vehicleMake: 'porshe',
-        model: 'MONTA CARGA',
+        vehicleModel: 'MONTA CARGA',
         year: 1994,
         color: 'red',
         colorType: 'brillo',
@@ -420,7 +419,7 @@ export class DataPreloadService {
 
       const car2: CreateVehicleDto = {
         vehicleMake: 'porshe',
-        model: 'CF-506',
+        vehicleModel: 'CF-506',
         year: 1995,
         color: 'blue',
         colorType: 'mate',
@@ -434,7 +433,7 @@ export class DataPreloadService {
 
       const car3: CreateVehicleDto = {
         vehicleMake: 'misubichi',
-        model: 'CF-486',
+        vehicleModel: 'CF-486',
         year: 1985,
         color: 'red',
         colorType: 'red',

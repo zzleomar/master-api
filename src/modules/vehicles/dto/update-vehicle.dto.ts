@@ -13,7 +13,7 @@ export class UpdateVehicleDto {
 
   @IsOptional()
   @IsString()
-  model: string;
+  vehicleModel: string;
 
   @IsOptional()
   @IsNumber()
