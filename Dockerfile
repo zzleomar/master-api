@@ -10,8 +10,7 @@ COPY ./tsconfig*.json ./
 COPY ./src ./src
 
 #Copiar archivo .env 
-ARG DOTENV
-RUN echo "${DOTENV}" | base64 -d  > .env
+RUN echo $DOTENV | base64 -d  > .env
 
 # Instalar las dependencias de la aplicación
 RUN npm install
