@@ -15,7 +15,7 @@ build:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --build-arg DOTENV="${DOTENV}" -t $IMAGE_TAG .
+    - docker build --build-arg DOTENV="${DOTENV_API_TEST}" -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
 
 deploy:
@@ -34,6 +34,6 @@ deploy:
     - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
     - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $IMAGE_TAG"
     - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f megashopty-api || true"
-    - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 8000:8000 --name megashopty-api $IMAGE_TAG"
+    - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 8000:8000 --restart always --name megashopty-api-test $IMAGE_TAG"
   only:
     - docker
