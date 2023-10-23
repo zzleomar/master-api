@@ -108,6 +108,11 @@ export class BudgetsController {
         },
         filters.value,
       );
+    } else if (filters.filter === 'id' && filters.value) {
+      return this.budgetsService.findBy({
+        workshop: user.workshop,
+        _id: filters.value,
+      });
     } else {
       return new BadRequestException('value requerid');
     }

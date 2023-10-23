@@ -69,6 +69,17 @@ export class BudgetsService {
     return budget;
   }
 
+  async findBy(filter: any, error: boolean = true): Promise<any> {
+    const budget = await this.budgetModel.find({ ...filter }).exec();
+
+    if (!budget && error) {
+      throw new NotFoundException(
+        `Budge with ${JSON.stringify(filter)} not found `,
+      );
+    }
+    return budget;
+  }
+
   async getLastCode(): Promise<number> {
     const lastBudget = await this.budgetModel.findOne(
       {},
