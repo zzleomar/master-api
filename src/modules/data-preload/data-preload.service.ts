@@ -10,6 +10,13 @@ import { map, replace, filter, groupBy } from 'lodash';
 import { MakesModelsService } from '../makes-models/makes-models.service';
 import { ColorsService } from '../colors/colors.service';
 import { InsurancesService } from '../insurances/insurances.service';
+import { CreateVehicleDto } from '../vehicles/dto/create-vehicle.dto';
+import { CreateClientDto } from '../clients/dto/create-client.dto';
+import { User } from '../users/entities/user.entity';
+import { HistoriesService } from '../histories/histories.service';
+import { BudgetsService } from '../budgets/budgets.service';
+import { VehiclesService } from '../vehicles/vehicles.service';
+import { ClientsService } from '../clients/clients.service';
 
 @Injectable()
 export class DataPreloadService {
@@ -20,6 +27,10 @@ export class DataPreloadService {
     private readonly makesModelsService: MakesModelsService,
     private readonly colorsService: ColorsService,
     private readonly insurancesService: InsurancesService,
+    private readonly clientsService: ClientsService,
+    private readonly vehiclesService: VehiclesService,
+    private readonly budgetsService: BudgetsService,
+    private readonly historiesService: HistoriesService,
   ) {}
 
   async loadSuper() {
@@ -96,7 +107,6 @@ export class DataPreloadService {
           })),
         }),
       );
-
       const createdMakesModels =
         await this.makesModelsService.createMany(formattedData);
 
@@ -156,7 +166,8 @@ export class DataPreloadService {
 
   async loadDataTest() {
     const workshops = await this.workshopService.findAll();
-    const users = await this.userService.findAll();
+    const users = await this.userService.findAll(null);
+    const insurances = await this.insurancesService.findAll();
     if (workshops.length === 1 && users.length == 2) {
       const admin: CreateUserDto = {
         firstName: 'José',
@@ -177,7 +188,7 @@ export class DataPreloadService {
         password: await this.authService.hashPassword('cotizador123'),
         workshop: workshops[0].id,
       };
-      await this.userService.create(cotizador);
+      const contizadorData = await this.userService.create(cotizador);
       const recepcion: CreateUserDto = {
         firstName: 'Luisa',
         lastName: 'Gomez',
@@ -187,7 +198,7 @@ export class DataPreloadService {
         password: await this.authService.hashPassword('recepcion123'),
         workshop: workshops[0].id,
       };
-      await this.userService.create(recepcion);
+      const recepcionData = await this.userService.create(recepcion);
       const repuesto: CreateUserDto = {
         firstName: 'Leo',
         lastName: 'Susu',
@@ -198,7 +209,247 @@ export class DataPreloadService {
         workshop: workshops[0].id,
       };
       await this.userService.create(repuesto);
-      return { admin, cotizador, recepcion, repuesto };
+      const budgetTest1 = await this.loadBudgetsTest(
+        {
+          fullName: 'Leomar Esparragoza',
+          documentType: 'Cédula',
+          document: '12345',
+          address: 'al lado por alli mismo',
+          email: 'co@asdsa.com',
+          phone: 781231123,
+          cell: 78123777,
+          workshop: workshops[0].id,
+        },
+        {
+          vehicleMake: 'JENSEN',
+          vehicleModel: 'HEALEY',
+          year: 1994,
+          color: 'VERDE LIMON',
+          colorType: 'Tricapa perla especial',
+          plate: 'RE12H4',
+        },
+        {
+          insuranceCompany: insurances[0],
+          quoter: contizadorData,
+        },
+        recepcionData,
+      );
+      const budgetTest2 = await this.loadBudgetsTest(
+        {
+          fullName: 'Samuel Barreto',
+          documentType: 'Cédula',
+          document: '543221',
+          address: 'al lado por alli mismo',
+          email: 'co@asdsa.com',
+          phone: 781231123,
+          cell: 78123777,
+          workshop: workshops[0].id,
+        },
+        {
+          vehicleMake: 'TOYOTA',
+          vehicleModel: 'FORTUNER',
+          year: 1994,
+          color: 'CAQUI OSCURO',
+          colorType: 'Tricapa',
+          plate: 'RE1234',
+        },
+        {
+          insuranceCompany: insurances[0],
+          quoter: contizadorData,
+        },
+        recepcionData,
+      );
+      const budgetTest3 = await this.loadBudgetsTest(
+        budgetTest2.clientData,
+        budgetTest2.vehicle,
+        {
+          insuranceCompany: insurances[1],
+          quoter: contizadorData,
+        },
+        recepcionData,
+        'express',
+      );
+
+      return {
+        admin,
+        cotizador,
+        recepcion,
+        repuesto,
+        budgetTest1,
+        budgetTest2,
+        budgetTest3,
+      };
+    }
+    return 'datos ya cargados';
+  }
+
+  async loadBudgetsTest(
+    createClientDto: any,
+    createVehicleDto: any,
+    createBudgetDto: any,
+    user: User,
+    mode: string = 'normal',
+  ) {
+    if (mode === 'normal') {
+      const newClient = await this.clientsService.create(createClientDto);
+      createBudgetDto.client = newClient.id;
+
+      await this.historiesService.createHistory({
+        message: `Registro de un nuevo cliente`,
+        user: user._id,
+        client: newClient.id,
+      });
+      createVehicleDto.workshop = createClientDto.workshop;
+      createVehicleDto.owner = createBudgetDto.client;
+      const newVehicle = await this.vehiclesService.create(createVehicleDto);
+
+      await this.historiesService.createHistory({
+        message: `Registro de un nuevo vehiculo`,
+        user: user._id,
+        vehicle: newVehicle.id,
+      });
+      createBudgetDto.vehicle = newVehicle;
+      createBudgetDto.workshop = createClientDto.workshop;
+      const newBufget = await this.budgetsService.create(createBudgetDto);
+
+      const log = await this.historiesService.createHistory({
+        message: `Creación del presupuesto ${newBufget.code
+          .toString()
+          .padStart(6, '0')}`,
+        user: user._id,
+        budget: newBufget.id,
+      });
+      newBufget.history.push(log.id);
+      newBufget.save();
+      return newBufget;
+    } else {
+      createBudgetDto.client = createClientDto.id;
+      createBudgetDto.vehicle = createVehicleDto;
+      createBudgetDto.workshop = createClientDto.workshop;
+      const newBufget = await this.budgetsService.create(createBudgetDto);
+
+      const log = await this.historiesService.createHistory({
+        message: `Creación del presupuesto ${newBufget.code
+          .toString()
+          .padStart(6, '0')}`,
+        user: user._id,
+        budget: newBufget.id,
+      });
+      newBufget.history.push(log.id);
+      newBufget.save();
+      return newBufget;
+    }
+  }
+
+  async loadClient() {
+    const workshops = await this.workshopService.findAll();
+    const clients = await this.clientsService.findAll();
+
+    if (workshops.length > 0 && clients.length === 0) {
+      const client1: CreateClientDto = {
+        fullName: 'Pedro Fuentes',
+        documentType: 'Cédula',
+        document: '24001001',
+        address: 'cumana',
+        email: 'client1@email.com',
+        phonePrefix: '+58',
+        phone: 4120102123,
+        cellPrefix: '+58',
+        cell: 2930102123,
+        workshop: workshops[0].id,
+      };
+      await this.clientsService.create(client1);
+
+      const client2: CreateClientDto = {
+        fullName: 'Jose Carvajal',
+        documentType: 'Cédula',
+        document: '24001011',
+        address: 'cumana',
+        email: 'client2@email.com',
+        phonePrefix: '+58',
+        phone: 4120102456,
+        cellPrefix: '+58',
+        cell: 2930102456,
+        workshop: workshops[0].id,
+      };
+      await this.clientsService.create(client2);
+
+      const client3: CreateClientDto = {
+        fullName: 'Pedro Fuentes',
+        documentType: 'Cédula',
+        document: '24001001',
+        address: 'cumana',
+        email: 'client3@email.com',
+        phonePrefix: '+58',
+        phone: 4120102789,
+        cellPrefix: '+58',
+        cell: 2930102789,
+        workshop: workshops[0].id,
+      };
+      await this.clientsService.create(client3);
+
+      return {
+        client1,
+        client2,
+        client3,
+      };
+    }
+    return 'datos ya cargados';
+  }
+
+  async loadVehicle() {
+    const workshops = await this.workshopService.findAll();
+    const clients = await this.clientsService.findAll();
+    const vehicles = await this.vehiclesService.findAll();
+
+    if (workshops.length > 0 && clients.length > 0 && vehicles.length == 0) {
+      const car1: CreateVehicleDto = {
+        vehicleMake: 'porshe',
+        vehicleModel: 'MONTA CARGA',
+        year: 1994,
+        color: 'red',
+        colorType: 'brillo',
+        chassis: '',
+        plate: 'mega10',
+        mileage: 12000,
+        workshop: workshops[0].id,
+        owner: clients[0].id,
+      };
+      await this.vehiclesService.create(car1);
+
+      const car2: CreateVehicleDto = {
+        vehicleMake: 'porshe',
+        vehicleModel: 'CF-506',
+        year: 1995,
+        color: 'blue',
+        colorType: 'mate',
+        chassis: '',
+        plate: 'mega11',
+        mileage: 13540,
+        workshop: workshops[0].id,
+        owner: clients[1].id,
+      };
+      await this.vehiclesService.create(car2);
+
+      const car3: CreateVehicleDto = {
+        vehicleMake: 'misubichi',
+        vehicleModel: 'CF-486',
+        year: 1985,
+        color: 'red',
+        colorType: 'red',
+        chassis: '',
+        plate: 'mega20',
+        mileage: 12387,
+        workshop: workshops[0].id,
+        owner: clients[2].id,
+      };
+      await this.vehiclesService.create(car3);
+
+      return {
+        car1,
+        car2,
+        car3,
+      };
     }
     return 'datos ya cargados';
   }

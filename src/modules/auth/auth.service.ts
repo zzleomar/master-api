@@ -24,8 +24,10 @@ export class AuthService {
     });
     return {
       token,
+      user: payload,
     };
   }
+
   async hashPassword(password: string): Promise<string> {
     const saltRounds = parseInt(process.env.SALTROUNDS);
     return bcrypt.hash(password, saltRounds);

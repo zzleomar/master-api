@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Request,
   Body,
   Patch,
   Param,
@@ -51,7 +52,17 @@ export class UsersController {
   @Master()
   @UseGuards(AuthGuard)
   findAll() {
-    return this.usersService.findAll();
+    return this.usersService.findAll(null);
+  }
+
+  @Get('/quoter')
+  @UseGuards(AuthGuard)
+  findQuoter(@Request() request) {
+    const user = request['user'];
+    return this.usersService.findAll({
+      workshop: user.workshop,
+      role: 'Cotizador',
+    });
   }
 
   @UseGuards(AuthGuard)
