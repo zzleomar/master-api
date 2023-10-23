@@ -9,6 +9,9 @@ COPY ./package*.json ./
 COPY ./tsconfig*.json ./
 COPY ./src ./src
 
+#Copiar archivo .env 
+ARG ENV
+RUN echo "${ENV}" | base64 -d  > .env
 # Instalar las dependencias de la aplicación
 RUN npm install
 
