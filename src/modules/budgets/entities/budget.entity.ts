@@ -1,3 +1,4 @@
+import { Insurance } from './../../insurances/entities/insurance.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Client } from 'src/modules/clients/entities/client.entity';
@@ -73,6 +74,9 @@ export class Budget extends Document {
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'Insurance' })
   insuranceCompany: Types.ObjectId;
+
+  @Prop({ required: true, type: Insurance })
+  insuranceData: Insurance;
 
   @Prop()
   adjuster: string;

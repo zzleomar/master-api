@@ -50,6 +50,7 @@ export class BudgetsService {
     }
     createdBudge.clientData = owner.toObject();
     createdBudge.vehicleData = vehicle.toObject();
+    createdBudge.insuranceData = insurances.toObject();
     createdBudge.statusChange = [
       {
         initDate: new Date(),
