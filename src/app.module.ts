@@ -17,6 +17,7 @@ import { BudgetsModule } from './modules/budgets/budgets.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
 import { HistoriesModule } from './modules/histories/histories.module';
+import { PartsModule } from './modules/parts/parts.module';
 dotenv.config();
 
 @Module({
@@ -37,6 +38,7 @@ dotenv.config();
     ClientsModule,
     VehiclesModule,
     HistoriesModule,
+    PartsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthGuard],

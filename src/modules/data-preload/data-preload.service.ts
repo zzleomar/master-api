@@ -17,6 +17,7 @@ import { HistoriesService } from '../histories/histories.service';
 import { BudgetsService } from '../budgets/budgets.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { ClientsService } from '../clients/clients.service';
+import { PartsService } from '../parts/parts.service';
 
 @Injectable()
 export class DataPreloadService {
@@ -31,6 +32,7 @@ export class DataPreloadService {
     private readonly vehiclesService: VehiclesService,
     private readonly budgetsService: BudgetsService,
     private readonly historiesService: HistoriesService,
+    private readonly partsService: PartsService,
   ) {}
 
   async loadSuper() {
@@ -153,10 +155,26 @@ export class DataPreloadService {
         formattedDataInsurance,
       );
 
+      //carga de las partes
+      relativePath = './utils/parts.json';
+      absolutePath = path.join(replace(__dirname, 'dist', 'src'), relativePath);
+      rawData = fs.readFileSync(absolutePath, 'utf8');
+      jsonData = JSON.parse(rawData);
+      const formattedDataParts = map(jsonData, (item) => {
+        return {
+          name: item.name,
+          side: item.side,
+        };
+      });
+
+      const createdParts =
+        await this.partsService.createMany(formattedDataParts);
+
       return {
         createdMakesModels: `${createdMakesModels.length} marcas y modelos`,
         createdColors: `${createdColors.length} colores`,
         createdInsurances: `${createdInsurances.length} aseguradoras`,
+        createdParts: `${createdParts.length} partes`,
         master,
         workshop,
       };
@@ -269,6 +287,55 @@ export class DataPreloadService {
         recepcionData,
         'express',
       );
+
+      this.budgetsService.saveInspection(budgetTest1, {
+        budgetId: budgetTest1.id,
+        documents: [],
+        photos: [
+          'https://loscoches.com/wp-content/uploads/2021/05/taller-de-carros-autorizado.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2017/09/timos_talleres.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2022/02/taller-2-1046x616.jpg',
+        ],
+        others: [
+          {
+            other: 'balancear',
+            comment: '',
+            price: 200,
+          },
+        ],
+        pieces: [
+          {
+            side: 'Parte Trasera',
+            operation: 'Reparar y pintar',
+            piece: 'Tapa de Baul',
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Trasera',
+            operation: 'Cambiar y pintar',
+            piece: 'Tapa central defensa trasera',
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Lado Izquierdo',
+            operation: 'Reparar',
+            piece: 'Molduras y clips delantero izquierdo',
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Frontal',
+            operation: 'Cambiar',
+            piece: 'Radiador de  agua',
+            comment: 'llego no funcional',
+            price: 100,
+          },
+        ],
+        comment: 'comentario general de la reparaci[on',
+        tax: 0,
+      });
 
       return {
         admin,

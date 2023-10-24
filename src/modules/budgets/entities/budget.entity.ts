@@ -21,6 +21,15 @@ interface StatusChangeBudget {
   status: StatusBudget;
 }
 
+interface Inspection {
+  pieces: object[];
+  others: object[];
+  photos: string[];
+  documents: string[];
+  created: Date;
+  updated: Date;
+}
+
 @Schema({ timestamps: true })
 export class Budget extends Document {
   @Prop({ required: true, unique: false }) // Permitir duplicados
@@ -86,6 +95,15 @@ export class Budget extends Document {
 
   @Prop()
   statusChange: Array<StatusChangeBudget>;
+
+  @Prop({ type: Object })
+  inspection: Inspection;
+
+  @Prop()
+  comment: string;
+
+  @Prop({ default: 0 })
+  tax: number;
 }
 
 export const BudgetSchema = SchemaFactory.createForClass(Budget);
