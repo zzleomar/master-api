@@ -9,8 +9,8 @@ COPY ./package*.json ./
 COPY ./tsconfig*.json ./
 COPY ./src ./src
 
-#Copiar archivo .env 
-ARG DOTENV
+#Copiar archivo .env
+ARG DOTENV PORT
 RUN echo $DOTENV | base64 -d  > .env
 
 # Instalar las dependencias de la aplicación
@@ -20,7 +20,7 @@ RUN npm install
 RUN npm run build
 
 # Exponer el puerto en el que se ejecutará la aplicación NestJS
-EXPOSE 8000
+EXPOSE $PORT
 
 # Comando para ejecutar la aplicación
 CMD ["npm", "start"]
