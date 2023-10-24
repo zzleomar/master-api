@@ -14,8 +14,15 @@ import { CreateClientDto } from '../clients/dto/create-client.dto';
 import { CreateVehicleDto } from '../vehicles/dto/create-vehicle.dto';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { ClientsService } from '../clients/clients.service';
-import { Admin, Master, Recepcion, Repuesto } from '../auth/utils/decorator';
+import {
+  Admin,
+  Cotizador,
+  Master,
+  Recepcion,
+  Repuesto,
+} from '../auth/utils/decorator';
 import { FilterBudgetDto } from './dto/filter-bugget.dto';
+import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -93,6 +100,7 @@ export class BudgetsController {
 
   @Recepcion()
   @Master()
+  @Admin()
   @Repuesto()
   @Recepcion()
   @UseGuards(AuthGuard)
@@ -116,6 +124,31 @@ export class BudgetsController {
     } else {
       return new BadRequestException('value requerid');
     }
+  }
+
+  @Cotizador()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/inspection')
+  async inspection(@Request() request, @Body() data: InspectionBudgetDto) {
+    const user = request['user'];
+    const budgetData = await this.budgetsService.findBy({
+      workshop: user.workshop,
+      _id: data.budgetId,
+    });
+    const budgetUpdate = await this.budgetsService.saveInspection(
+      budgetData[0],
+      data,
+    );
+    await this.historiesService.createHistory({
+      message: `Registro de inspección del presupuesto ${budgetUpdate.code
+        .toString()
+        .padStart(6, '0')}`,
+      user: user._id,
+      budget: budgetUpdate.id,
+    });
+    return budgetUpdate;
   }
 
   //TODO

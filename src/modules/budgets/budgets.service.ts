@@ -12,6 +12,7 @@ import { VehiclesService } from '../vehicles/vehicles.service';
 import { UsersService } from '../users/users.service';
 import { Budget } from './entities/budget.entity';
 import { InsurancesService } from '../insurances/insurances.service';
+import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 
 @Injectable()
 export class BudgetsService {
@@ -69,7 +70,7 @@ export class BudgetsService {
     return budget;
   }
 
-  async findBy(filter: any, error: boolean = true): Promise<any> {
+  async findBy(filter: any, error: boolean = true): Promise<Budget[]> {
     const budget = await this.budgetModel.find({ ...filter }).exec();
 
     if (!budget && error) {
@@ -141,5 +142,22 @@ export class BudgetsService {
         },
       ])
       .exec();
+  }
+
+  async saveInspection(budgetData: Budget, data: InspectionBudgetDto) {
+    budgetData.inspection = {
+      pieces: data.pieces,
+      others: data.others,
+      photos: data.photos,
+      documents: data.documents,
+      updated: new Date(),
+      created: new Date(),
+    };
+    budgetData.comment = data.comment ?? '';
+    budgetData.tax = data.tax ?? 0;
+
+    await budgetData.save();
+
+    return budgetData;
   }
 }

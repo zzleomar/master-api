@@ -5,7 +5,6 @@ import {
   IsNotEmpty,
   IsMongoId,
   IsNumber,
-  MaxLength,
 } from 'class-validator';
 
 export class CreateClientDto {

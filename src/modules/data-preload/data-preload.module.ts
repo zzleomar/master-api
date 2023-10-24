@@ -31,6 +31,8 @@ import { ClientsSchema } from '../clients/entities/client.entity';
 import { HistoriesSchema } from '../histories/entities/history.entity';
 import { VehicleSchema } from '../vehicles/entities/vehicle.entity';
 import { VehiclesService } from '../vehicles/vehicles.service';
+import { PartsSchema } from '../parts/entities/part.entity';
+import { PartsService } from '../parts/parts.service';
 
 @Module({
   imports: [
@@ -41,6 +43,7 @@ import { VehiclesService } from '../vehicles/vehicles.service';
     MongooseModule.forFeature([{ name: 'Vehicle', schema: VehicleSchema }]),
     MongooseModule.forFeature([{ name: 'Client', schema: ClientsSchema }]),
     MongooseModule.forFeature([{ name: 'Budget', schema: BudgetSchema }]),
+    MongooseModule.forFeature([{ name: 'Part', schema: PartsSchema }]),
     MongooseModule.forFeature([
       { name: 'Insurance', schema: InsurancesSchema },
     ]),
@@ -66,6 +69,7 @@ import { VehiclesService } from '../vehicles/vehicles.service';
     HistoriesService,
     ClientsService,
     VehiclesService,
+    PartsService,
   ],
 })
 export class DataPreloadModule {}
