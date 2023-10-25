@@ -109,18 +109,39 @@ export class BudgetsController {
     const user = request['user'];
     if (!filters.filter || filters.filter === 'all') {
       return this.budgetsService.findAll({ workshop: user.workshop });
-    } else if (filters.filter === 'plate' && filters.value) {
-      return this.budgetsService.findBudgetsByPlate(
-        {
+    } else if (filters.value) {
+      if (
+        ['plate', 'vehicle', 'insuranceCompany', 'client'].includes(
+          filters.filter,
+        )
+      ) {
+        let filterField = 'vehicle.plate';
+
+        switch (filters.filter) {
+          case 'insuranceCompany':
+            filterField = 'insuranceCompany.name';
+            break;
+          case 'client':
+            filterField = 'client.fullName';
+            break;
+          case 'vehicle':
+            filterField = 'vehicle.plate';
+            break;
+          default:
+            filterField = 'vehicle.plate';
+            break;
+        }
+
+        return this.budgetsService.findBudgetsByFilter(
+          { workshop: user.workshop },
+          { ...filters, label: filterField },
+        );
+      } else if (filters.filter === 'id' || filters.filter === 'code') {
+        return this.budgetsService.findBy({
           workshop: user.workshop,
-        },
-        filters.value,
-      );
-    } else if (filters.filter === 'id' && filters.value) {
-      return this.budgetsService.findBy({
-        workshop: user.workshop,
-        _id: filters.value,
-      });
+          [filters.filter === 'id' ? '_id' : filters.filter]: filters.value,
+        });
+      }
     } else {
       return new BadRequestException('value requerid');
     }
