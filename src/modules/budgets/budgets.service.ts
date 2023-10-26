@@ -99,7 +99,24 @@ export class BudgetsService {
       .exec();
   }
 
-  async findBudgetsByPlate(filter: any, value: string): Promise<any[]> {
+  async saveInspection(budgetData: Budget, data: InspectionBudgetDto) {
+    budgetData.inspection = {
+      pieces: data.pieces,
+      others: data.others,
+      photos: data.photos,
+      documents: data.documents,
+      updated: new Date(),
+      created: new Date(),
+    };
+    budgetData.comment = data.comment ?? '';
+    budgetData.tax = data.tax ?? 0;
+
+    await budgetData.save();
+
+    return budgetData;
+  }
+
+  async findBudgetsByFilter(filter: any, value: any): Promise<any[]> {
     return this.budgetModel
       .aggregate([
         {
@@ -128,7 +145,7 @@ export class BudgetsService {
         },
         {
           $match: {
-            'vehicle.plate': { $regex: value, $options: 'i' },
+            [value.label]: { $regex: value.value, $options: 'i' },
             workshop: filter.workshop,
           },
         },
@@ -141,24 +158,12 @@ export class BudgetsService {
         {
           $unwind: '$quoter', // Desagrupa el resultado del $lookup de User
         },
+        {
+          $sort: {
+            updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+          },
+        },
       ])
       .exec();
-  }
-
-  async saveInspection(budgetData: Budget, data: InspectionBudgetDto) {
-    budgetData.inspection = {
-      pieces: data.pieces,
-      others: data.others,
-      photos: data.photos,
-      documents: data.documents,
-      updated: new Date(),
-      created: new Date(),
-    };
-    budgetData.comment = data.comment ?? '';
-    budgetData.tax = data.tax ?? 0;
-
-    await budgetData.save();
-
-    return budgetData;
   }
 }

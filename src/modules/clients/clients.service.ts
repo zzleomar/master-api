@@ -42,7 +42,7 @@ export class ClientsService {
     if (search && search !== '') {
       clients = await this.clientModel.find({
         where: {
-          plate: {
+          fullName: {
             like: `%${search}%`,
           },
         },
@@ -63,7 +63,7 @@ export class ClientsService {
     let workshop = null;
     const client = await this.clientModel.findOne({ id: id }).exec();
     if (!client) {
-      throw new NotFoundException(`Client with plate:${id} not found `);
+      throw new NotFoundException(`Client with id:${id} not found `);
     }
     if (client.role === 'Admin') {
       workshop = await this.workshopsService.findOne(client.workshop, false);
