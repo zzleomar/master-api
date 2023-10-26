@@ -38,12 +38,22 @@ export class FilesController {
       throw new BadRequestException('Base64 inválido');
     }
     const buffer = Buffer.from(base64.replace(/^[^,]+,/, ''), 'base64');
+    const extend = filename.split('.');
+    let contentType = 'application/octet-stream';
+    if (['png', 'jpg'].includes(extend[extend.length - 1])) {
+      contentType = `image/${
+        extend[extend.length - 1] === 'png' ? 'png' : 'jpeg'
+      }`;
+    }
+    const now = new Date();
+    const formattedDate = now.toISOString().replace(/[^0-9]/g, '');
     const params: S3.PutObjectRequest = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: filename, // Nombre de archivo en S3
+      Key: `${formattedDate} ${filename}`, // Nombre de archivo en S3
       Body: buffer, // Datos binarios del archivo
       ContentEncoding: 'base64',
-      ContentType: 'application/octet-stream',
+      ContentType: contentType,
+      ACL: 'public-read',
     };
 
     try {
@@ -52,7 +62,8 @@ export class FilesController {
         Bucket: params.Bucket,
         Key: params.Key,
       });
-      return { fileUrl };
+      const response = fileUrl.split('?');
+      return { fileUrl: response[0] };
     } catch (error) {
       console.error(error);
       throw new BadRequestException('Error al cargar el archivo en S3.');
