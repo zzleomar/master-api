@@ -22,7 +22,7 @@ export class PartsService {
   }
 
   async findOne(filter: any): Promise<Part | null> {
-    return this.partModel.findById(filter).exec();
+    return this.partModel.findOne(filter).exec();
   }
 
   async update(id: string, partsData: any): Promise<Part | null> {
