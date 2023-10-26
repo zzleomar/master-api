@@ -288,6 +288,16 @@ export class DataPreloadService {
         'express',
       );
 
+      const piece1 = await this.partsService.findOne({ name: 'Tapa de Baul' });
+      const piece2 = await this.partsService.findOne({
+        name: 'Tapa central defensa trasera',
+      });
+      const piece3 = await this.partsService.findOne({
+        name: 'Molduras y clips delantero izquierdo',
+      });
+      const piece4 = await this.partsService.findOne({
+        name: 'Radiador de  agua',
+      });
       this.budgetsService.saveInspection(budgetTest1, {
         budgetId: budgetTest1.id,
         documents: [],
@@ -307,28 +317,28 @@ export class DataPreloadService {
           {
             side: 'Parte Trasera',
             operation: 'Reparar y pintar',
-            piece: 'Tapa de Baul',
+            piece: piece1,
             comment: '',
             price: 0,
           },
           {
             side: 'Parte Trasera',
             operation: 'Cambiar y pintar',
-            piece: 'Tapa central defensa trasera',
+            piece: piece2,
             comment: '',
             price: 0,
           },
           {
             side: 'Lado Izquierdo',
             operation: 'Reparar',
-            piece: 'Molduras y clips delantero izquierdo',
+            piece: piece3,
             comment: '',
             price: 0,
           },
           {
             side: 'Parte Frontal',
             operation: 'Cambiar',
-            piece: 'Radiador de  agua',
+            piece: piece4,
             comment: 'llego no funcional',
             price: 100,
           },
