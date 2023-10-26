@@ -21,8 +21,8 @@ export class PartsService {
     return this.partModel.find().exec();
   }
 
-  async findOne(id: string): Promise<Part | null> {
-    return this.partModel.findById(id).exec();
+  async findOne(filter: any): Promise<Part | null> {
+    return this.partModel.findById(filter).exec();
   }
 
   async update(id: string, partsData: any): Promise<Part | null> {

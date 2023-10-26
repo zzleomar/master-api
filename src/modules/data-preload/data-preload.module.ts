@@ -33,6 +33,7 @@ import { VehicleSchema } from '../vehicles/entities/vehicle.entity';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { PartsSchema } from '../parts/entities/part.entity';
 import { PartsService } from '../parts/parts.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { PartsService } from '../parts/parts.service';
     ClientsService,
     VehiclesService,
     PartsService,
+    AuthGuard,
   ],
 })
 export class DataPreloadModule {}

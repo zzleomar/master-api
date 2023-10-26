@@ -6,8 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DataPreloadService } from './data-preload.service';
-// import { SuperAdmin } from '../auth/utils/decorator';
-// import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('preload')
 export class DataPreloadController {
