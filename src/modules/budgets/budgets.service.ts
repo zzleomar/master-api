@@ -121,14 +121,6 @@ export class BudgetsService {
       .aggregate([
         {
           $lookup: {
-            from: 'clients', // Nombre de la colección Client
-            localField: 'client',
-            foreignField: '_id',
-            as: 'clients',
-          },
-        },
-        {
-          $lookup: {
             from: 'vehicles', // Nombre de la colección Vehicle
             localField: 'vehicle', // Campo en Budget que hace referencia a Vehicle
             foreignField: '_id', // Campo en Vehicle que se relaciona con Budget
@@ -157,9 +149,6 @@ export class BudgetsService {
             workshop: filter.workshop,
           },
         },
-        /* {
-          $unwind: '$client', // Desagrupa el resultado del $lookup de Client
-        }, */
         {
           $unwind: '$vehicle', // Desagrupa el resultado del $lookup de Vehicle
         },

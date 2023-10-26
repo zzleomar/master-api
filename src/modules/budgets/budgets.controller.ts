@@ -115,20 +115,20 @@ export class BudgetsController {
           filters.filter,
         )
       ) {
-        let filterField = 'vehicle.plate';
+        let filterField = 'vehicleData.plate';
 
         switch (filters.filter) {
           case 'insuranceCompany':
             filterField = 'insuranceCompany.name';
             break;
           case 'client':
-            filterField = 'client.fullName';
+            filterField = 'clientData.fullName';
             break;
           case 'vehicle':
-            filterField = 'vehicle.plate';
+            filterField = 'vehicleData.plate';
             break;
           default:
-            filterField = 'vehicle.plate';
+            filterField = 'vehicleData.plate';
             break;
         }
 
