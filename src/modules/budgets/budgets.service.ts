@@ -79,6 +79,7 @@ export class BudgetsService {
         `Budge with ${JSON.stringify(filter)} not found `,
       );
     }
+
     return budget;
   }
 
@@ -145,7 +146,10 @@ export class BudgetsService {
         },
         {
           $match: {
-            [value.label]: { $regex: value.value, $options: 'i' },
+            [value.label]:
+              typeof value.value === 'string'
+                ? { $regex: value.value, $options: 'i' }
+                : value.value,
             workshop: filter.workshop,
           },
         },
