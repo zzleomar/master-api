@@ -24,6 +24,8 @@ import {
 import { FilterBudgetDto } from './dto/filter-bugget.dto';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 import mongoose from 'mongoose';
+import { StatusBudgetDto } from './dto/status-budget.dto';
+import { StatusBudget } from './entities/budget.entity';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -182,7 +184,38 @@ export class BudgetsController {
     return budgetUpdate;
   }
 
-  //TODO
-  //insertar presupuestos de pruebas
-  //listar presumuestos de pruebas
+  @Recepcion()
+  @Cotizador()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/status')
+  async status(@Request() request, @Body() data: StatusBudgetDto) {
+    const user = request['user'];
+    const budgetData = await this.budgetsService.findBy({
+      workshop: user.workshop,
+      _id: data.id,
+    });
+    if (
+      data.status == StatusBudget.Espera &&
+      budgetData[0].status === 'Estimado'
+    ) {
+      const budgetUpdate = await this.budgetsService.updateStatus(
+        budgetData[0],
+        data.status,
+        budgetData[0].status,
+      );
+      await this.historiesService.createHistory({
+        message: `Cambio de estadi del presupuesto ${budgetUpdate.code
+          .toString()
+          .padStart(6, '0')}`,
+        user: user._id,
+        budget: budgetUpdate.id,
+      });
+      return budgetUpdate;
+      //TODO AQUI VA EL CAMBIO DE ESTADO DE ESPERA A APROBADO EN UN ELSE IF
+    } else {
+      return new BadRequestException('Cambio de estado invalido');
+    }
+  }
 }

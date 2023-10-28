@@ -5,14 +5,14 @@ import { Client } from 'src/modules/clients/entities/client.entity';
 import { Vehicle } from 'src/modules/vehicles/entities/vehicle.entity';
 
 export enum StatusBudget {
-  Espera,
-  Estimado,
-  Aprobado,
+  Espera = 'Espera',
+  Estimado = 'Estimado',
+  Aprobado = 'Aprobado',
 }
 
 export enum TypeBudget {
-  Principal,
-  Suplemento,
+  Principal = 'Principal',
+  Suplemento = 'Suplemento',
 }
 
 interface StatusChangeBudget {
@@ -41,7 +41,7 @@ export class Budget extends Document {
     required: true,
     default: 'Estimado',
   })
-  status: [StatusBudget];
+  status: StatusBudget;
 
   @Prop({
     type: String,
@@ -49,7 +49,7 @@ export class Budget extends Document {
     required: true,
     default: 'Principal',
   })
-  type: [TypeBudget];
+  type: TypeBudget;
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'Vehicle' })
   vehicle: Types.ObjectId;

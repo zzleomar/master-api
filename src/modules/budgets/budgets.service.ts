@@ -10,7 +10,7 @@ import { Model } from 'mongoose';
 import { ClientsService } from '../clients/clients.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { UsersService } from '../users/users.service';
-import { Budget } from './entities/budget.entity';
+import { Budget, StatusBudget } from './entities/budget.entity';
 import { InsurancesService } from '../insurances/insurances.service';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 
@@ -115,6 +115,29 @@ export class BudgetsService {
     budgetData.comment = data.comment ?? '';
     budgetData.tax = data.tax ?? 0;
 
+    await budgetData.save();
+
+    return budgetData;
+  }
+
+  async updateStatus(
+    budgetData: Budget,
+    statusNew: StatusBudget,
+    statusLast: StatusBudget,
+  ) {
+    const now = new Date();
+    budgetData.status = statusNew;
+    const itemKeyChange = budgetData.statusChange.findIndex(
+      (item: any) => item.status === statusLast,
+    );
+    if (itemKeyChange) {
+      budgetData.statusChange[itemKeyChange].endDate = now;
+    }
+    budgetData.statusChange.push({
+      initDate: new Date(),
+      endDate: null,
+      status: statusNew,
+    });
     await budgetData.save();
 
     return budgetData;
