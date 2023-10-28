@@ -23,6 +23,7 @@ import {
 } from '../auth/utils/decorator';
 import { FilterBudgetDto } from './dto/filter-bugget.dto';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
+import mongoose from 'mongoose';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -106,18 +107,24 @@ export class BudgetsController {
   @UseGuards(AuthGuard)
   @Post('/list')
   findAll(@Request() request, @Body() filters: FilterBudgetDto) {
+    const filtro: any = filters;
     const user = request['user'];
-    if (!filters.filter || filters.filter === 'all') {
+    if (!filtro.filter || filtro.filter === 'all') {
       return this.budgetsService.findAll({ workshop: user.workshop });
-    } else if (filters.value) {
+    } else if (filtro.value) {
       if (
-        ['plate', 'vehicle', 'insuranceCompany', 'client'].includes(
-          filters.filter,
-        )
+        [
+          'vehicle',
+          'insuranceCompany',
+          'client',
+          'plate',
+          'code',
+          'id',
+        ].includes(filtro.filter)
       ) {
         let filterField = 'vehicleData.plate';
 
-        switch (filters.filter) {
+        switch (filtro.filter) {
           case 'insuranceCompany':
             filterField = 'insuranceCompany.name';
             break;
@@ -127,6 +134,14 @@ export class BudgetsController {
           case 'vehicle':
             filterField = 'vehicleData.plate';
             break;
+          case 'code':
+            filterField = 'code';
+            filtro.value = parseInt(filtro.value);
+            break;
+          case 'id':
+            filterField = '_id';
+            filtro.value = new mongoose.Types.ObjectId(filtro.value);
+            break;
           default:
             filterField = 'vehicleData.plate';
             break;
@@ -134,13 +149,8 @@ export class BudgetsController {
 
         return this.budgetsService.findBudgetsByFilter(
           { workshop: user.workshop },
-          { ...filters, label: filterField },
+          { ...filtro, label: filterField },
         );
-      } else if (filters.filter === 'id' || filters.filter === 'code') {
-        return this.budgetsService.findBy({
-          workshop: user.workshop,
-          [filters.filter === 'id' ? '_id' : filters.filter]: filters.value,
-        });
       }
     } else {
       return new BadRequestException('value requerid');
