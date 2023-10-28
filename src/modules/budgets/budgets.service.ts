@@ -55,7 +55,7 @@ export class BudgetsService {
       {
         initDate: new Date(),
         endDate: null,
-        status: 'Espera',
+        status: 'Estimado',
       },
     ];
     const budget = await createdBudge.save();
@@ -71,8 +71,11 @@ export class BudgetsService {
     return budget;
   }
 
-  async findBy(filter: any, error: boolean = true): Promise<Budget[]> {
-    const budget = await this.budgetModel.find({ ...filter }).exec();
+  async findBy(filter: any, error: boolean = true): Promise<any[]> {
+    const budget = await this.budgetModel
+      .find({ ...filter })
+      .populate(['vehicle', 'insuranceCompany', 'quoter'])
+      .exec();
 
     if (!budget && error) {
       throw new NotFoundException(
