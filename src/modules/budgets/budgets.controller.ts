@@ -26,6 +26,9 @@ import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 import mongoose from 'mongoose';
 import { StatusBudgetDto } from './dto/status-budget.dto';
 import { StatusBudget } from './entities/budget.entity';
+import { UpdateBudgetDto } from './dto/update-budget.dto';
+import { UpdateClientDto } from '../clients/dto/update-client.dto';
+import { UpdateVehicleDto } from '../vehicles/dto/update-vehicle.dto';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -48,7 +51,7 @@ export class BudgetsController {
     @Body() createClientDto: CreateClientDto,
   ) {
     const user = request['user'];
-    //TODO falta el flujo para cuando es un vehiculo registrado pero se cambia de dueño u otra info que pueda actualizarse del vehiculo
+    //TODO falta el flujo de los presupuestos suplementarios
     if (
       (!createBudgetDto.client && createBudgetDto.mode === 'normal') ||
       (createBudgetDto.mode === 'express' && createBudgetDto.newOwner)
@@ -93,6 +96,64 @@ export class BudgetsController {
       message: `Creación del presupuesto ${newBufget.code
         .toString()
         .padStart(6, '0')}`,
+      user: user._id,
+      budget: newBufget.id,
+    });
+    newBufget.history.push(log.id);
+    newBufget.save();
+    return newBufget;
+  }
+
+  @Recepcion()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/update')
+  async update(
+    @Request() request,
+    @Body() updateBudgetDto: UpdateBudgetDto,
+    @Body() updateVehicleDto: UpdateVehicleDto,
+    @Body() updateClientDto: UpdateClientDto,
+  ) {
+    const user = request['user'];
+    const dataBudgets = await this.budgetsService.findBy({
+      _id: updateBudgetDto.id,
+    });
+    const dataBudget = dataBudgets[0];
+    //TODO falta el flujo de los presupuestos suplementarios
+    if (updateBudgetDto.editOwner) {
+      await this.clientsService.update(
+        dataBudget.clientData._id,
+        updateClientDto,
+      );
+      await this.historiesService.createHistory({
+        message: `Datos del cliente actualizados`,
+        user: user._id,
+        client: dataBudget.clientData._id,
+      });
+    }
+    updateBudgetDto.client = dataBudget.clientData._id;
+    if (updateBudgetDto.editVehicle) {
+      await this.vehiclesService.update(
+        dataBudget.vehicleData._id,
+        updateVehicleDto,
+      );
+      await this.historiesService.createHistory({
+        message: `Datos del vehiculo actualizados`,
+        user: user._id,
+        vehicle: dataBudget.vehicleData._id,
+      });
+    }
+
+    updateBudgetDto.workshop = user.workshop;
+    const newBufget = await this.budgetsService.update(
+      dataBudget._id,
+      updateBudgetDto,
+    );
+    const log = await this.historiesService.createHistory({
+      message: `Datos del presupuesto ${newBufget.code
+        .toString()
+        .padStart(6, '0')} actualizado`,
       user: user._id,
       budget: newBufget.id,
     });

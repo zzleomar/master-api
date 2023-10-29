@@ -31,7 +31,7 @@ export class VehiclesService {
     }
   }
 
-  async update(id: string, body: UpdateVehicleDto): Promise<VehiclePayload> {
+  async update(id: string, body: UpdateVehicleDto): Promise<any> {
     if (body.workshop) {
       const workshop = await this.workshopsService.findOne(body.workshop);
       if (!workshop) {

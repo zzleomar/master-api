@@ -6,13 +6,14 @@ import {
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { WorkshopsService } from '../workshops/workshops.service';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { ClientsService } from '../clients/clients.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { UsersService } from '../users/users.service';
 import { Budget, StatusBudget } from './entities/budget.entity';
 import { InsurancesService } from '../insurances/insurances.service';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
+import { UpdateBudgetDto } from './dto/update-budget.dto';
 
 @Injectable()
 export class BudgetsService {
@@ -141,6 +142,27 @@ export class BudgetsService {
     await budgetData.save();
 
     return budgetData;
+  }
+
+  async update(id: string, data: UpdateBudgetDto): Promise<any> {
+    const body: any = { ...data };
+    await this.workshopsService.findOne(body.workshop);
+    const owner = await this.clientsService.findOne(body.client);
+    const vehicle = await this.vehiclesService.findOne(body.vehicle);
+    const quoter = await this.usersService.findOne(body.quoter);
+    const insurances = await this.insurancesService.findOne(
+      body.insuranceCompany,
+    );
+    body.quoter = new Types.ObjectId(quoter._id);
+    body.insuranceCompany = new Types.ObjectId(insurances._id);
+    body.clientData = owner.toObject();
+    body.vehicleData = vehicle.toObject();
+    body.insuranceData = insurances.toObject();
+    delete body.vehicle;
+    delete body.client;
+    await this.budgetModel.updateOne({ _id: id }, body);
+    const updatedBudget = this.budgetModel.findById(id);
+    return updatedBudget;
   }
 
   async findBudgetsByFilter(filter: any, value: any): Promise<any[]> {
