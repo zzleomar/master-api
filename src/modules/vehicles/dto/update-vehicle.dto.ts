@@ -29,7 +29,6 @@ export class UpdateVehicleDto {
 
   @IsOptional()
   @IsString()
-  @Length(17)
   chassis?: string;
 
   @IsOptional()

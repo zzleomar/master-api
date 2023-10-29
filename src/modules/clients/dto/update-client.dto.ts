@@ -2,22 +2,22 @@ import {
   IsString,
   IsEmail,
   IsOptional,
+  IsNotEmpty,
   IsMongoId,
   IsNumber,
-  MaxLength,
 } from 'class-validator';
 
 export class UpdateClientDto {
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   fullName: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   documentType: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   document: string;
 
   @IsOptional()
@@ -34,7 +34,6 @@ export class UpdateClientDto {
 
   @IsOptional()
   @IsNumber()
-  @MaxLength(8)
   phone?: number;
 
   @IsOptional()
@@ -43,7 +42,6 @@ export class UpdateClientDto {
 
   @IsOptional()
   @IsNumber()
-  @MaxLength(8)
   cell?: number;
 
   @IsOptional()
