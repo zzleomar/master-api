@@ -14,6 +14,12 @@ export class Insurance extends Document {
 
   @Prop()
   address: string;
+
+  @Prop()
+  email: string;
+
+  @Prop()
+  fitter: string;
 }
 
 export const InsurancesSchema = SchemaFactory.createForClass(Insurance);
