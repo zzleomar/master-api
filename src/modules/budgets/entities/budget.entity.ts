@@ -94,7 +94,7 @@ export class Budget extends Document {
   quoter: Types.ObjectId;
 
   @Prop()
-  statusChange: Array<StatusChangeBudget>;
+  statusChange: StatusChangeBudget[];
 
   @Prop({ type: Object })
   inspection: Inspection;

@@ -131,7 +131,7 @@ export class BudgetsService {
     const itemKeyChange = budgetData.statusChange.findIndex(
       (item: any) => item.status === statusLast,
     );
-    if (itemKeyChange) {
+    if (itemKeyChange !== undefined && itemKeyChange !== null) {
       budgetData.statusChange[itemKeyChange].endDate = now;
     }
     budgetData.statusChange.push({
@@ -139,7 +139,7 @@ export class BudgetsService {
       endDate: null,
       status: statusNew,
     });
-    await budgetData.save();
+    await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
 
     return budgetData;
   }
