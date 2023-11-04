@@ -18,6 +18,9 @@ import { BudgetsService } from '../budgets/budgets.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { ClientsService } from '../clients/clients.service';
 import { PartsService } from '../parts/parts.service';
+import { StatusBudget } from '../budgets/entities/budget.entity';
+import { RepairOrdersService } from '../repair-orders/repair-orders.service';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class DataPreloadService {
@@ -31,6 +34,7 @@ export class DataPreloadService {
     private readonly clientsService: ClientsService,
     private readonly vehiclesService: VehiclesService,
     private readonly budgetsService: BudgetsService,
+    private readonly repairOrdersService: RepairOrdersService,
     private readonly historiesService: HistoriesService,
     private readonly partsService: PartsService,
   ) {}
@@ -227,7 +231,7 @@ export class DataPreloadService {
         workshop: workshops[0].id,
       };
       await this.userService.create(repuesto);
-      const budgetTest1 = await this.loadBudgetsTest(
+      let budgetTest1 = await this.loadBudgetsTest(
         {
           fullName: 'Leomar Esparragoza',
           documentType: 'Cédula',
@@ -252,7 +256,7 @@ export class DataPreloadService {
         },
         recepcionData,
       );
-      const budgetTest2 = await this.loadBudgetsTest(
+      let budgetTest2 = await this.loadBudgetsTest(
         {
           fullName: 'Samuel Barreto',
           documentType: 'Cédula',
@@ -347,6 +351,89 @@ export class DataPreloadService {
         tax: 0,
       });
 
+      budgetTest2 = await this.budgetsService.saveInspection(budgetTest2, {
+        budgetId: budgetTest2.id,
+        documents: [],
+        photos: [
+          'https://loscoches.com/wp-content/uploads/2021/05/taller-de-carros-autorizado.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2017/09/timos_talleres.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2022/02/taller-2-1046x616.jpg',
+        ],
+        others: [
+          {
+            other: 'balancear',
+            comment: '',
+            price: 200,
+          },
+        ],
+        pieces: [
+          {
+            side: 'Parte Trasera',
+            operation: 'Reparar y pintar',
+            piece: piece1,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Trasera',
+            operation: 'Cambiar y pintar',
+            piece: piece2,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Lado Izquierdo',
+            operation: 'Reparar',
+            piece: piece3,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Frontal',
+            operation: 'Cambiar',
+            piece: piece4,
+            comment: 'llego no funcional',
+            price: 100,
+          },
+        ],
+        comment: 'comentario general de la reparaci[on',
+        tax: 0,
+      });
+
+      budgetTest1 = await this.budgetsService.updateStatus(
+        budgetTest1,
+        StatusBudget.Espera,
+        StatusBudget.Estimado,
+      );
+
+      budgetTest2 = await this.budgetsService.updateStatus(
+        budgetTest2,
+        StatusBudget.Espera,
+        StatusBudget.Estimado,
+      );
+
+      const order1 = await this.repairOrdersService.create(
+        {
+          budgetId: budgetTest1.id,
+          approved: false,
+          inTheWorkshop: true,
+          workshop: new Types.ObjectId(recepcion.workshop),
+        },
+        budgetTest1,
+        recepcionData,
+      );
+
+      const order2 = await this.repairOrdersService.create(
+        {
+          budgetId: budgetTest2.id,
+          approved: true,
+          inTheWorkshop: false,
+          workshop: new Types.ObjectId(recepcion.workshop),
+        },
+        budgetTest2,
+        recepcionData,
+      );
+
       return {
         admin,
         cotizador,
@@ -355,6 +442,8 @@ export class DataPreloadService {
         budgetTest1,
         budgetTest2,
         budgetTest3,
+        order1,
+        order2,
       };
     }
     return 'datos ya cargados';

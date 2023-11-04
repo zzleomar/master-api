@@ -34,6 +34,8 @@ import { VehiclesService } from '../vehicles/vehicles.service';
 import { PartsSchema } from '../parts/entities/part.entity';
 import { PartsService } from '../parts/parts.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { RepairOrderSchema } from '../repair-orders/entities/repair-order.entity';
+import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 
 @Module({
   imports: [
@@ -45,6 +47,9 @@ import { AuthGuard } from '../auth/auth.guard';
     MongooseModule.forFeature([{ name: 'Client', schema: ClientsSchema }]),
     MongooseModule.forFeature([{ name: 'Budget', schema: BudgetSchema }]),
     MongooseModule.forFeature([{ name: 'Part', schema: PartsSchema }]),
+    MongooseModule.forFeature([
+      { name: 'RepairOrder', schema: RepairOrderSchema },
+    ]),
     MongooseModule.forFeature([
       { name: 'Insurance', schema: InsurancesSchema },
     ]),
@@ -59,6 +64,7 @@ import { AuthGuard } from '../auth/auth.guard';
   ],
   controllers: [DataPreloadController],
   providers: [
+    RepairOrdersService,
     DataPreloadService,
     UsersService,
     AuthService,
