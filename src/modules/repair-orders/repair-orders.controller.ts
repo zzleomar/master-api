@@ -8,6 +8,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { FilterOrderDto } from './dto/filter-order.dto';
 import { RepairOrdersService } from './repair-orders.service';
 import { CreateRepairOrderDto } from './dto/create-repair-order.dto';
 import { BudgetsService } from '../budgets/budgets.service';
@@ -17,6 +18,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { StatusRepairOrderstDto } from './dto/status-budget.dto';
 import { HistoriesService } from '../histories/histories.service';
 import { StatusBudget } from '../budgets/entities/budget.entity';
+import mongoose from 'mongoose';
 
 @Controller('repairOrders')
 export class RepairOrdersController {
@@ -75,7 +77,7 @@ export class RepairOrdersController {
   @UseGuards(AuthGuard)
   @Post()
   @Get()
-  findAll(@Request() request) {
+  find(@Request() request) {
     const user = request['user'];
     return this.budgetsService.findAll({ workshop: user.workshop });
   }
@@ -107,6 +109,65 @@ export class RepairOrdersController {
       return ROUpdate;
     } else {
       return new NotFoundException('RO no encontrado');
+    }
+  }
+
+  @Master()
+  @Cotizador()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/list')
+  findAll(@Request() request, @Body() filters: FilterOrderDto) {
+    const filtro: any = filters;
+    const user = request['user'];
+
+    if (!filtro.filter || filtro.filter === 'all') {
+      return this.repairOrdersService.findAll({
+        workshop: new mongoose.Types.ObjectId(user.workshop),
+      });
+    } else if (filtro.value) {
+      if (
+        [
+          'vehicle',
+          'insuranceCompany',
+          'client',
+          'plate',
+          'code',
+          'id',
+        ].includes(filtro.filter)
+      ) {
+        let filterField = 'vehicleData.plate';
+
+        switch (filtro.filter) {
+          case 'insuranceCompany':
+            filterField = 'budgetData.insuranceCompany.name';
+            break;
+          case 'client':
+            filterField = 'budgetData.clientData.fullName';
+            break;
+          case 'vehicle':
+            filterField = 'budgetData.vehicleData.plate';
+            break;
+          case 'code':
+            filterField = 'code';
+            filtro.value = parseInt(filtro.value);
+            break;
+          case 'id':
+            filterField = '_id';
+            filtro.value = new mongoose.Types.ObjectId(filtro.value);
+            break;
+          default:
+            filterField = 'budgetData.vehicleData.plate';
+            break;
+        }
+
+        return this.repairOrdersService.findOrderByFilter(
+          { workshop: new mongoose.Types.ObjectId(user.workshop) },
+          { ...filtro, label: filterField },
+        );
+      }
+    } else {
+      return new BadRequestException('value requerid');
     }
   }
 }

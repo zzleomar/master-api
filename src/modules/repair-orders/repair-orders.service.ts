@@ -237,4 +237,25 @@ export class RepairOrdersService {
 
     return dataRO;
   }
+
+  async findOrderByFilter(filter: any, value: any): Promise<any[]> {
+    return this.repairOrderModel
+      .aggregate([
+        {
+          $match: {
+            [value.label]:
+              typeof value.value === 'string'
+                ? { $regex: value.value, $options: 'i' }
+                : value.value,
+            workshop: filter.workshop,
+          },
+        },
+        {
+          $sort: {
+            updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+          },
+        },
+      ])
+      .exec();
+  }
 }
