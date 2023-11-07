@@ -11,6 +11,7 @@ import { RepairOrdersService } from './repair-orders.service';
 import { CreateRepairOrderDto } from './dto/create-repair-order.dto';
 import { BudgetsService } from '../budgets/budgets.service';
 import { Admin, Cotizador, Master, Recepcion } from '../auth/utils/decorator';
+import { Types } from 'mongoose';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('repairOrders')
@@ -38,14 +39,14 @@ export class RepairOrdersController {
       });
       const order = await this.repairOrdersService.findBy(
         {
-          budget: createRepairOrderDto.budgetId,
+          budget: new Types.ObjectId(createRepairOrderDto.budgetId),
         },
         false,
       );
       if (
         dataBudgets[0].status === 'Espera' &&
         dataBudgets[0].type === 'Principal' &&
-        !order
+        order.length === 0
       ) {
         return this.repairOrdersService.create(
           createRepairOrderDto,
@@ -53,7 +54,7 @@ export class RepairOrdersController {
           user,
         );
       }
-      if (order && dataBudgets[0].type === 'Principal') {
+      if (order.length > 0 && dataBudgets[0].type === 'Principal') {
         return new BadRequestException('Presupuesto ya posee una RO');
       }
 

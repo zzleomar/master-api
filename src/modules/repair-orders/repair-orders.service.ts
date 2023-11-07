@@ -55,7 +55,7 @@ export class RepairOrdersService {
       //si la orden de compra esta aprobada y el carro esta en el taller
       if (createRepairOrderDto.approved && createRepairOrderDto.inTheWorkshop) {
         if (pieces.length === 0) {
-          createdOrder.statusVehicle = 'Esperando turno'; //TODO falta confirmar este estado en este punto
+          createdOrder.statusVehicle = 'Esperando turno';
         } else {
           createdOrder.statusVehicle = 'Esperando piezas';
         }
