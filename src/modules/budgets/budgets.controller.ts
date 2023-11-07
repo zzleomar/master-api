@@ -267,9 +267,9 @@ export class BudgetsController {
         budgetData[0].status,
       );
       await this.historiesService.createHistory({
-        message: `Cambio de estadi del presupuesto ${budgetUpdate.code
+        message: `Cambio de estado del presupuesto ${budgetUpdate.code
           .toString()
-          .padStart(6, '0')}`,
+          .padStart(6, '0')} a ${budgetUpdate.status} a ${StatusBudget.Espera}`,
         user: user._id,
         budget: budgetUpdate.id,
       });

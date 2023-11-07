@@ -6,6 +6,7 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { RepairOrdersService } from './repair-orders.service';
 import { CreateRepairOrderDto } from './dto/create-repair-order.dto';
@@ -13,11 +14,15 @@ import { BudgetsService } from '../budgets/budgets.service';
 import { Admin, Cotizador, Master, Recepcion } from '../auth/utils/decorator';
 import { Types } from 'mongoose';
 import { AuthGuard } from '../auth/auth.guard';
+import { StatusRepairOrderstDto } from './dto/status-budget.dto';
+import { HistoriesService } from '../histories/histories.service';
+import { StatusBudget } from '../budgets/entities/budget.entity';
 
 @Controller('repairOrders')
 export class RepairOrdersController {
   constructor(
     private readonly repairOrdersService: RepairOrdersService,
+    private readonly historiesService: HistoriesService,
     private readonly budgetsService: BudgetsService,
   ) {}
 
@@ -44,7 +49,7 @@ export class RepairOrdersController {
         false,
       );
       if (
-        dataBudgets[0].status === 'Espera' &&
+        dataBudgets[0].status == StatusBudget.Espera &&
         dataBudgets[0].type === 'Principal' &&
         order.length === 0
       ) {
@@ -73,5 +78,35 @@ export class RepairOrdersController {
   findAll(@Request() request) {
     const user = request['user'];
     return this.budgetsService.findAll({ workshop: user.workshop });
+  }
+
+  @Recepcion()
+  @Cotizador()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/status')
+  async status(@Request() request, @Body() data: StatusRepairOrderstDto) {
+    const user = request['user'];
+    const ROData = await this.repairOrdersService.findBy({
+      workshop: user.workshop,
+      _id: data.id,
+    });
+    if (ROData.length > 0) {
+      const ROUpdate = await this.repairOrdersService.changeStatus(
+        ROData[0],
+        data,
+      );
+      await this.historiesService.createHistory({
+        message: `Cambio de estado del vehiculo de la RO ${ROUpdate.code
+          .toString()
+          .padStart(6, '0')} a ${ROUpdate.statusVehicle}`,
+        user: user._id,
+        ro: ROUpdate.id,
+      });
+      return ROUpdate;
+    } else {
+      return new NotFoundException('RO no encontrado');
+    }
   }
 }

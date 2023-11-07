@@ -48,6 +48,9 @@ export class RepairOrder extends Document {
   @Prop({ type: Boolean, default: true })
   inTheWorkshop: boolean;
 
+  @Prop({ type: Boolean, default: false })
+  piecesToWork: boolean;
+
   @Prop({
     type: String,
     enum: StatusRepairOrder,

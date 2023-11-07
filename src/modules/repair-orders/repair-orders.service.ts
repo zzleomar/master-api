@@ -10,6 +10,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { WorkshopsService } from '../workshops/workshops.service';
 import { filter, map } from 'lodash';
 import { HistoriesService } from '../histories/histories.service';
+import { StatusRepairOrderstDto } from './dto/status-budget.dto';
+import { RepairOrder, StatusVehicle } from './entities/repair-order.entity';
 
 @Injectable()
 export class RepairOrdersService {
@@ -99,7 +101,7 @@ export class RepairOrdersService {
       await this.historiesService.createHistory({
         message: `Creación de RO ${order.code.toString().padStart(6, '0')}`,
         user: user._id,
-        budget: createdOrder.id,
+        ro: createdOrder.id,
       });
 
       return order;
@@ -132,5 +134,107 @@ export class RepairOrdersService {
     }
 
     return repairOrder;
+  }
+
+  async changeStatus(dataRO: RepairOrder, data: StatusRepairOrderstDto) {
+    let ro;
+    switch (dataRO.statusVehicle) {
+      case 'Esperando piezas':
+        if (data.inTheWorkshop && data.piecesToWork) {
+          ro = await this.updateStatusVehicle(
+            dataRO,
+            StatusVehicle.EsperandoTurno,
+            dataRO.statusVehicle,
+            {
+              inTheWorkshop: data.inTheWorkshop,
+              piecesToWork: data.piecesToWork,
+            },
+          );
+        }
+        if (!data.inTheWorkshop && data.piecesToWork) {
+          ro = await this.updateStatusVehicle(
+            dataRO,
+            StatusVehicle.EsperandoCliente,
+            dataRO.statusVehicle,
+            {
+              inTheWorkshop: data.inTheWorkshop,
+              piecesToWork: data.piecesToWork,
+            },
+          );
+        }
+        break;
+      case 'Esperando aprobación':
+        if (data.approved) {
+          ro = await this.updateStatusVehicle(
+            dataRO,
+            StatusVehicle.EsperandoPieza,
+            dataRO.statusVehicle,
+            {
+              approved: data.approved,
+            },
+          );
+        }
+        break;
+      case 'Esperando cliente':
+        if (data.inTheWorkshop && data.piecesToWork) {
+          ro = await this.updateStatusVehicle(
+            dataRO,
+            StatusVehicle.EsperandoTurno,
+            dataRO.statusVehicle,
+            {
+              inTheWorkshop: data.inTheWorkshop,
+              piecesToWork: data.piecesToWork,
+            },
+          );
+        }
+        if (data.inTheWorkshop && !data.piecesToWork) {
+          ro = await this.updateStatusVehicle(
+            dataRO,
+            StatusVehicle.EsperandoPieza,
+            dataRO.statusVehicle,
+            {
+              inTheWorkshop: data.inTheWorkshop,
+              piecesToWork: data.piecesToWork,
+            },
+          );
+        }
+        break;
+      default:
+        ro = null;
+        break;
+    }
+    return ro;
+  }
+
+  async updateStatusVehicle(
+    dataRO: RepairOrder,
+    statusNew: StatusVehicle,
+    statusLast: StatusVehicle,
+    data?: any,
+  ) {
+    const now = new Date();
+    dataRO.statusVehicle = statusNew;
+    const itemKeyChange = dataRO.statusChangeVehicle.findIndex(
+      (item: any) => item.status === statusLast,
+    );
+    if (itemKeyChange !== undefined && itemKeyChange !== null) {
+      dataRO.statusChangeVehicle[itemKeyChange].endDate = now;
+    }
+    dataRO.statusChangeVehicle.push({
+      initDate: new Date(),
+      endDate: null,
+      status: statusNew,
+    });
+    dataRO.approved =
+      data.approved !== undefined ? data.approved : dataRO.approved;
+    dataRO.inTheWorkshop =
+      data.inTheWorkshop !== undefined
+        ? data.inTheWorkshop
+        : dataRO.inTheWorkshop;
+    dataRO.piecesToWork =
+      data.piecesToWork !== undefined ? data.piecesToWork : dataRO.piecesToWork;
+    await this.repairOrderModel.updateOne({ _id: dataRO._id }, dataRO);
+
+    return dataRO;
   }
 }

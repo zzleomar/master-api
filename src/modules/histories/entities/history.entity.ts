@@ -12,6 +12,9 @@ export class History extends Document {
   @Prop({ type: String, ref: 'Budget' })
   budget: string;
 
+  @Prop({ type: String, ref: 'RepairOrder' })
+  ro: string;
+
   @Prop({ type: String, ref: 'Vehicle' })
   vehicle: string;
 

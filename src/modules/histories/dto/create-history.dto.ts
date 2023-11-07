@@ -15,6 +15,10 @@ export class CreateHistoryDto {
 
   @IsOptional()
   @IsMongoId() // Valida que sea un ID de Mongo válido (por ejemplo, un ID de presupuesto)
+  ro?: string;
+
+  @IsOptional()
+  @IsMongoId() // Valida que sea un ID de Mongo válido (por ejemplo, un ID de presupuesto)
   vehicle?: string;
 
   @IsOptional()
