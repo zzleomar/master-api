@@ -265,14 +265,8 @@ export class BudgetsController {
         budgetData[0],
         data.status,
         budgetData[0].status,
+        user,
       );
-      await this.historiesService.createHistory({
-        message: `Cambio de estado del presupuesto ${budgetUpdate.code
-          .toString()
-          .padStart(6, '0')} a ${budgetUpdate.status} a ${StatusBudget.Espera}`,
-        user: user._id,
-        budget: budgetUpdate.id,
-      });
       return budgetUpdate;
       //TODO AQUI VA EL CAMBIO DE ESTADO DE ESPERA A APROBADO EN UN ELSE IF
     } else {

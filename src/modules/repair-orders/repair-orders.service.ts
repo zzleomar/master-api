@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateRepairOrderDto } from './dto/create-repair-order.dto';
-import { Budget } from '../budgets/entities/budget.entity';
+import { Budget, StatusBudget } from '../budgets/entities/budget.entity';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { WorkshopsService } from '../workshops/workshops.service';
@@ -13,6 +13,7 @@ import { HistoriesService } from '../histories/histories.service';
 import { StatusRepairOrderstDto } from './dto/status-budget.dto';
 import { StatusRepairOrder } from './entities/repair-order.entity';
 import { RepairOrder, StatusVehicle } from './entities/repair-order.entity';
+import { BudgetsService } from '../budgets/budgets.service';
 
 @Injectable()
 export class RepairOrdersService {
@@ -20,6 +21,7 @@ export class RepairOrdersService {
     @InjectModel('RepairOrder') private readonly repairOrderModel: Model<any>,
     private readonly workshopsService: WorkshopsService,
     private readonly historiesService: HistoriesService,
+    private readonly budgetsSevice: BudgetsService,
   ) {}
 
   async create(
@@ -34,8 +36,8 @@ export class RepairOrdersService {
         filter(
           dataBudgets.inspection.pieces,
           (item: any) =>
-            item.operation === 'cambiar' ||
-            item.operation === 'cambiar y pintar',
+            item.operation === 'Cambiar' ||
+            item.operation === 'Cambiar y pintar',
         ),
         (item2: any) => {
           return {
@@ -48,7 +50,7 @@ export class RepairOrdersService {
           };
         },
       );
-
+      body.workshop = new Types.ObjectId(body.workshop);
       const createdOrder = new this.repairOrderModel(body);
       createdOrder.budget = new Types.ObjectId(dataBudgets._id);
       createdOrder.budgetData = dataBudgets.toObject();
@@ -58,10 +60,16 @@ export class RepairOrdersService {
       //si la orden de compra esta aprobada y el carro esta en el taller
       if (createRepairOrderDto.approved && createRepairOrderDto.inTheWorkshop) {
         if (pieces.length === 0) {
-          createdOrder.statusVehicle = 'Esperando turno';
+          createdOrder.statusVehicle = StatusVehicle.EsperandoTurno;
         } else {
-          createdOrder.statusVehicle = 'Esperando piezas';
+          createdOrder.statusVehicle = StatusVehicle.EsperandoPieza;
         }
+        this.budgetsSevice.updateStatus(
+          dataBudgets,
+          StatusBudget.Aprobado,
+          StatusBudget.Espera,
+          user,
+        );
       }
 
       //si la orden de compra esta aprobada y el carro no esta en el taller
@@ -70,10 +78,16 @@ export class RepairOrdersService {
         !createRepairOrderDto.inTheWorkshop
       ) {
         if (pieces.length === 0) {
-          createdOrder.statusVehicle = 'Esperando cliente';
+          createdOrder.statusVehicle = StatusVehicle.EsperandoCliente;
         } else {
-          createdOrder.statusVehicle = 'Esperando piezas';
+          createdOrder.statusVehicle = StatusVehicle.EsperandoPieza;
         }
+        this.budgetsSevice.updateStatus(
+          dataBudgets,
+          StatusBudget.Aprobado,
+          StatusBudget.Espera,
+          user,
+        );
       }
 
       //si la orden de compra no esta aprobada y el carro esta en el taller
@@ -81,7 +95,7 @@ export class RepairOrdersService {
         !createRepairOrderDto.approved &&
         createRepairOrderDto.inTheWorkshop
       ) {
-        createdOrder.statusVehicle = 'Esperando aprobación';
+        createdOrder.statusVehicle = StatusVehicle.EsperandoAprobacion;
       }
       createdOrder.statusChangeVehicle = [
         {
@@ -137,7 +151,11 @@ export class RepairOrdersService {
     return repairOrder;
   }
 
-  async changeStatus(dataRO: RepairOrder, data: StatusRepairOrderstDto) {
+  async changeStatus(
+    dataRO: RepairOrder,
+    data: StatusRepairOrderstDto,
+    user: any,
+  ) {
     let ro;
     switch (dataRO.statusVehicle) {
       case 'Esperando piezas':
@@ -174,24 +192,22 @@ export class RepairOrdersService {
               approved: data.approved,
             },
           );
+          const dataBudgets = await this.budgetsSevice.findBy({
+            _id: dataRO.budgetData._id,
+          });
+          this.budgetsSevice.updateStatus(
+            dataBudgets[0],
+            StatusBudget.Aprobado,
+            StatusBudget.Espera,
+            user,
+          );
         }
         break;
       case 'Esperando cliente':
-        if (data.inTheWorkshop && data.piecesToWork) {
+        if (data.inTheWorkshop) {
           ro = await this.updateStatusVehicle(
             dataRO,
             StatusVehicle.EsperandoTurno,
-            dataRO.statusVehicle,
-            {
-              inTheWorkshop: data.inTheWorkshop,
-              piecesToWork: data.piecesToWork,
-            },
-          );
-        }
-        if (data.inTheWorkshop && !data.piecesToWork) {
-          ro = await this.updateStatusVehicle(
-            dataRO,
-            StatusVehicle.EsperandoPieza,
             dataRO.statusVehicle,
             {
               inTheWorkshop: data.inTheWorkshop,

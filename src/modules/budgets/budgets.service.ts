@@ -14,6 +14,7 @@ import { Budget, StatusBudget } from './entities/budget.entity';
 import { InsurancesService } from '../insurances/insurances.service';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
+import { HistoriesService } from '../histories/histories.service';
 
 @Injectable()
 export class BudgetsService {
@@ -24,6 +25,7 @@ export class BudgetsService {
     private readonly vehiclesService: VehiclesService,
     private readonly usersService: UsersService,
     private readonly insurancesService: InsurancesService,
+    private readonly historiesService: HistoriesService,
   ) {}
 
   async create(data: CreateBudgetDto): Promise<Budget> {
@@ -125,6 +127,7 @@ export class BudgetsService {
     budgetData: Budget,
     statusNew: StatusBudget,
     statusLast: StatusBudget,
+    user: any,
   ) {
     const now = new Date();
     budgetData.status = statusNew;
@@ -141,6 +144,13 @@ export class BudgetsService {
     });
     await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
 
+    await this.historiesService.createHistory({
+      message: `Cambio de estado del presupuesto ${budgetData.code
+        .toString()
+        .padStart(6, '0')} a ${budgetData.status} a ${StatusBudget.Espera}`,
+      user: user._id,
+      budget: budgetData._id,
+    });
     return budgetData;
   }
 

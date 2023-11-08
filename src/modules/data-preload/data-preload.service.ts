@@ -404,12 +404,14 @@ export class DataPreloadService {
         budgetTest1,
         StatusBudget.Espera,
         StatusBudget.Estimado,
+        recepcionData,
       );
 
       budgetTest2 = await this.budgetsService.updateStatus(
         budgetTest2,
         StatusBudget.Espera,
         StatusBudget.Estimado,
+        recepcionData,
       );
 
       const order1 = await this.repairOrdersService.create(

@@ -70,10 +70,7 @@ export class RepairOrdersController {
     return new BadRequestException('No es posible crear la RO');
   }
 
-  @Recepcion()
   @Master()
-  @Cotizador()
-  @Admin()
   @UseGuards(AuthGuard)
   @Post('/anulate')
   async update(@Request() request, @Body() data: { id: string }) {
@@ -115,22 +112,27 @@ export class RepairOrdersController {
   async status(@Request() request, @Body() data: StatusRepairOrderstDto) {
     const user = request['user'];
     const ROData = await this.repairOrdersService.findBy({
-      workshop: user.workshop,
-      _id: data.id,
+      workshop: new Types.ObjectId(user.workshop),
+      _id: new Types.ObjectId(data.id),
     });
     if (ROData.length > 0) {
       const ROUpdate = await this.repairOrdersService.changeStatus(
         ROData[0],
         data,
+        user,
       );
-      await this.historiesService.createHistory({
-        message: `Cambio de estado del vehiculo de la RO ${ROUpdate.code
-          .toString()
-          .padStart(6, '0')} a ${ROUpdate.statusVehicle}`,
-        user: user._id,
-        ro: ROUpdate.id,
-      });
-      return ROUpdate;
+      if (ROUpdate) {
+        await this.historiesService.createHistory({
+          message: `Cambio de estado del vehiculo de la RO ${ROUpdate.code
+            .toString()
+            .padStart(6, '0')} a ${ROUpdate.statusVehicle}`,
+          user: user._id,
+          ro: ROUpdate.id,
+        });
+        return ROUpdate;
+      } else {
+        return new BadRequestException('No es posible cambiar estado');
+      }
     } else {
       return new NotFoundException('RO no encontrado');
     }
