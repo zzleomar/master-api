@@ -83,12 +83,6 @@ export class RepairOrder extends Document {
 
   @Prop({ type: Budget, required: true })
   budgetData: Budget;
-
-  @Prop({ required: true, type: Types.ObjectId, ref: 'Vehicle' })
-  vehicle: Types.ObjectId;
-
-  @Prop({ required: true, type: Types.ObjectId, ref: 'Client' })
-  client: Types.ObjectId;
 }
 
 export const RepairOrderSchema = SchemaFactory.createForClass(RepairOrder);
