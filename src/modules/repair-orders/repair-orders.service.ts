@@ -11,6 +11,7 @@ import { WorkshopsService } from '../workshops/workshops.service';
 import { filter, map } from 'lodash';
 import { HistoriesService } from '../histories/histories.service';
 import { StatusRepairOrderstDto } from './dto/status-budget.dto';
+import { StatusRepairOrder } from './entities/repair-order.entity';
 import { RepairOrder, StatusVehicle } from './entities/repair-order.entity';
 
 @Injectable()
@@ -257,5 +258,14 @@ export class RepairOrdersService {
         },
       ])
       .exec();
+  }
+
+  async anulateOrder(id: string) {
+    const order = await this.repairOrderModel.updateOne(
+      { _id: id },
+      { status: StatusRepairOrder.Anulada },
+    );
+
+    return order;
   }
 }

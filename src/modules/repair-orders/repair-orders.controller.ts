@@ -75,6 +75,30 @@ export class RepairOrdersController {
   @Cotizador()
   @Admin()
   @UseGuards(AuthGuard)
+  @Post('/anulate')
+  async update(@Request() request, @Body() data: { id: string }) {
+    // const user = request['user'];
+
+    const dataOrders = await this.repairOrdersService.findBy({
+      _id: data.id,
+    });
+
+    const dataOrder = dataOrders[0];
+
+    if (dataOrder) {
+      const anulatedOrder = await this.repairOrdersService.anulateOrder(
+        dataOrder._id,
+      );
+
+      return anulatedOrder;
+    }
+  }
+
+  @Recepcion()
+  @Master()
+  @Cotizador()
+  @Admin()
+  @UseGuards(AuthGuard)
   @Post()
   @Get()
   find(@Request() request) {
