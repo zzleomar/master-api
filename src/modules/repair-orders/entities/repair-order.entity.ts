@@ -13,6 +13,7 @@ export enum StatusVehicle {
   EsperandoAprobacion = 'Esperando aprobación',
   EsperandoCliente = 'Esperando cliente',
   EsperandoTurno = 'Esperando turno',
+  NoSeTrabajo = 'No se trabajó',
 }
 
 export enum StatusPiece {

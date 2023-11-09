@@ -279,7 +279,10 @@ export class RepairOrdersService {
   async anulateOrder(id: string) {
     const order = await this.repairOrderModel.updateOne(
       { _id: id },
-      { status: StatusRepairOrder.Anulada },
+      {
+        status: StatusRepairOrder.Anulada,
+        StatusVehicle: StatusVehicle.NoSeTrabajo,
+      },
     );
 
     return order;
