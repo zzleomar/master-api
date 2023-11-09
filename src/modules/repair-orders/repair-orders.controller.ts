@@ -73,8 +73,12 @@ export class RepairOrdersController {
   @Master()
   @UseGuards(AuthGuard)
   @Post('/anulate')
-  async update(@Request() request, @Body() data: { id: string }) {
+  async update(
+    @Request() request,
+    @Body() data: { id: string; comment: string },
+  ) {
     // const user = request['user'];
+    console.log('controller - data: ', data);
 
     const dataOrders = await this.repairOrdersService.findBy({
       _id: data.id,
@@ -83,9 +87,7 @@ export class RepairOrdersController {
     const dataOrder = dataOrders[0];
 
     if (dataOrder) {
-      const anulatedOrder = await this.repairOrdersService.anulateOrder(
-        dataOrder._id,
-      );
+      const anulatedOrder = await this.repairOrdersService.anulateOrder(data);
 
       return anulatedOrder;
     }

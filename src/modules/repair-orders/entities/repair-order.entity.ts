@@ -84,6 +84,9 @@ export class RepairOrder extends Document {
 
   @Prop({ type: Budget, required: true })
   budgetData: Budget;
+
+  @Prop({ type: String, nullable: true, default: '' })
+  anullationComment: string;
 }
 
 export const RepairOrderSchema = SchemaFactory.createForClass(RepairOrder);

@@ -276,12 +276,15 @@ export class RepairOrdersService {
       .exec();
   }
 
-  async anulateOrder(id: string) {
+  async anulateOrder(data: { id: string; comment: string }) {
+    console.log('service - data: ', data);
+
     const order = await this.repairOrderModel.updateOne(
-      { _id: id },
+      { _id: data.id },
       {
         status: StatusRepairOrder.Anulada,
-        StatusVehicle: StatusVehicle.NoSeTrabajo,
+        statusVehicle: StatusVehicle.NoSeTrabajo,
+        anullationComment: data.comment,
       },
     );
 
