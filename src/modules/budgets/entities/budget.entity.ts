@@ -8,6 +8,7 @@ export enum StatusBudget {
   Espera = 'E. Aprob.',
   Estimado = 'Estimado',
   Aprobado = 'Aprobado',
+  Expirado = 'Expirado',
 }
 
 export enum TypeBudget {

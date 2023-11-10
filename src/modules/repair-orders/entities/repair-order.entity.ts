@@ -29,13 +29,13 @@ interface StatusChange {
   status: StatusVehicle | StatusRepairOrder;
 }
 
-interface PiecesItem {
+export interface PiecesItem {
   piece: string;
-  price: number | null;
-  status: StatusPiece | null;
+  price?: number | null;
+  status?: StatusPiece | null;
   receptionDate: Date | null;
-  provider: string | null;
-  comment: string | null;
+  provider?: string | null;
+  comment?: string | null;
 }
 
 @Schema({ collection: 'repairOrders', timestamps: true })

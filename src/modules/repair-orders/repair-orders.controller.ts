@@ -12,13 +12,20 @@ import { FilterOrderDto } from './dto/filter-order.dto';
 import { RepairOrdersService } from './repair-orders.service';
 import { CreateRepairOrderDto } from './dto/create-repair-order.dto';
 import { BudgetsService } from '../budgets/budgets.service';
-import { Admin, Cotizador, Master, Recepcion } from '../auth/utils/decorator';
+import {
+  Admin,
+  Cotizador,
+  Master,
+  Recepcion,
+  Repuesto,
+} from '../auth/utils/decorator';
 import { Types } from 'mongoose';
 import { AuthGuard } from '../auth/auth.guard';
-import { StatusRepairOrderstDto } from './dto/status-budget.dto';
+import { StatusRepairOrderstDto } from './dto/status-order.dto';
 import { HistoriesService } from '../histories/histories.service';
 import { StatusBudget } from '../budgets/entities/budget.entity';
 import mongoose from 'mongoose';
+import { PiecesOrderDto } from './dto/pieces-order.dto';
 
 @Controller('repairOrders')
 export class RepairOrdersController {
@@ -77,7 +84,7 @@ export class RepairOrdersController {
     @Request() request,
     @Body() data: { id: string; comment: string },
   ) {
-    // const user = request['user'];
+    const user = request['user'];
     const dataOrders = await this.repairOrdersService.findBy({
       _id: data.id,
     });
@@ -87,6 +94,13 @@ export class RepairOrdersController {
     if (dataOrder) {
       const anulatedOrder = await this.repairOrdersService.anulateOrder(data);
 
+      await this.historiesService.createHistory({
+        message: `Actualización de estados de las piezas de la orden ${anulatedOrder.code
+          .toString()
+          .padStart(6, '0')}`,
+        user: user._id,
+        ro: anulatedOrder.id,
+      });
       return anulatedOrder;
     }
   }
@@ -195,5 +209,30 @@ export class RepairOrdersController {
     } else {
       return new BadRequestException('value requerid');
     }
+  }
+
+  @Repuesto()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/pieces')
+  async inspection(@Request() request, @Body() data: PiecesOrderDto) {
+    const user = request['user'];
+    const orderData = await this.repairOrdersService.findBy({
+      workshop: new Types.ObjectId(user.workshop),
+      _id: new Types.ObjectId(data.id),
+    });
+    const orderUpdate = await this.repairOrdersService.savePieces(
+      orderData[0],
+      data,
+    );
+    await this.historiesService.createHistory({
+      message: `Actualización de estados de las piezas de la orden ${orderUpdate.code
+        .toString()
+        .padStart(6, '0')}`,
+      user: user._id,
+      ro: orderUpdate.id,
+    });
+    return orderUpdate;
   }
 }

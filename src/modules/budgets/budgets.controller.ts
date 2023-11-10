@@ -268,7 +268,17 @@ export class BudgetsController {
         user,
       );
       return budgetUpdate;
-      //TODO AQUI VA EL CAMBIO DE ESTADO DE ESPERA A APROBADO EN UN ELSE IF
+    } else if (
+      data.status == StatusBudget.Expirado &&
+      budgetData[0].status === StatusBudget.Espera
+    ) {
+      const budgetUpdate = await this.budgetsService.updateStatus(
+        budgetData[0],
+        data.status,
+        budgetData[0].status,
+        user,
+      );
+      return budgetUpdate;
     } else {
       return new BadRequestException('Cambio de estado invalido');
     }

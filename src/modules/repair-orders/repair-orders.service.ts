@@ -10,10 +10,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { WorkshopsService } from '../workshops/workshops.service';
 import { filter, map } from 'lodash';
 import { HistoriesService } from '../histories/histories.service';
-import { StatusRepairOrderstDto } from './dto/status-budget.dto';
+import { StatusRepairOrderstDto } from './dto/status-order.dto';
 import { StatusRepairOrder } from './entities/repair-order.entity';
 import { RepairOrder, StatusVehicle } from './entities/repair-order.entity';
 import { BudgetsService } from '../budgets/budgets.service';
+import { PiecesOrderDto } from './dto/pieces-order.dto';
 
 @Injectable()
 export class RepairOrdersService {
@@ -287,6 +288,12 @@ export class RepairOrdersService {
       },
     );
 
+    return this.repairOrderModel.findById(order.upsertedId);
+  }
+
+  async savePieces(order: RepairOrder, data: PiecesOrderDto) {
+    order.pieces = [...data.pieces];
+    order.save();
     return order;
   }
 }
