@@ -78,8 +78,6 @@ export class RepairOrdersController {
     @Body() data: { id: string; comment: string },
   ) {
     // const user = request['user'];
-    console.log('controller - data: ', data);
-
     const dataOrders = await this.repairOrdersService.findBy({
       _id: data.id,
     });

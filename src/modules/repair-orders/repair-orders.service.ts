@@ -277,14 +277,13 @@ export class RepairOrdersService {
   }
 
   async anulateOrder(data: { id: string; comment: string }) {
-    console.log('service - data: ', data);
-
     const order = await this.repairOrderModel.updateOne(
       { _id: data.id },
       {
         status: StatusRepairOrder.Anulada,
         statusVehicle: StatusVehicle.NoSeTrabajo,
         anullationComment: data.comment,
+        anullationDate: new Date().toLocaleDateString(),
       },
     );
 

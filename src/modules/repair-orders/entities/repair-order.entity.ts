@@ -87,6 +87,9 @@ export class RepairOrder extends Document {
 
   @Prop({ type: String, nullable: true, default: '' })
   anullationComment: string;
+
+  @Prop({ type: String, nullable: true, default: '' })
+  anullationDate: string;
 }
 
 export const RepairOrderSchema = SchemaFactory.createForClass(RepairOrder);
