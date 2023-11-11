@@ -1,6 +1,5 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   UseGuards,
@@ -26,6 +25,7 @@ import { HistoriesService } from '../histories/histories.service';
 import { StatusBudget } from '../budgets/entities/budget.entity';
 import mongoose from 'mongoose';
 import { PiecesOrderDto } from './dto/pieces-order.dto';
+import { InitOTDto } from './dto/init-OT-order.dto';
 
 @Controller('repairOrders')
 export class RepairOrdersController {
@@ -103,18 +103,6 @@ export class RepairOrdersController {
       });
       return anulatedOrder;
     }
-  }
-
-  @Recepcion()
-  @Master()
-  @Cotizador()
-  @Admin()
-  @UseGuards(AuthGuard)
-  @Post()
-  @Get()
-  find(@Request() request) {
-    const user = request['user'];
-    return this.budgetsService.findAll({ workshop: user.workshop });
   }
 
   @Recepcion()
@@ -216,7 +204,7 @@ export class RepairOrdersController {
   @Admin()
   @UseGuards(AuthGuard)
   @Post('/pieces')
-  async inspection(@Request() request, @Body() data: PiecesOrderDto) {
+  async pieces(@Request() request, @Body() data: PiecesOrderDto) {
     const user = request['user'];
     const orderData = await this.repairOrdersService.findBy({
       workshop: new Types.ObjectId(user.workshop),
@@ -228,6 +216,32 @@ export class RepairOrdersController {
     );
     await this.historiesService.createHistory({
       message: `Actualización de estados de las piezas de la orden ${orderUpdate.code
+        .toString()
+        .padStart(6, '0')}`,
+      user: user._id,
+      ro: orderUpdate.id,
+    });
+    return orderUpdate;
+  }
+
+  @Master()
+  @Admin()
+  @Cotizador()
+  @Recepcion()
+  @UseGuards(AuthGuard)
+  @Post('/initOT')
+  async initOT(@Request() request, @Body() data: InitOTDto) {
+    const user = request['user'];
+    const orderData = await this.repairOrdersService.findBy({
+      workshop: new Types.ObjectId(user.workshop),
+      _id: new Types.ObjectId(data.id),
+    });
+    const orderUpdate = await this.repairOrdersService.generateOT(
+      orderData[0],
+      data,
+    );
+    await this.historiesService.createHistory({
+      message: `Genero la OT de la orden ${orderUpdate.code
         .toString()
         .padStart(6, '0')}`,
       user: user._id,

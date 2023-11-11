@@ -80,7 +80,7 @@ export class BudgetsService {
       .populate(['vehicle', 'insuranceCompany', 'quoter'])
       .exec();
 
-    if (!budget && error) {
+    if (!budget && budget.length === 0 && error) {
       throw new NotFoundException(
         `Budge with ${JSON.stringify(filter)} not found `,
       );

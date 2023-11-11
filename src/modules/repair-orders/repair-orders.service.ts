@@ -15,7 +15,8 @@ import { StatusRepairOrder } from './entities/repair-order.entity';
 import { RepairOrder, StatusVehicle } from './entities/repair-order.entity';
 import { BudgetsService } from '../budgets/budgets.service';
 import { PiecesOrderDto } from './dto/pieces-order.dto';
-
+import { InitOTDto } from './dto/init-OT-order.dto';
+import * as moment from 'moment';
 @Injectable()
 export class RepairOrdersService {
   constructor(
@@ -143,7 +144,7 @@ export class RepairOrdersService {
   async findBy(filter: any, error: boolean = true): Promise<any[]> {
     const repairOrder = await this.repairOrderModel.find({ ...filter }).exec();
 
-    if (!repairOrder && error) {
+    if (!repairOrder && repairOrder.length === 0 && error) {
       throw new NotFoundException(
         `repairOrders with ${JSON.stringify(filter)} not found `,
       );
@@ -293,6 +294,13 @@ export class RepairOrdersService {
 
   async savePieces(order: RepairOrder, data: PiecesOrderDto) {
     order.pieces = [...data.pieces];
+    order.save();
+    return order;
+  }
+
+  async generateOT(order: RepairOrder, data: InitOTDto) {
+    order.initOT = new Date();
+    order.endOT = moment(data.endDate, 'DD/MM/YYYY').toDate();
     order.save();
     return order;
   }
