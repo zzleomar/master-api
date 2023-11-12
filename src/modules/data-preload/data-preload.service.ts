@@ -18,7 +18,7 @@ import { BudgetsService } from '../budgets/budgets.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { ClientsService } from '../clients/clients.service';
 import { PartsService } from '../parts/parts.service';
-import { StatusBudget } from '../budgets/entities/budget.entity';
+import { Budget, StatusBudget } from '../budgets/entities/budget.entity';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import { Types } from 'mongoose';
 
@@ -190,6 +190,9 @@ export class DataPreloadService {
     const workshops = await this.workshopService.findAll();
     const users = await this.userService.findAll(null);
     const insurances = await this.insurancesService.findAll();
+    const insurancesParticular = await this.insurancesService.findBy({
+      name: 'Particular',
+    });
     if (workshops.length === 1 && users.length == 2) {
       const admin: CreateUserDto = {
         firstName: 'José',
@@ -211,6 +214,17 @@ export class DataPreloadService {
         workshop: workshops[0].id,
       };
       const contizadorData = await this.userService.create(cotizador);
+      await this.userService.create(admin);
+      const cotizador2: CreateUserDto = {
+        firstName: 'Juan',
+        lastName: 'Torres',
+        email: 'juan@prueba.com',
+        cell: '8338226',
+        role: 'Cotizador',
+        password: await this.authService.hashPassword('juan123'),
+        workshop: workshops[0].id,
+      };
+      await this.userService.create(cotizador2);
       const recepcion: CreateUserDto = {
         firstName: 'Luisa',
         lastName: 'Gomez',
@@ -286,6 +300,39 @@ export class DataPreloadService {
         budgetTest2.vehicle,
         {
           insuranceCompany: insurances[1],
+          quoter: contizadorData,
+        },
+        recepcionData,
+        'express',
+      );
+
+      let budgetTest4 = await this.loadBudgetsTest(
+        budgetTest2.clientData,
+        budgetTest2.vehicle,
+        {
+          insuranceCompany: insurancesParticular[0],
+          quoter: contizadorData,
+        },
+        recepcionData,
+        'express',
+      );
+
+      let budgetTest5 = await this.loadBudgetsTest(
+        budgetTest2.clientData,
+        budgetTest2.vehicle,
+        {
+          insuranceCompany: insurancesParticular[0],
+          quoter: contizadorData,
+        },
+        recepcionData,
+        'express',
+      );
+
+      let budgetTest6 = await this.loadBudgetsTest(
+        budgetTest2.clientData,
+        budgetTest2.vehicle,
+        {
+          insuranceCompany: insurances[2],
           quoter: contizadorData,
         },
         recepcionData,
@@ -400,6 +447,153 @@ export class DataPreloadService {
         tax: 0,
       });
 
+      budgetTest4 = await this.budgetsService.saveInspection(budgetTest4, {
+        budgetId: budgetTest4.id,
+        documents: [],
+        photos: [
+          'https://loscoches.com/wp-content/uploads/2021/05/taller-de-carros-autorizado.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2017/09/timos_talleres.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2022/02/taller-2-1046x616.jpg',
+        ],
+        others: [
+          {
+            other: 'balancear',
+            comment: '',
+            price: 200,
+          },
+        ],
+        pieces: [
+          {
+            side: 'Parte Trasera',
+            operation: 'Cambiar',
+            piece: piece1,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Trasera',
+            operation: 'Cambiar y pintar',
+            piece: piece2,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Lado Izquierdo',
+            operation: 'Reparar',
+            piece: piece3,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Frontal',
+            operation: 'Cambiar',
+            piece: piece4,
+            comment: 'llego no funcional',
+            price: 100,
+          },
+        ],
+        comment: 'comentario general de la reparaci[on',
+        tax: 0,
+      });
+
+      this.budgetsService.saveInspection(budgetTest5, {
+        budgetId: budgetTest5.id,
+        documents: [],
+        photos: [
+          'https://loscoches.com/wp-content/uploads/2021/05/taller-de-carros-autorizado.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2017/09/timos_talleres.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2022/02/taller-2-1046x616.jpg',
+        ],
+        others: [
+          {
+            other: 'balancear',
+            comment: '',
+            price: 200,
+          },
+        ],
+        pieces: [
+          {
+            side: 'Parte Trasera',
+            operation: 'Reparar y pintar',
+            piece: piece1,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Trasera',
+            operation: 'Reparar y pintar',
+            piece: piece2,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Lado Izquierdo',
+            operation: 'Reparar',
+            piece: piece3,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Frontal',
+            operation: 'Cambiar',
+            piece: piece4,
+            comment: 'llego no funcional',
+            price: 100,
+          },
+        ],
+        comment: 'comentario general de la reparaci[on',
+        tax: 0,
+      });
+
+      budgetTest6 = await this.budgetsService.saveInspection(budgetTest6, {
+        budgetId: budgetTest6.id,
+        documents: [],
+        photos: [
+          'https://loscoches.com/wp-content/uploads/2021/05/taller-de-carros-autorizado.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2017/09/timos_talleres.jpg',
+          'https://motor.elpais.com/wp-content/uploads/2022/02/taller-2-1046x616.jpg',
+        ],
+        others: [
+          {
+            other: 'balancear',
+            comment: '',
+            price: 200,
+          },
+        ],
+        pieces: [
+          {
+            side: 'Parte Trasera',
+            operation: 'Reparar y pintar',
+            piece: piece1,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Trasera',
+            operation: 'Cambiar y pintar',
+            piece: piece2,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Lado Izquierdo',
+            operation: 'Reparar',
+            piece: piece3,
+            comment: '',
+            price: 0,
+          },
+          {
+            side: 'Parte Frontal',
+            operation: 'Cambiar',
+            piece: piece4,
+            comment: 'llego no funcional',
+            price: 100,
+          },
+        ],
+        comment: 'comentario general de la reparaci[on',
+        tax: 0,
+      });
+
       budgetTest1 = await this.budgetsService.updateStatus(
         budgetTest1,
         StatusBudget.Espera,
@@ -413,6 +607,31 @@ export class DataPreloadService {
         StatusBudget.Estimado,
         recepcionData,
       );
+
+      budgetTest4 = await this.budgetsService.updateStatus(
+        budgetTest4,
+        StatusBudget.Espera,
+        StatusBudget.Estimado,
+        recepcionData,
+      );
+
+      budgetTest5 = await this.budgetsService.updateStatus(
+        budgetTest5,
+        StatusBudget.Espera,
+        StatusBudget.Estimado,
+        recepcionData,
+      );
+
+      budgetTest6 = await this.budgetsService.updateStatus(
+        budgetTest6,
+        StatusBudget.Espera,
+        StatusBudget.Estimado,
+        recepcionData,
+      );
+
+      this.expiredBudget(budgetTest4);
+      this.expiredBudget(budgetTest5);
+      this.expiredBudget(budgetTest6);
 
       const order1 = await this.repairOrdersService.create(
         {
@@ -444,11 +663,22 @@ export class DataPreloadService {
         budgetTest1,
         budgetTest2,
         budgetTest3,
+        budgetTest4,
+        budgetTest5,
+        budgetTest6,
         order1,
         order2,
       };
     }
     return 'datos ya cargados';
+  }
+
+  async expiredBudget(budgetData: Budget) {
+    if (budgetData.insuranceData.name === 'Particular') {
+      await this.budgetsService.expited(budgetData, 30);
+    } else {
+      await this.budgetsService.expited(budgetData, 60);
+    }
   }
 
   async loadBudgetsTest(

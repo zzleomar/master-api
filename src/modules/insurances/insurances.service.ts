@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Insurance } from './entities/insurance.entity';
@@ -31,6 +31,18 @@ export class InsurancesService {
     return this.insuranceModel
       .findByIdAndUpdate(id, insurancesData, { new: true })
       .exec();
+  }
+
+  async findBy(filter: any, error: boolean = true): Promise<any[]> {
+    const insurance = await this.insuranceModel.find({ ...filter }).exec();
+
+    if (!insurance && insurance.length === 0 && error) {
+      throw new NotFoundException(
+        `Budge with ${JSON.stringify(filter)} not found `,
+      );
+    }
+
+    return insurance;
   }
 
   async remove(id: string): Promise<any> {

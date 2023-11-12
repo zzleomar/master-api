@@ -15,6 +15,7 @@ import { InsurancesService } from '../insurances/insurances.service';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { HistoriesService } from '../histories/histories.service';
+import * as moment from 'moment';
 
 @Injectable()
 export class BudgetsService {
@@ -227,5 +228,16 @@ export class BudgetsService {
         },
       ])
       .exec();
+  }
+
+  async expited(budgetData: Budget, diff: number) {
+    const expitedDate = moment().subtract(diff, 'days');
+    const itemKeyChange = budgetData.statusChange.findIndex(
+      (item: any) => item.status === StatusBudget.Espera,
+    );
+    if (itemKeyChange !== undefined && itemKeyChange !== null) {
+      budgetData.statusChange[itemKeyChange].initDate = expitedDate.toDate();
+    }
+    await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
   }
 }
