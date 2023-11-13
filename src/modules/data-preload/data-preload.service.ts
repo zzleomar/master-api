@@ -655,6 +655,17 @@ export class DataPreloadService {
         recepcionData,
       );
 
+      const order3 = await this.repairOrdersService.create(
+        {
+          budgetId: budgetTest4.id,
+          approved: true,
+          inTheWorkshop: false,
+          workshop: new Types.ObjectId(recepcion.workshop),
+        },
+        budgetTest4,
+        recepcionData,
+      );
+
       return {
         admin,
         cotizador,
@@ -668,6 +679,7 @@ export class DataPreloadService {
         budgetTest6,
         order1,
         order2,
+        order3,
       };
     }
     return 'datos ya cargados';
