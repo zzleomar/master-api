@@ -5,7 +5,7 @@ import { Client } from 'src/modules/clients/entities/client.entity';
 import { Vehicle } from 'src/modules/vehicles/entities/vehicle.entity';
 
 export enum StatusBudget {
-  Espera = 'E. Aprob.',
+  Espera = 'Esp. Aprob.',
   Estimado = 'Estimado',
   Aprobado = 'Aprobado',
   Expirado = 'Expirado',
