@@ -80,7 +80,7 @@ export class RepairOrdersController {
   @Master()
   @UseGuards(AuthGuard)
   @Post('/anulate')
-  async update(
+  async anulate(
     @Request() request,
     @Body() data: { id: string; comment: string },
   ) {
@@ -101,6 +101,7 @@ export class RepairOrdersController {
         user: user._id,
         ro: anulatedOrder.id,
       });
+
       return anulatedOrder;
     }
   }

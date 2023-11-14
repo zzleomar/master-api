@@ -279,17 +279,17 @@ export class RepairOrdersService {
   }
 
   async anulateOrder(data: { id: string; comment: string }) {
-    const order = await this.repairOrderModel.updateOne(
+    await this.repairOrderModel.updateOne(
       { _id: data.id },
       {
         status: StatusRepairOrder.Anulada,
         statusVehicle: StatusVehicle.NoSeTrabajo,
         anullationComment: data.comment,
-        anullationDate: new Date().toLocaleDateString(),
+        anullationDate: moment(new Date()).format('DD/MM/YYYY'),
       },
     );
 
-    return this.repairOrderModel.findById(order.upsertedId);
+    return this.repairOrderModel.findById({ _id: data.id });
   }
 
   async savePieces(order: RepairOrder, data: PiecesOrderDto) {
