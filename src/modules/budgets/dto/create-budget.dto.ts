@@ -70,4 +70,8 @@ export class CreateBudgetDto {
 
   @IsOptional()
   editVehicle?: boolean;
+
+  @IsOptional()
+  @IsString()
+  comment?: string;
 }

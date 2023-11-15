@@ -304,4 +304,16 @@ export class RepairOrdersService {
     order.save();
     return order;
   }
+
+  async updateBudget(order: RepairOrder, budget: Budget) {
+    await budget.populate(['vehicle', 'insuranceCompany', 'quoter']);
+    await this.repairOrderModel.updateOne(
+      { _id: order.id },
+      {
+        budgetData: budget.toObject(),
+      },
+    );
+
+    return this.repairOrderModel.findById({ _id: order.id });
+  }
 }

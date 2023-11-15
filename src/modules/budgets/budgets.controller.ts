@@ -29,6 +29,7 @@ import { StatusBudget } from './entities/budget.entity';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { UpdateClientDto } from '../clients/dto/update-client.dto';
 import { UpdateVehicleDto } from '../vehicles/dto/update-vehicle.dto';
+import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -37,6 +38,7 @@ export class BudgetsController {
     private readonly historiesService: HistoriesService,
     private readonly vehiclesService: VehiclesService,
     private readonly clientsService: ClientsService,
+    private readonly repairOrdersService: RepairOrdersService,
   ) {}
 
   @Recepcion()
@@ -91,6 +93,7 @@ export class BudgetsController {
       createBudgetDto.vehicle = newVehicle;
     }
     createBudgetDto.workshop = user.workshop;
+    createBudgetDto.comment = '';
     const newBufget = await this.budgetsService.create(createBudgetDto);
     const log = await this.historiesService.createHistory({
       message: `Creación del presupuesto ${newBufget.code
@@ -150,6 +153,15 @@ export class BudgetsController {
       dataBudget._id,
       updateBudgetDto,
     );
+    const order = await this.repairOrdersService.findBy(
+      {
+        budget: newBufget._id,
+      },
+      false,
+    );
+    if (order.length === 1) {
+      await this.repairOrdersService.updateBudget(order[0], newBufget);
+    }
     const log = await this.historiesService.createHistory({
       message: `Datos del presupuesto ${newBufget.code
         .toString()

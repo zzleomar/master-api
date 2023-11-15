@@ -18,6 +18,8 @@ import { UsersService } from '../users/users.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { InsurancesSchema } from '../insurances/entities/insurance.entity';
 import { InsurancesService } from '../insurances/insurances.service';
+import { RepairOrderSchema } from '../repair-orders/entities/repair-order.entity';
+import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 
 @Module({
   imports: [
@@ -35,6 +37,9 @@ import { InsurancesService } from '../insurances/insurances.service';
     ]),
     MongooseModule.forFeature([{ name: 'Workshop', schema: WorkshopSchema }]),
     MongooseModule.forFeature([{ name: 'User', schema: UsersSchema }]),
+    MongooseModule.forFeature([
+      { name: 'RepairOrder', schema: RepairOrderSchema },
+    ]),
   ],
   controllers: [BudgetsController],
   providers: [
@@ -46,6 +51,7 @@ import { InsurancesService } from '../insurances/insurances.service';
     WorkshopsService,
     AuthGuard,
     UsersService,
+    RepairOrdersService,
   ],
 })
 export class BudgetsModule {}
