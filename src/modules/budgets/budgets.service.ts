@@ -10,12 +10,18 @@ import { Model, Types } from 'mongoose';
 import { ClientsService } from '../clients/clients.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { UsersService } from '../users/users.service';
-import { Budget, StatusBudget } from './entities/budget.entity';
+import {
+  Budget,
+  StatusBudget,
+  TypeBudget,
+  TypeSupplement,
+} from './entities/budget.entity';
 import { InsurancesService } from '../insurances/insurances.service';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { HistoriesService } from '../histories/histories.service';
 import * as moment from 'moment';
+import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
 
 @Injectable()
 export class BudgetsService {
@@ -239,5 +245,38 @@ export class BudgetsService {
       budgetData.statusChange[itemKeyChange].initDate = expitedDate.toDate();
     }
     await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
+  }
+
+  async createSupplement(budgetData: Budget, data: CreateSupplementBudgetDto) {
+    const budgets = await this.findBy({
+      code: budgetData.code,
+      type: 'Suplemento',
+      typeSupplement: data.typeSupplement,
+    });
+    if (
+      (data.typeSupplement === TypeSupplement.A && budgets.length < 3) ||
+      (data.typeSupplement === TypeSupplement.M && budgets.length < 2) ||
+      (data.typeSupplement === TypeSupplement.O && budgets.length < 1)
+    ) {
+      const budgetNew = new this.budgetModel(budgetData.toObject());
+      budgetNew._id = new Types.ObjectId();
+      budgetNew.comment = '';
+      budgetNew.inspection = undefined;
+      budgetNew.history = undefined;
+      budgetNew.status = StatusBudget.Estimado;
+      budgetNew.type = TypeBudget.Suplemento;
+      budgetNew.typeSupplement = data.typeSupplement;
+      budgetNew.numberSupplement = budgets.length;
+      budgetNew.statusChange = [
+        {
+          initDate: new Date(),
+          endDate: null,
+          status: StatusBudget.Estimado,
+        },
+      ];
+      return await budgetNew.save();
+    } else {
+      return null;
+    }
   }
 }

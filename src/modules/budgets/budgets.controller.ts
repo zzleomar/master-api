@@ -30,6 +30,7 @@ import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { UpdateClientDto } from '../clients/dto/update-client.dto';
 import { UpdateVehicleDto } from '../vehicles/dto/update-vehicle.dto';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
+import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -45,6 +46,45 @@ export class BudgetsController {
   @Master()
   @Admin()
   @UseGuards(AuthGuard)
+  @Post('/supplement')
+  async createSupplement(
+    @Request() request,
+    @Body() createSupplementBudgetDto: CreateSupplementBudgetDto,
+  ) {
+    const user = request['user'];
+    const budgetData = await this.budgetsService.findOne(
+      createSupplementBudgetDto.budgetId,
+    );
+    if (budgetData.type === 'Principal') {
+      const budgetSupplement = await this.budgetsService.createSupplement(
+        budgetData,
+        createSupplementBudgetDto,
+      );
+      if (budgetSupplement) {
+        const log = await this.historiesService.createHistory({
+          message: `Creación un suplemento ${
+            createSupplementBudgetDto.typeSupplement
+          } del presupuesto ${budgetData.code.toString().padStart(6, '0')}`,
+          user: user._id,
+          budget: budgetData.id,
+        });
+        budgetData.history.push(log.id);
+        budgetData.save();
+        return budgetSupplement;
+      } else {
+        return new BadRequestException('No es posible crear este suplemento');
+      }
+    } else {
+      return new BadRequestException(
+        'Los presupuestos se crean de presupuestos principales',
+      );
+    }
+  }
+
+  @Recepcion()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
   @Post()
   async create(
     @Request() request,
@@ -53,7 +93,6 @@ export class BudgetsController {
     @Body() createClientDto: CreateClientDto,
   ) {
     const user = request['user'];
-    //TODO falta el flujo de los presupuestos suplementarios
     if (
       (!createBudgetDto.client && createBudgetDto.mode === 'normal') ||
       (createBudgetDto.mode === 'express' && createBudgetDto.newOwner)
@@ -94,17 +133,17 @@ export class BudgetsController {
     }
     createBudgetDto.workshop = user.workshop;
     createBudgetDto.comment = '';
-    const newBufget = await this.budgetsService.create(createBudgetDto);
+    const newBudget = await this.budgetsService.create(createBudgetDto);
     const log = await this.historiesService.createHistory({
-      message: `Creación del presupuesto ${newBufget.code
+      message: `Creación del presupuesto ${newBudget.code
         .toString()
         .padStart(6, '0')}`,
       user: user._id,
-      budget: newBufget.id,
+      budget: newBudget.id,
     });
-    newBufget.history.push(log.id);
-    newBufget.save();
-    return newBufget;
+    newBudget.history.push(log.id);
+    newBudget.save();
+    return newBudget;
   }
 
   @Recepcion()
@@ -149,29 +188,29 @@ export class BudgetsController {
     }
 
     updateBudgetDto.workshop = user.workshop;
-    const newBufget = await this.budgetsService.update(
+    const newBudget = await this.budgetsService.update(
       dataBudget._id,
       updateBudgetDto,
     );
     const order = await this.repairOrdersService.findBy(
       {
-        budget: newBufget._id,
+        budget: newBudget._id,
       },
       false,
     );
     if (order.length === 1) {
-      await this.repairOrdersService.updateBudget(order[0], newBufget);
+      await this.repairOrdersService.updateBudget(order[0], newBudget);
     }
     const log = await this.historiesService.createHistory({
-      message: `Datos del presupuesto ${newBufget.code
+      message: `Datos del presupuesto ${newBudget.code
         .toString()
         .padStart(6, '0')} actualizado`,
       user: user._id,
-      budget: newBufget.id,
+      budget: newBudget.id,
     });
-    newBufget.history.push(log.id);
-    newBufget.save();
-    return newBufget;
+    newBudget.history.push(log.id);
+    newBudget.save();
+    return newBudget;
   }
 
   @Recepcion()

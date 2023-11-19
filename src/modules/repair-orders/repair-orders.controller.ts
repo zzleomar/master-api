@@ -57,22 +57,16 @@ export class RepairOrdersController {
         },
         false,
       );
-      if (
-        dataBudgets[0].status == StatusBudget.Espera &&
-        dataBudgets[0].type === 'Principal' &&
-        order.length === 0
-      ) {
+      if (dataBudgets[0].status == StatusBudget.Espera && order.length === 0) {
         return this.repairOrdersService.create(
           createRepairOrderDto,
           dataBudgets[0],
           user,
         );
       }
-      if (order.length > 0 && dataBudgets[0].type === 'Principal') {
+      if (order.length > 0) {
         return new BadRequestException('Presupuesto ya posee una RO');
       }
-
-      //TODO falta definir que hacer con las RO de los presupuestos tipo Suplemento
     }
     return new BadRequestException('No es posible crear la RO');
   }
