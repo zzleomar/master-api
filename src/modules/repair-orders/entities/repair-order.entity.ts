@@ -14,6 +14,17 @@ export enum StatusVehicle {
   EsperandoCliente = 'Esperando cliente',
   EsperandoTurno = 'Esperando turno',
   NoSeTrabajo = 'No se trabajó',
+  Enderezado = 'Enderezado',
+  Preparacion = 'Preparación',
+  Pintura = 'Pintura',
+  Armado = 'Armado',
+  Mecanica = 'Mecánica',
+  Alineamiento = 'Alineamiento',
+  Acondicionado = 'A. Acondicionado',
+  Detalle = 'Detalle',
+  PiezasPend = 'T. c/piezas pend.',
+  SinEntregar = 'T. sin entregar',
+  Terminado = 'Terminado',
 }
 
 export enum StatusPiece {
