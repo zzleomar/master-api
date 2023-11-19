@@ -16,6 +16,12 @@ export enum TypeBudget {
   Suplemento = 'Suplemento',
 }
 
+export enum TypeSupplement {
+  A = 'Adicionales',
+  M = 'Mecanica',
+  O = 'Otros',
+}
+
 interface StatusChangeBudget {
   initDate: Date;
   endDate: Date;
@@ -51,6 +57,20 @@ export class Budget extends Document {
     default: 'Principal',
   })
   type: TypeBudget;
+
+  @Prop({
+    type: String,
+    enum: TypeSupplement,
+    required: false,
+  })
+  typeSupplement: TypeSupplement;
+
+  @Prop({
+    type: Number,
+    required: false,
+    default: 0,
+  })
+  numberSupplement: number;
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'Vehicle' })
   vehicle: Types.ObjectId;
