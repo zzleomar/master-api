@@ -31,6 +31,7 @@ import { UpdateClientDto } from '../clients/dto/update-client.dto';
 import { UpdateVehicleDto } from '../vehicles/dto/update-vehicle.dto';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
+import { StatusRepairOrder } from '../repair-orders/entities/repair-order.entity';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -55,7 +56,14 @@ export class BudgetsController {
     const budgetData = await this.budgetsService.findOne(
       createSupplementBudgetDto.budgetId,
     );
-    if (budgetData.type === 'Principal') {
+
+    const roData = await this.repairOrdersService.findBy({
+      budget: new mongoose.Types.ObjectId(createSupplementBudgetDto.budgetId),
+    });
+    if (
+      budgetData.type === 'Principal' &&
+      roData[0].status === StatusRepairOrder.Abierta
+    ) {
       const budgetSupplement = await this.budgetsService.createSupplement(
         budgetData,
         createSupplementBudgetDto,
@@ -76,7 +84,7 @@ export class BudgetsController {
       }
     } else {
       return new BadRequestException(
-        'Los presupuestos se crean de presupuestos principales',
+        'No se puede agregar suplemento a ese presupuesto, cree uno nuevo',
       );
     }
   }
