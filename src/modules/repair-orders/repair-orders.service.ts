@@ -8,7 +8,7 @@ import { Budget, StatusBudget } from '../budgets/entities/budget.entity';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { WorkshopsService } from '../workshops/workshops.service';
-import { filter, map } from 'lodash';
+import { filter, find, map } from 'lodash';
 import { HistoriesService } from '../histories/histories.service';
 import { StatusRepairOrderstDto } from './dto/status-order.dto';
 import { StatusRepairOrder } from './entities/repair-order.entity';
@@ -17,6 +17,7 @@ import { BudgetsService } from '../budgets/budgets.service';
 import { PiecesOrderDto } from './dto/pieces-order.dto';
 import { InitOTDto } from './dto/init-OT-order.dto';
 import * as moment from 'moment';
+import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
 @Injectable()
 export class RepairOrdersService {
   constructor(
@@ -234,7 +235,7 @@ export class RepairOrdersService {
     const now = new Date();
     dataRO.statusVehicle = statusNew;
     const itemKeyChange = dataRO.statusChangeVehicle.findIndex(
-      (item: any) => item.status === statusLast,
+      (item: any) => item.status === statusLast && item.endDate == null,
     );
     if (itemKeyChange !== undefined && itemKeyChange !== null) {
       dataRO.statusChangeVehicle[itemKeyChange].endDate = now;
@@ -253,6 +254,13 @@ export class RepairOrdersService {
     dataRO.piecesToWork =
       data.piecesToWork !== undefined ? data.piecesToWork : dataRO.piecesToWork;
     await this.repairOrderModel.updateOne({ _id: dataRO._id }, dataRO);
+    if (statusNew === StatusVehicle.Terminado) {
+      await this.changeStatusOrder(
+        { id: dataRO._id },
+        dataRO,
+        StatusRepairOrder.Completada,
+      );
+    }
 
     return dataRO;
   }
@@ -278,14 +286,58 @@ export class RepairOrdersService {
       .exec();
   }
 
-  async anulateOrder(data: { id: string; comment: string }) {
+  async changeStatusOrder(
+    data: { id: string; comment?: string },
+    dataRO: RepairOrder,
+    newStatus: StatusRepairOrder = StatusRepairOrder.Anulada,
+  ) {
+    const statusChange = dataRO.statusChange;
+    const statusVehicleChange = dataRO.statusChangeVehicle;
+    const now = new Date();
+    const itemKeyChange = statusChange.findIndex(
+      (item: any) =>
+        item.status === StatusRepairOrder.Abierta && item.endDate == null,
+    );
+    if (itemKeyChange !== undefined && itemKeyChange !== null) {
+      statusChange[itemKeyChange].endDate = now;
+    }
+    statusChange.push({
+      initDate: new Date(),
+      endDate: null,
+      status: newStatus,
+    });
+
+    const itemKeyChangeVehicle = statusVehicleChange.findIndex(
+      (item: any) => item.endDate == null,
+    );
+    if (
+      newStatus == StatusRepairOrder.Anulada &&
+      itemKeyChangeVehicle !== undefined &&
+      itemKeyChangeVehicle !== null
+    ) {
+      statusVehicleChange[itemKeyChange].endDate = now;
+      statusVehicleChange.push({
+        initDate: new Date(),
+        endDate: null,
+        status: StatusVehicle.NoSeTrabajo,
+      });
+    }
     await this.repairOrderModel.updateOne(
       { _id: data.id },
       {
-        status: StatusRepairOrder.Anulada,
-        statusVehicle: StatusVehicle.NoSeTrabajo,
-        anullationComment: data.comment,
-        anullationDate: moment(new Date()).format('DD/MM/YYYY'),
+        statusChange,
+        statusVehicleChange,
+        status: newStatus,
+        statusVehicle:
+          newStatus === StatusRepairOrder.Anulada
+            ? StatusVehicle.NoSeTrabajo
+            : undefined,
+        anullationComment:
+          newStatus === StatusRepairOrder.Anulada ? data.comment : undefined,
+        anullationDate:
+          newStatus === StatusRepairOrder.Anulada
+            ? moment(new Date()).format('DD/MM/YYYY')
+            : undefined,
       },
     );
 
@@ -315,5 +367,25 @@ export class RepairOrdersService {
     );
 
     return this.repairOrderModel.findById({ _id: order.id });
+  }
+
+  async changeMovements(orders: RepairOrder[], data: MovementsRepairOrderDto) {
+    let response: RepairOrder[] | Promise<RepairOrder>[] = map(
+      orders,
+      (order: RepairOrder) => {
+        const item = find(
+          data.movements,
+          (movement: any) => movement.id === order.id,
+        );
+        return this.updateStatusVehicle(
+          order,
+          item.statusInput,
+          order.statusVehicle,
+          {},
+        );
+      },
+    );
+    response = await Promise.all(response);
+    return response;
   }
 }

@@ -26,6 +26,9 @@ import { StatusBudget } from '../budgets/entities/budget.entity';
 import mongoose from 'mongoose';
 import { PiecesOrderDto } from './dto/pieces-order.dto';
 import { InitOTDto } from './dto/init-OT-order.dto';
+import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
+import { map } from 'lodash';
+import { StatusRepairOrder } from './entities/repair-order.entity';
 
 @Controller('repairOrders')
 export class RepairOrdersController {
@@ -86,7 +89,11 @@ export class RepairOrdersController {
     const dataOrder = dataOrders[0];
 
     if (dataOrder) {
-      const anulatedOrder = await this.repairOrdersService.anulateOrder(data);
+      const anulatedOrder = await this.repairOrdersService.changeStatusOrder(
+        data,
+        dataOrder,
+        StatusRepairOrder.Anulada,
+      );
 
       await this.historiesService.createHistory({
         message: `Actualización de estados de las piezas de la orden ${anulatedOrder.code
@@ -243,5 +250,47 @@ export class RepairOrdersController {
       ro: orderUpdate.id,
     });
     return orderUpdate;
+  }
+
+  @Recepcion()
+  @Cotizador()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/movements')
+  async movements(@Request() request, @Body() data: MovementsRepairOrderDto) {
+    const user = request['user'];
+    const ids = map(data.movements, (item: any) => new Types.ObjectId(item.id));
+    const RODatas = await this.repairOrdersService.findBy({
+      workshop: new Types.ObjectId(user.workshop),
+      _id: { $in: ids },
+    });
+    if (RODatas.length > 0) {
+      const ROSUpdate = await this.repairOrdersService.changeMovements(
+        RODatas,
+        data,
+      );
+      if (ROSUpdate) {
+        let response = [];
+        for (let i = 0; i < ROSUpdate.length; i++) {
+          const ro = ROSUpdate[i];
+          response.push(
+            await this.historiesService.createHistory({
+              message: `Cambio de estado del vehiculo de la RO ${ro.code
+                .toString()
+                .padStart(6, '0')} a ${ro.statusVehicle}`,
+              user: user._id,
+              ro: ro.id,
+            }),
+          );
+        }
+        response = await Promise.all(response);
+        return ROSUpdate;
+      } else {
+        return new BadRequestException('No es posible cambiar estado');
+      }
+    } else {
+      return new NotFoundException('RO no encontrado');
+    }
   }
 }
