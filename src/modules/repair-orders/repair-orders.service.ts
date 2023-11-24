@@ -270,11 +270,11 @@ export class RepairOrdersService {
       .aggregate([
         {
           $match: {
+            ...filter,
             [value.label]:
               typeof value.value === 'string'
                 ? { $regex: value.value, $options: 'i' }
                 : value.value,
-            workshop: filter.workshop,
           },
         },
         {

@@ -45,7 +45,6 @@ import { InsurancesSchema } from '../insurances/entities/insurance.entity';
     RepairOrdersService,
     BudgetsService,
     InsurancesService,
-    BudgetsService,
     HistoriesService,
     ClientsService,
     VehiclesService,

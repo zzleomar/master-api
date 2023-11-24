@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Query,
+  Request,
   Delete,
   UseGuards,
 } from '@nestjs/common';
@@ -14,10 +15,15 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { Master, SuperAdmin } from '../auth/utils/decorator';
+import { RepairOrdersService } from '../repair-orders/repair-orders.service';
+import mongoose from 'mongoose';
 
 @Controller('vehicles')
 export class VehiclesController {
-  constructor(private readonly vehiclesService: VehiclesService) {}
+  constructor(
+    private readonly vehiclesService: VehiclesService,
+    private readonly repairOrdersService: RepairOrdersService,
+  ) {}
 
   @UseGuards(AuthGuard)
   @Master()
@@ -53,5 +59,26 @@ export class VehiclesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.vehiclesService.remove(id);
+  }
+
+  @Master()
+  @SuperAdmin()
+  @UseGuards(AuthGuard)
+  @Get('ot/:id')
+  async getOtCount(@Request() request, @Param('id') id: string) {
+    const user = request['user'];
+
+    const budgets = await this.repairOrdersService.findOrderByFilter(
+      {
+        workshop: new mongoose.Types.ObjectId(user.workshop),
+        initOT: { $ne: null },
+      },
+      {
+        value: new mongoose.Types.ObjectId(id),
+        label: 'budgetData.vehicleData._id',
+      },
+    );
+
+    return (budgets && budgets.length) || 0;
   }
 }
