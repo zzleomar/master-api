@@ -23,6 +23,10 @@ import { HistoriesService } from '../histories/histories.service';
 import * as moment from 'moment';
 import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
 
+export interface FindAllResponse {
+  results: any[];
+  total: number;
+}
 @Injectable()
 export class BudgetsService {
   constructor(
@@ -106,11 +110,24 @@ export class BudgetsService {
     return lastCode + 1; // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }
 
-  async findAll(filter: any): Promise<any[]> {
-    return this.budgetModel
+  async findAll(
+    filter: any,
+    page: number = 1,
+    pageSize: number = 30,
+  ): Promise<FindAllResponse> {
+    const query = this.budgetModel
       .find(filter)
-      .populate(['vehicle', 'insuranceCompany', 'quoter'])
+      .populate(['vehicle', 'insuranceCompany', 'quoter']);
+    const countQuery = this.budgetModel.countDocuments(filter);
+
+    const results = await query
+      .sort({ updatedAt: -1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
       .exec();
+    const total = await countQuery.exec();
+
+    return { results, total };
   }
 
   async saveInspection(budgetData: Budget, data: InspectionBudgetDto) {
@@ -182,33 +199,14 @@ export class BudgetsService {
     return updatedBudget;
   }
 
-  async findBudgetsByFilter(filter: any, value: any): Promise<any[]> {
-    return this.budgetModel
+  async findBudgetsByFilter(
+    filter: any,
+    value: any,
+    page: number = 1,
+    pageSize: number = 30,
+  ): Promise<FindAllResponse> {
+    const totalDocs = await this.budgetModel
       .aggregate([
-        {
-          $lookup: {
-            from: 'vehicles', // Nombre de la colección Vehicle
-            localField: 'vehicle', // Campo en Budget que hace referencia a Vehicle
-            foreignField: '_id', // Campo en Vehicle que se relaciona con Budget
-            as: 'vehicle',
-          },
-        },
-        {
-          $lookup: {
-            from: 'insurances', // Nombre de la colección Insurance
-            localField: 'insuranceCompany',
-            foreignField: '_id',
-            as: 'insuranceCompany',
-          },
-        },
-        {
-          $lookup: {
-            from: 'users', // Nombre de la colección User
-            localField: 'quoter',
-            foreignField: '_id',
-            as: 'quoter',
-          },
-        },
         {
           $match: {
             [value.label]:
@@ -218,22 +216,70 @@ export class BudgetsService {
             workshop: filter.workshop,
           },
         },
-        {
-          $unwind: '$vehicle', // Desagrupa el resultado del $lookup de Vehicle
-        },
-        {
-          $unwind: '$insuranceCompany', // Desagrupa el resultado del $lookup de Insurance
-        },
-        {
-          $unwind: '$quoter', // Desagrupa el resultado del $lookup de User
-        },
-        {
-          $sort: {
-            updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
-          },
-        },
       ])
       .exec();
+    const [results, total] = await Promise.all([
+      this.budgetModel
+        .aggregate([
+          {
+            $lookup: {
+              from: 'vehicles', // Nombre de la colección Vehicle
+              localField: 'vehicle', // Campo en Budget que hace referencia a Vehicle
+              foreignField: '_id', // Campo en Vehicle que se relaciona con Budget
+              as: 'vehicle',
+            },
+          },
+          {
+            $lookup: {
+              from: 'insurances', // Nombre de la colección Insurance
+              localField: 'insuranceCompany',
+              foreignField: '_id',
+              as: 'insuranceCompany',
+            },
+          },
+          {
+            $lookup: {
+              from: 'users', // Nombre de la colección User
+              localField: 'quoter',
+              foreignField: '_id',
+              as: 'quoter',
+            },
+          },
+          {
+            $match: {
+              [value.label]:
+                typeof value.value === 'string'
+                  ? { $regex: value.value, $options: 'i' }
+                  : value.value,
+              workshop: filter.workshop,
+            },
+          },
+          {
+            $unwind: '$vehicle', // Desagrupa el resultado del $lookup de Vehicle
+          },
+          {
+            $unwind: '$insuranceCompany', // Desagrupa el resultado del $lookup de Insurance
+          },
+          {
+            $unwind: '$quoter', // Desagrupa el resultado del $lookup de User
+          },
+          {
+            $sort: {
+              updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+            },
+          },
+          {
+            $skip: (page - 1) * pageSize,
+          },
+          {
+            $limit: pageSize,
+          },
+        ])
+        .exec(),
+      totalDocs.length,
+    ]);
+
+    return { results, total };
   }
 
   async expited(budgetData: Budget, diff: number) {

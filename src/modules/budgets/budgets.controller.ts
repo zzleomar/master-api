@@ -5,8 +5,9 @@ import {
   Request,
   BadRequestException,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { BudgetsService } from './budgets.service';
+import { BudgetsService, FindAllResponse } from './budgets.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { HistoriesService } from '../histories/histories.service';
@@ -228,11 +229,20 @@ export class BudgetsController {
   @Recepcion()
   @UseGuards(AuthGuard)
   @Post('/list')
-  findAll(@Request() request, @Body() filters: FilterBudgetDto) {
+  findAll(
+    @Request() request,
+    @Body() filters: FilterBudgetDto,
+    @Body('page') page: number = 1,
+    @Body('pageSize') pageSize: number = 30,
+  ): Promise<FindAllResponse> {
     const filtro: any = filters;
     const user = request['user'];
     if (!filtro.filter || filtro.filter === 'all') {
-      return this.budgetsService.findAll({ workshop: user.workshop });
+      return this.budgetsService.findAll(
+        { workshop: user.workshop },
+        page,
+        pageSize,
+      );
     } else if (filtro.value) {
       if (
         [
@@ -272,10 +282,12 @@ export class BudgetsController {
         return this.budgetsService.findBudgetsByFilter(
           { workshop: user.workshop },
           { ...filtro, label: filterField },
+          page,
+          pageSize,
         );
       }
     } else {
-      return new BadRequestException('value requerid');
+      throw new BadRequestException('value requerid');
     }
   }
 
