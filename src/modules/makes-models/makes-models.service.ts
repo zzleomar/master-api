@@ -34,6 +34,12 @@ export class MakesModelsService {
   }
 
   async remove(id: string): Promise<any> {
-    return this.makeModelModel.findByIdAndRemove(id).exec();
+    return this.makeModelModel.findByIdAndRemove(id, (err, doc) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log(`Deleted document: ${doc}`);
+      }
+    });
   }
 }

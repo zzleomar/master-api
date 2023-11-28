@@ -46,6 +46,12 @@ export class InsurancesService {
   }
 
   async remove(id: string): Promise<any> {
-    return this.insuranceModel.findByIdAndRemove(id).exec();
+    return this.insuranceModel.findByIdAndRemove(id, (err, doc) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log(`Deleted document: ${doc}`);
+      }
+    });
   }
 }
