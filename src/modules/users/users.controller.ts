@@ -21,7 +21,7 @@ import { Role } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(AuthGuard)
   @Master()
@@ -37,18 +37,28 @@ export class UsersController {
     // const user = request['user'];
     const filtro: any = filters;
 
-    return this.usersService.findOrderByFilter(
-      {
-        // workshop: new Types.ObjectId(user.workshop),
-        role: {
-          $nin: ['SuperAdmin', 'Master'],
+    const search = filtro.value.split(' ');
+
+    return this.usersService.findUserByFilter({
+      // workshop: new Types.ObjectId(user.workshop),
+      role: {
+        $nin: ['SuperAdmin', 'Master'],
+      },
+      $or: [
+        {
+          firstName: {
+            $regex: search.length === 1 ? filtro.value : search[0],
+            $options: 'i',
+          },
         },
-      },
-      {
-        value: filtro.value,
-        label: filtro.filter,
-      },
-    );
+        {
+          lastName: {
+            $regex: search.length === 1 ? filtro.value : search[1],
+            $options: 'i',
+          },
+        },
+      ],
+    });
   }
 
   @UseGuards(AuthGuard)

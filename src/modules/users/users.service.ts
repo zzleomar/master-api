@@ -18,7 +18,7 @@ export class UsersService {
   constructor(
     @InjectModel('User') private readonly userModel: Model<any>,
     private readonly workshopsService: WorkshopsService,
-  ) {}
+  ) { }
 
   async createMasterAndWorkshop(
     createUserDto: CreateUserDto,
@@ -123,16 +123,12 @@ export class UsersService {
     }
   }
 
-  async findOrderByFilter(filter: any, value: any): Promise<any[]> {
+  async findUserByFilter(filter: any): Promise<any[]> {
     return this.userModel
       .aggregate([
         {
           $match: {
             ...filter,
-            [value.label]:
-              typeof value.value === 'string'
-                ? { $regex: value.value, $options: 'i' }
-                : value.value,
           },
         },
         {
