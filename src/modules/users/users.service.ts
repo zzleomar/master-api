@@ -98,6 +98,15 @@ export class UsersService {
     return updatedUser;
   }
 
+  async changeStatusUser(body: any): Promise<UserPayload> {
+    if (body.workshop) {
+      await this.workshopsService.findOne(body.workshop);
+    }
+    await this.userModel.updateOne({ _id: body.id }, body);
+    const updatedUser = this.userModel.findById(body.id);
+    return updatedUser;
+  }
+
   async remove(id: string): Promise<void> {
     let workshop = null;
     const user = await this.userModel.findOne({ _id: id }).exec();
@@ -112,5 +121,26 @@ export class UsersService {
     } else {
       throw new BadRequestException(`Action invalid`);
     }
+  }
+
+  async findOrderByFilter(filter: any, value: any): Promise<any[]> {
+    return this.userModel
+      .aggregate([
+        {
+          $match: {
+            ...filter,
+            [value.label]:
+              typeof value.value === 'string'
+                ? { $regex: value.value, $options: 'i' }
+                : value.value,
+          },
+        },
+        {
+          $sort: {
+            createdAt: -1, // Ordena por la placa del vehículo en orden descendente
+          },
+        },
+      ])
+      .exec();
   }
 }
