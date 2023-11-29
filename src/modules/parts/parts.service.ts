@@ -32,6 +32,14 @@ export class PartsService {
   }
 
   async remove(id: string): Promise<any> {
-    return this.partModel.findByIdAndRemove(id).exec();
+    return this.partModel.findByIdAndRemove(id, (err, doc): any => {
+      if (err) {
+        console.log('error: ', err);
+        return err;
+      } else {
+        console.log(`Deleted document: ${doc}`);
+        return doc;
+      }
+    });
   }
 }

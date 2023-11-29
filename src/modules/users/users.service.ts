@@ -18,7 +18,7 @@ export class UsersService {
   constructor(
     @InjectModel('User') private readonly userModel: Model<any>,
     private readonly workshopsService: WorkshopsService,
-  ) {}
+  ) { }
 
   async createMasterAndWorkshop(
     createUserDto: CreateUserDto,
@@ -98,6 +98,15 @@ export class UsersService {
     return updatedUser;
   }
 
+  async changeStatusUser(body: any): Promise<UserPayload> {
+    if (body.workshop) {
+      await this.workshopsService.findOne(body.workshop);
+    }
+    await this.userModel.updateOne({ _id: body.id }, body);
+    const updatedUser = this.userModel.findById(body.id);
+    return updatedUser;
+  }
+
   async remove(id: string): Promise<void> {
     let workshop = null;
     const user = await this.userModel.findOne({ _id: id }).exec();
@@ -112,5 +121,22 @@ export class UsersService {
     } else {
       throw new BadRequestException(`Action invalid`);
     }
+  }
+
+  async findUserByFilter(filter: any): Promise<any[]> {
+    return this.userModel
+      .aggregate([
+        {
+          $match: {
+            ...filter,
+          },
+        },
+        {
+          $sort: {
+            createdAt: -1, // Ordena por la placa del vehículo en orden descendente
+          },
+        },
+      ])
+      .exec();
   }
 }
