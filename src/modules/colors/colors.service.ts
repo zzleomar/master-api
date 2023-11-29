@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Color } from './entities/color.entity';
 
 @Injectable()
 export class ColorsService {
-  constructor(@InjectModel('Color') private readonly colorModel: Model<any>) { }
+  constructor(@InjectModel('Color') private readonly colorModel: Model<any>) {}
 
   async create(colorsData: any): Promise<Color> {
     const createdMakesModels = new this.colorModel(colorsData);
@@ -30,17 +30,12 @@ export class ColorsService {
       .findByIdAndUpdate(id, colorsData, { new: true })
       .exec();
   }
-
   async remove(id: string): Promise<any> {
-    // return this.colorModel.findByIdAndRemove(id).exec();
-    return this.colorModel.findByIdAndRemove(id, (err, doc): any => {
-      if (err) {
-        console.log('error: ', err);
-        return err;
-      } else {
-        console.log(`Deleted document: ${doc}`);
-        return doc;
-      }
-    });
+    try {
+      const doc = await this.colorModel.findByIdAndDelete(id).exec();
+      return doc;
+    } catch (err) {
+      throw new BadRequestException(`Error inesperado`);
+    }
   }
 }
