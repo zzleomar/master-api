@@ -21,6 +21,8 @@ import { PartsService } from '../parts/parts.service';
 import { Budget, StatusBudget } from '../budgets/entities/budget.entity';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import { Types } from 'mongoose';
+import { faker } from '@faker-js/faker';
+import { UserPayload } from '../users/entities/user.payload';
 
 @Injectable()
 export class DataPreloadService {
@@ -697,7 +699,7 @@ export class DataPreloadService {
     createClientDto: any,
     createVehicleDto: any,
     createBudgetDto: any,
-    user: User,
+    user: User | UserPayload,
     mode: string = 'normal',
   ) {
     if (mode === 'normal') {
@@ -862,5 +864,256 @@ export class DataPreloadService {
       };
     }
     return 'datos ya cargados';
+  }
+
+  async loadOneBudgetOrder(
+    workshop: any,
+    makes: any,
+    colors: any,
+    insurances: any[],
+    contizadorData: any,
+    recepcionData: any,
+    piecesData: any[],
+    budgets: any[],
+    ROs: any[],
+    end: number = 0,
+  ) {
+    const color = colors[faker.number.int({ min: 0, max: colors.length - 1 })];
+    const make = makes[faker.number.int({ min: 0, max: makes.length - 1 })];
+    const typesColors = [
+      'Monocapa',
+      'Bicapa',
+      'Tricapa',
+      'Tricapa perla especial',
+    ];
+
+    const operations = [
+      'Alinear',
+      'Cambiar y pintar',
+      'Medición',
+      'Reparar y pintar',
+      'Inspeccionar',
+      'Desmontar y montar',
+      'Mecánica',
+      'Cambiar',
+      'Reparar',
+      'Reinstalar',
+      'Pulir',
+      'Pintar',
+      'Limpiar',
+      'Enderezar',
+    ];
+
+    const budgetData = await this.loadBudgetsTest(
+      {
+        fullName: faker.person.fullName(),
+        documentType: 'Cédula',
+        document: faker.number.int({ min: 1111111, max: 9999999 }).toString(),
+        address: faker.location.direction(),
+        email: faker.internet.email(),
+        phone: faker.number.int({ min: 11111111, max: 99999999 }),
+        cell: faker.number.int({ min: 11111111, max: 99999999 }),
+        workshop: workshop.id,
+      },
+      {
+        vehicleMake: make.make,
+        vehicleModel:
+          make.models[faker.number.int({ min: 0, max: make.models.length - 1 })]
+            .model,
+        year: faker.number.int({ min: 1980, max: 2025 }),
+        color: color.color,
+        colorType: faker.helpers.arrayElement(typesColors),
+        plate: faker.string.alphanumeric(5).toUpperCase(),
+      },
+      {
+        insuranceCompany:
+          insurances[faker.number.int({ min: 0, max: insurances.length - 1 })],
+        quoter: contizadorData,
+      },
+      recepcionData,
+    );
+
+    const isInspection = faker.datatype.boolean();
+    if (isInspection) {
+      const photosCount = faker.number.int({ min: 0, max: 10 });
+      const photos = photosCount
+        ? Array.from({ length: photosCount }, () => faker.internet.url())
+        : [];
+
+      const othersCount = faker.number.int({ min: 0, max: 3 });
+      const others = othersCount
+        ? Array.from({ length: othersCount }, () => {
+            return {
+              other: faker.lorem.word(),
+              comment: faker.datatype.boolean() ? faker.lorem.word() : '',
+              price: faker.number.int({ min: 0, max: 2001 }).toString(),
+            };
+          })
+        : [];
+
+      const piecesCount = faker.number.int({ min: 1, max: 15 });
+      const pieces = Array.from({ length: piecesCount }, () => {
+        const piece =
+          piecesData[faker.number.int({ min: 0, max: piecesData.length - 1 })];
+
+        return {
+          side: piece.side,
+          operation: faker.helpers.arrayElement(operations),
+          piece: piece,
+          comment: faker.datatype.boolean() ? faker.lorem.word() : '',
+          price: faker.number.int({ min: 0, max: 2001 }).toString(),
+        };
+      });
+      let budgetDataInspection = await this.budgetsService.saveInspection(
+        budgetData,
+        {
+          budgetId: budgetData.id,
+          documents: [],
+          photos: photos,
+          others: others,
+          pieces: pieces,
+          comment: faker.datatype.boolean() ? faker.lorem.word() : '',
+          tax: faker.number.int({ min: 0, max: 7 }),
+        },
+      );
+      const changeStatus = faker.datatype.boolean();
+      if (changeStatus) {
+        budgetDataInspection = await this.budgetsService.updateStatus(
+          budgetDataInspection,
+          StatusBudget.Espera,
+          StatusBudget.Estimado,
+          recepcionData,
+        );
+
+        const createRo = faker.datatype.boolean({ probability: 0.7 });
+        if (createRo) {
+          const approved = faker.datatype.boolean();
+          const inTheWorkshop = approved ? faker.datatype.boolean() : true;
+          const roData = await this.repairOrdersService.create(
+            {
+              budgetId: budgetDataInspection.id,
+              approved: approved,
+              inTheWorkshop: inTheWorkshop,
+              workshop: new Types.ObjectId(workshop.id),
+            },
+            budgetDataInspection,
+            recepcionData,
+          );
+          const initOTBool = faker.datatype.boolean();
+          if (
+            approved &&
+            inTheWorkshop &&
+            roData.pieces.length === 0 &&
+            initOTBool
+          ) {
+            const futureDate = faker.date.future();
+            const formattedDate = `${futureDate.getDate()}/${
+              futureDate.getMonth() + 1
+            }/${futureDate.getFullYear()}`;
+
+            const orderUpdate = await this.repairOrdersService.generateOT(
+              roData,
+              {
+                id: roData.id,
+                endDate: formattedDate,
+              },
+            );
+            const movementROBool = faker.datatype.boolean();
+            if (movementROBool) {
+              const statusOptions = [
+                'Enderezado',
+                'Preparación',
+                'Pintura',
+                'Armado',
+                'Mecánica',
+                'Alineamiento',
+                'A. Acondicionado',
+              ];
+              const movementRO = await this.repairOrdersService.changeMovements(
+                [orderUpdate],
+                {
+                  movements: [
+                    {
+                      id: orderUpdate.id,
+                      statusInput: faker.helpers.arrayElement(statusOptions),
+                    },
+                  ],
+                },
+              );
+              budgets.push(budgetDataInspection);
+              ROs.push(movementRO[0]);
+            } else {
+              budgets.push(budgetDataInspection);
+              ROs.push(orderUpdate);
+            }
+          } else {
+            budgets.push(budgetDataInspection);
+            ROs.push(roData);
+          }
+        } else {
+          budgets.push(budgetDataInspection);
+        }
+      } else {
+        budgets.push(budgetDataInspection);
+      }
+    } else {
+      budgets.push(budgetData);
+    }
+    if (end < 999) {
+      console.log(`Presupuestos ${budgets.length}, Ro ${ROs.length}`);
+      const results = await this.loadOneBudgetOrder(
+        workshop,
+        makes,
+        colors,
+        insurances,
+        contizadorData,
+        recepcionData,
+        piecesData,
+        budgets,
+        ROs,
+        end + 1,
+      );
+      return results;
+    } else {
+      return { budgetDatas: budgets, ROs };
+    }
+  }
+
+  async loadDataTestFull() {
+    const workshops = await this.workshopService.findAll();
+    const makesModels = await this.makesModelsService.findAll();
+    const colors = await this.colorsService.findAll();
+    const insurances = await this.insurancesService.findAll();
+    const contizadorData = await this.userService.findOneByEmail(
+      'cotizador@prueba.com',
+    );
+    const recepcionData = await this.userService.findOneByEmail(
+      'recepcion@prueba.com',
+    );
+
+    const piecesData = await this.partsService.findAll();
+    if (
+      workshops.length > 0 &&
+      makesModels.length > 0 &&
+      colors.length > 0 &&
+      insurances.length > 0 &&
+      piecesData.length > 0 &&
+      contizadorData
+    ) {
+      const total = await this.loadOneBudgetOrder(
+        workshops[0],
+        makesModels,
+        colors,
+        insurances,
+        contizadorData,
+        recepcionData,
+        piecesData,
+        [],
+        [],
+      );
+      return `Presupuestos ${total.budgetDatas.length}, Ro ${total.ROs.length}`;
+    } else {
+      return 'faltan cargar datos importantes';
+    }
   }
 }

@@ -51,6 +51,20 @@ export class DataPreloadController {
     }
   }
 
+  // @UseGuards(AuthGuard)
+  // @SuperAdmin()
+  @Post('/dataTestFull')
+  loadDataTestFull() {
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        return this.dataPreload.loadDataTestFull();
+      }
+      throw new NotFoundException();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
   @Post('/clients')
   preloadClient() {
     try {
