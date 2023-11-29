@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Part } from './entities/part.entity';
@@ -32,14 +32,11 @@ export class PartsService {
   }
 
   async remove(id: string): Promise<any> {
-    return this.partModel.findByIdAndRemove(id, (err, doc): any => {
-      if (err) {
-        console.log('error: ', err);
-        return err;
-      } else {
-        console.log(`Deleted document: ${doc}`);
-        return doc;
-      }
-    });
+    try {
+      const doc = await this.partModel.findByIdAndDelete<Part>(id).exec();
+      return doc;
+    } catch (err) {
+      throw new BadRequestException(`Error inesperado`);
+    }
   }
 }

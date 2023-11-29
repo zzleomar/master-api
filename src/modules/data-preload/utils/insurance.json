@@ -85,7 +85,7 @@
   {
     "InsuranceID": 43,
     "InsuranceID2": null,
-    "InsuranceCompany": "Aliado Seguros",
+    "InsuranceCompany": "Aliados",
     "InsurancePhone": "",
     "InsurancePhone2": null,
     "InsuranceFax": null,
@@ -126,7 +126,7 @@
   {
     "InsuranceID": 22,
     "InsuranceID2": 0,
-    "InsuranceCompany": "Aseguradora Ancón",
+    "InsuranceCompany": "Ancón",
     "InsurancePhone": "",
     "InsurancePhone2": null,
     "InsuranceFax": null,
@@ -167,7 +167,7 @@
   {
     "InsuranceID": 23,
     "InsuranceID2": 0,
-    "InsuranceCompany": "Aseguradora Global",
+    "InsuranceCompany": "Global",
     "InsurancePhone": "206-2021",
     "InsurancePhone2": null,
     "InsuranceFax": null,
@@ -249,7 +249,7 @@
   {
     "InsuranceID": 25,
     "InsuranceID2": 0,
-    "InsuranceCompany": "General de Seguros",
+    "InsuranceCompany": "General",
     "InsurancePhone": "",
     "InsurancePhone2": null,
     "InsuranceFax": null,
@@ -290,7 +290,7 @@
   {
     "InsuranceID": 18,
     "InsuranceID2": 0,
-    "InsuranceCompany": "INTERNACIONAL DE SEGUROS",
+    "InsuranceCompany": "INTERNACIONAL",
     "InsurancePhone": "",
     "InsurancePhone2": null,
     "InsuranceFax": null,
@@ -372,7 +372,7 @@
   {
     "InsuranceID": 28,
     "InsuranceID2": 0,
-    "InsuranceCompany": "Óptima de Seguros",
+    "InsuranceCompany": "Óptima",
     "InsurancePhone": "",
     "InsurancePhone2": null,
     "InsuranceFax": null,
@@ -413,7 +413,7 @@
   {
     "InsuranceID": 24,
     "InsuranceID2": 0,
-    "InsuranceCompany": "Seguros Fedpa",
+    "InsuranceCompany": "Fedpa",
     "InsurancePhone": null,
     "InsurancePhone2": null,
     "InsuranceFax": null,

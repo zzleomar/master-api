@@ -30,6 +30,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.1.11",
     "@nestjs/throttler": "^5.0.0",
+    "@types/mongoose": "^5.11.97",
     "aws-sdk": "^2.1481.0",
     "base64-img": "^1.0.4",
     "bcryptjs": "^2.4.3",
@@ -42,7 +43,7 @@
     "helmet": "^7.0.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
-    "mongoose": "^7.6.0",
+    "mongoose": "^8.0.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "path": "^0.12.7",
@@ -52,6 +53,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.3.1",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",

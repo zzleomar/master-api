@@ -5,7 +5,6 @@ import {
   Request,
   BadRequestException,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import { BudgetsService, FindAllResponse } from './budgets.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
@@ -234,6 +233,7 @@ export class BudgetsController {
     @Body() filters: FilterBudgetDto,
     @Body('page') page: number = 1,
     @Body('pageSize') pageSize: number = 30,
+    @Body('status') statusTab: string = 'all',
   ): Promise<FindAllResponse> {
     const filtro: any = filters;
     const user = request['user'];
@@ -242,6 +242,7 @@ export class BudgetsController {
         { workshop: user.workshop },
         page,
         pageSize,
+        statusTab,
       );
     } else if (filtro.value) {
       if (

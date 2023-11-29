@@ -111,10 +111,18 @@ export class BudgetsService {
   }
 
   async findAll(
-    filter: any,
+    filterData: any,
     page: number = 1,
     pageSize: number = 30,
+    statusTab: string = 'all',
   ): Promise<FindAllResponse> {
+    let filter: any = {};
+    if (statusTab === 'all') {
+      filter = { ...filterData };
+    } else {
+      filter = { ...filterData };
+      filter.status = statusTab;
+    }
     const query = this.budgetModel
       .find(filter)
       .populate(['vehicle', 'insuranceCompany', 'quoter']);
@@ -142,9 +150,11 @@ export class BudgetsService {
     budgetData.comment = data.comment ?? '';
     budgetData.tax = data.tax ?? 0;
 
-    await budgetData.save();
-
-    return budgetData;
+    await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
+    return this.budgetModel
+      .findById(budgetData._id)
+      .populate(['vehicle', 'insuranceCompany', 'quoter'])
+      .exec();
   }
 
   async updateStatus(
