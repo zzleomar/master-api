@@ -17,6 +17,5 @@ export class CreateWorkshopDto {
   url: string;
 
   @IsOptional() // El workshop es opcional para los SuperAdmin
-  @IsMongoId()
-  owner: string; // Debe ser el ID del usuario propietario (MongoDB ObjectId)
+  owner?: string; // Debe ser el ID del usuario propietario (MongoDB ObjectId)
 }

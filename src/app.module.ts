@@ -9,6 +9,17 @@ import * as dotenv from 'dotenv';
 import { AuthGuard } from './modules/auth/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './modules/auth/utils/constants';
+import { DataPreloadModule } from './modules/data-preload/data-preload.module';
+import { MakesModelsModule } from './modules/makes-models/makes-models.module';
+import { ColorsModule } from './modules/colors/colors.module';
+import { InsurancesModule } from './modules/insurances/insurances.module';
+import { BudgetsModule } from './modules/budgets/budgets.module';
+import { ClientsModule } from './modules/clients/clients.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { HistoriesModule } from './modules/histories/histories.module';
+import { PartsModule } from './modules/parts/parts.module';
+import { FilesModule } from './modules/files/files.module';
+import { RepairOrdersModule } from './modules/repair-orders/repair-orders.module';
 dotenv.config();
 
 @Module({
@@ -17,10 +28,21 @@ dotenv.config();
     AuthModule,
     UsersModule,
     WorkshopsModule,
+    DataPreloadModule,
+    MakesModelsModule,
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '1d' }, // Opciones de firma
     }),
+    ColorsModule,
+    InsurancesModule,
+    BudgetsModule,
+    ClientsModule,
+    VehiclesModule,
+    HistoriesModule,
+    PartsModule,
+    FilesModule,
+    RepairOrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthGuard],

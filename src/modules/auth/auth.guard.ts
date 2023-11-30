@@ -5,7 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from './utils/constants';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import {
@@ -27,7 +26,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const isSupAdmin = this.reflector.get<boolean>(
+    const isSuperAdmin = this.reflector.get<boolean>(
       IS_SUPERADMIN,
       context.getHandler(),
     );
@@ -55,14 +54,14 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: jwtConstants.secret,
+        secret: process.env.JWT_SECRET,
       });
       if (
         !this.validateRole(
           {
             Master: isMaster,
             Admin: isAdmin,
-            SuperAdmin: isSupAdmin,
+            SuperAdmin: isSuperAdmin,
             Cotizador: isCotizador,
             Recepcion: isRecepcion,
             Repuesto: isRepuesto,
