@@ -29,6 +29,7 @@ import { InitOTDto } from './dto/init-OT-order.dto';
 import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
 import { map } from 'lodash';
 import { StatusRepairOrder } from './entities/repair-order.entity';
+import { codeRO } from './utils/parseLabel';
 
 @Controller('repairOrders')
 export class RepairOrdersController {
@@ -96,9 +97,9 @@ export class RepairOrdersController {
       );
 
       await this.historiesService.createHistory({
-        message: `Actualización de estados de las piezas de la orden ${anulatedOrder.code
-          .toString()
-          .padStart(6, '0')}`,
+        message: `Actualización de estados de las piezas de la orden ${codeRO(
+          anulatedOrder,
+        )}`,
         user: user._id,
         ro: anulatedOrder.id,
       });
@@ -127,9 +128,9 @@ export class RepairOrdersController {
       );
       if (ROUpdate) {
         await this.historiesService.createHistory({
-          message: `Cambio de estado del vehiculo de la RO ${ROUpdate.code
-            .toString()
-            .padStart(6, '0')} a ${ROUpdate.statusVehicle}`,
+          message: `Cambio de estado del vehiculo de la RO ${codeRO(
+            ROUpdate,
+          )} a ${ROUpdate.statusVehicle}`,
           user: user._id,
           ro: ROUpdate.id,
         });
@@ -217,9 +218,9 @@ export class RepairOrdersController {
       data,
     );
     await this.historiesService.createHistory({
-      message: `Actualización de estados de las piezas de la orden ${orderUpdate.code
-        .toString()
-        .padStart(6, '0')}`,
+      message: `Actualización de estados de las piezas de la orden ${codeRO(
+        orderUpdate,
+      )}`,
       user: user._id,
       ro: orderUpdate.id,
     });
@@ -238,17 +239,44 @@ export class RepairOrdersController {
       workshop: new Types.ObjectId(user.workshop),
       _id: new Types.ObjectId(data.id),
     });
-    const orderUpdate = await this.repairOrdersService.generateOT(
+    let orderUpdate = await this.repairOrdersService.generateOT(
       orderData[0],
       data,
     );
     await this.historiesService.createHistory({
-      message: `Genero la OT de la orden ${orderUpdate.code
-        .toString()
-        .padStart(6, '0')}`,
+      message: `Genero la OT de la orden ${codeRO(orderUpdate)}`,
       user: user._id,
       ro: orderUpdate.id,
     });
+    if (orderUpdate.budgetData.type === 'Suplemento') {
+      const orderPrincipal = await this.repairOrdersService.findBy({
+        workshop: new Types.ObjectId(user.workshop),
+        'budgetData.code': orderUpdate.budgetData.code,
+        'budgetData.type': 'Principal',
+      });
+      if (orderPrincipal.length > 0) {
+        const dataROs = await this.repairOrdersService.changeMovements(
+          [orderUpdate],
+          {
+            movements: [
+              {
+                id: orderUpdate.id,
+                statusInput: orderPrincipal[0].statusVehicle,
+              },
+            ],
+          },
+          user,
+        );
+        await this.historiesService.createHistory({
+          message: `Cambio de estado del vehiculo de la RO ${codeRO(
+            dataROs[0],
+          )}`,
+          user: user._id,
+          ro: dataROs[0].id,
+        });
+        orderUpdate = dataROs[0];
+      }
+    }
     return orderUpdate;
   }
 
@@ -269,6 +297,7 @@ export class RepairOrdersController {
       const ROSUpdate = await this.repairOrdersService.changeMovements(
         RODatas,
         data,
+        user,
       );
       if (ROSUpdate) {
         let response = [];
@@ -276,9 +305,7 @@ export class RepairOrdersController {
           const ro = ROSUpdate[i];
           response.push(
             await this.historiesService.createHistory({
-              message: `Cambio de estado del vehiculo de la RO ${ro.code
-                .toString()
-                .padStart(6, '0')} a ${ro.statusVehicle}`,
+              message: `Cambio de estado del vehiculo de la RO ${codeRO(ro)}`,
               user: user._id,
               ro: ro.id,
             }),

@@ -22,6 +22,7 @@ import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { HistoriesService } from '../histories/histories.service';
 import * as moment from 'moment';
 import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
+import { codeBudget } from './utils/parseLabel';
 
 export interface FindAllResponse {
   results: any[];
@@ -179,9 +180,9 @@ export class BudgetsService {
     await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
 
     await this.historiesService.createHistory({
-      message: `Cambio de estado del presupuesto ${budgetData.code
-        .toString()
-        .padStart(6, '0')} a ${budgetData.status} a ${StatusBudget.Espera}`,
+      message: `Cambio de estado del presupuesto ${codeBudget(budgetData)} a ${
+        budgetData.status
+      } a ${StatusBudget.Espera}`,
       user: user._id,
       budget: budgetData._id,
     });

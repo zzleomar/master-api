@@ -32,6 +32,7 @@ import { UpdateVehicleDto } from '../vehicles/dto/update-vehicle.dto';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
 import { StatusRepairOrder } from '../repair-orders/entities/repair-order.entity';
+import { codeBudget } from './utils/parseLabel';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -210,9 +211,7 @@ export class BudgetsController {
       await this.repairOrdersService.updateBudget(order[0], newBudget);
     }
     const log = await this.historiesService.createHistory({
-      message: `Datos del presupuesto ${newBudget.code
-        .toString()
-        .padStart(6, '0')} actualizado`,
+      message: `Datos del presupuesto ${codeBudget(newBudget)} actualizado`,
       user: user._id,
       budget: newBudget.id,
     });
@@ -308,9 +307,9 @@ export class BudgetsController {
       data,
     );
     await this.historiesService.createHistory({
-      message: `Registro de inspección del presupuesto ${budgetUpdate.code
-        .toString()
-        .padStart(6, '0')}`,
+      message: `Registro de inspección del presupuesto ${codeBudget(
+        budgetUpdate,
+      )}`,
       user: user._id,
       budget: budgetUpdate.id,
     });

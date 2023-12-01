@@ -1039,6 +1039,7 @@ export class DataPreloadService {
                     },
                   ],
                 },
+                recepcionData,
               );
               budgets.push(budgetDataInspection);
               ROs.push(movementRO[0]);

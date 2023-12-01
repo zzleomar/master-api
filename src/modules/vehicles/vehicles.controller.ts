@@ -14,7 +14,13 @@ import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { AuthGuard } from '../auth/auth.guard';
-import { Master, SuperAdmin } from '../auth/utils/decorator';
+import {
+  Admin,
+  Cotizador,
+  Master,
+  Recepcion,
+  SuperAdmin,
+} from '../auth/utils/decorator';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import mongoose from 'mongoose';
 
@@ -62,7 +68,10 @@ export class VehiclesController {
   }
 
   @Master()
-  @SuperAdmin()
+  @Recepcion()
+  @Master()
+  @Cotizador()
+  @Admin()
   @UseGuards(AuthGuard)
   @Get('ot/:id')
   async getOtCount(@Request() request, @Param('id') id: string) {
@@ -79,6 +88,7 @@ export class VehiclesController {
       },
     );
 
-    return (budgets && budgets.length) || 0;
+    return budgets.filter((item: any) => item.budgetData.type === 'Principal')
+      .length;
   }
 }

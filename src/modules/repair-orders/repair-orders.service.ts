@@ -18,6 +18,7 @@ import { PiecesOrderDto } from './dto/pieces-order.dto';
 import { InitOTDto } from './dto/init-OT-order.dto';
 import * as moment from 'moment';
 import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
+import { codeRO } from './utils/parseLabel';
 @Injectable()
 export class RepairOrdersService {
   constructor(
@@ -57,7 +58,22 @@ export class RepairOrdersService {
       const createdOrder = new this.repairOrderModel(body);
       createdOrder.budget = new Types.ObjectId(dataBudgets._id);
       createdOrder.budgetData = dataBudgets.toObject();
-      createdOrder.code = await this.getLastCode();
+      if (dataBudgets.type === 'Suplemento') {
+        const orderPrincipal = await this.findBy({
+          workshop: new Types.ObjectId(user.workshop),
+          'budgetData.code': dataBudgets.code,
+          'budgetData.type': 'Principal',
+        });
+        if (orderPrincipal.length > 0) {
+          createdOrder.code = orderPrincipal[0].code;
+        } else {
+          throw new BadRequestException(
+            'No se encontro la orden Madre del suplemento',
+          );
+        }
+      } else {
+        createdOrder.code = await this.getLastCode();
+      }
 
       createdOrder.pieces = pieces;
       //si la orden de compra esta aprobada y el carro esta en el taller
@@ -117,7 +133,7 @@ export class RepairOrdersService {
 
       const order = await createdOrder.save();
       await this.historiesService.createHistory({
-        message: `Creación de RO ${order.code.toString().padStart(6, '0')}`,
+        message: `Creación de RO ${codeRO(order)}`,
         user: user._id,
         ro: createdOrder.id,
       });
@@ -369,14 +385,53 @@ export class RepairOrdersService {
     return this.repairOrderModel.findById({ _id: order.id });
   }
 
-  async changeMovements(orders: RepairOrder[], data: MovementsRepairOrderDto) {
+  async changeMovements(
+    orders: RepairOrder[],
+    data: MovementsRepairOrderDto,
+    user: any,
+  ) {
     let response: RepairOrder[] | Promise<RepairOrder>[] = map(
       orders,
-      (order: RepairOrder) => {
+      async (order: RepairOrder) => {
         const item = find(
           data.movements,
           (movement: any) => movement.id === order.id,
         );
+        if (order.budgetData.type === 'Principal') {
+          const roSumplemnts = await this.findBy({
+            workshop: new Types.ObjectId(order.workshop),
+            'budgetData.code': order.budgetData.code,
+            'budgetData.type': 'Suplemento',
+          });
+          if (roSumplemnts.length > 0) {
+            this.changeMovements(
+              roSumplemnts,
+              {
+                movements: roSumplemnts.map((item2: RepairOrder) => {
+                  return {
+                    id: item2.id,
+                    statusInput: item.statusInput,
+                  };
+                }),
+              },
+              user,
+            );
+            let response = [];
+            for (let i = 0; i < roSumplemnts.length; i++) {
+              const ro = roSumplemnts[i];
+              response.push(
+                await this.historiesService.createHistory({
+                  message: `Cambio de estado del vehiculo de la RO ${codeRO(
+                    ro,
+                  )}`,
+                  user: user._id,
+                  ro: ro.id,
+                }),
+              );
+            }
+            response = await Promise.all(response);
+          }
+        }
         return this.updateStatusVehicle(
           order,
           item.statusInput,
