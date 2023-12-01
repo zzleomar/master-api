@@ -402,6 +402,7 @@ export class RepairOrdersService {
             workshop: new Types.ObjectId(order.workshop),
             'budgetData.code': order.budgetData.code,
             'budgetData.type': 'Suplemento',
+            initOT: { $ne: null },
           });
           if (roSumplemnts.length > 0) {
             this.changeMovements(
