@@ -20,6 +20,7 @@ import { HistoriesModule } from './modules/histories/histories.module';
 import { PartsModule } from './modules/parts/parts.module';
 import { FilesModule } from './modules/files/files.module';
 import { RepairOrdersModule } from './modules/repair-orders/repair-orders.module';
+import { ReportsModule } from './modules/reports/reports.module';
 dotenv.config();
 
 @Module({
@@ -43,6 +44,7 @@ dotenv.config();
     PartsModule,
     FilesModule,
     RepairOrdersModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthGuard],
