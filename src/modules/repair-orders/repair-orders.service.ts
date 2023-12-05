@@ -170,6 +170,13 @@ export class RepairOrdersService {
     return repairOrder;
   }
 
+  async findByCount(filter: any): Promise<number> {
+    const repairOrder = await this.repairOrderModel
+      .countDocuments({ ...filter })
+      .exec();
+    return repairOrder;
+  }
+
   async changeStatus(
     dataRO: RepairOrder,
     data: StatusRepairOrderstDto,
