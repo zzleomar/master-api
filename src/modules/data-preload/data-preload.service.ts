@@ -871,13 +871,15 @@ export class DataPreloadService {
     makes: any,
     colors: any,
     insurances: any[],
-    contizadorData: any,
+    quoters: any,
     recepcionData: any,
     piecesData: any[],
     budgets: any[],
     ROs: any[],
     end: number = 0,
   ) {
+    const keyQuoter = faker.number.int({ min: 0, max: quoters.length - 1 });
+    const contizadorData = quoters[keyQuoter];
     const color = colors[faker.number.int({ min: 0, max: colors.length - 1 })];
     const make = makes[faker.number.int({ min: 0, max: makes.length - 1 })];
     const typesColors = [
@@ -1077,7 +1079,7 @@ export class DataPreloadService {
         makes,
         colors,
         insurances,
-        contizadorData,
+        quoters,
         recepcionData,
         piecesData,
         budgets,
@@ -1095,9 +1097,9 @@ export class DataPreloadService {
     const makesModels = await this.makesModelsService.findAll();
     const colors = await this.colorsService.findAll();
     const insurances = await this.insurancesService.findAll();
-    const contizadorData = await this.userService.findOneByEmail(
-      'cotizador@prueba.com',
-    );
+    const contizadors = await this.userService.findUserByFilter({
+      role: 'Cotizador',
+    });
     const recepcionData = await this.userService.findOneByEmail(
       'recepcion@prueba.com',
     );
@@ -1109,14 +1111,14 @@ export class DataPreloadService {
       colors.length > 0 &&
       insurances.length > 0 &&
       piecesData.length > 0 &&
-      contizadorData
+      contizadors
     ) {
       const total = await this.loadOneBudgetOrder(
         workshops[0],
         makesModels,
         colors,
         insurances,
-        contizadorData,
+        contizadors,
         recepcionData,
         piecesData,
         [],

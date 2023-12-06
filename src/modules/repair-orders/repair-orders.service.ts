@@ -466,11 +466,12 @@ export class RepairOrdersService {
     return this.repairOrderModel.updateOne(filter, data);
   }
 
-  async report(initDate: any, endDate: any) {
+  async reportInsurance(initDate: any, endDate: any) {
     const result = await this.repairOrderModel
       .aggregate([
         {
           $match: {
+            'budgetData.type': 'Principal',
             'budgetData.statusChange': {
               $elemMatch: {
                 status: StatusBudget.Espera,
@@ -482,6 +483,35 @@ export class RepairOrdersService {
         {
           $group: {
             _id: '$budgetData.insuranceCompany',
+            total: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+
+    return result;
+  }
+
+  async reportQuoter(initDate: any, endDate: any) {
+    const result = await this.repairOrderModel
+      .aggregate([
+        {
+          $match: {
+            'budgetData.type': 'Principal',
+            'budgetData.statusChange': {
+              $elemMatch: {
+                status: StatusBudget.Espera,
+                endDate: { $gte: initDate, $lte: endDate, $ne: null },
+              },
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              insurance: '$budgetData.insuranceCompany._id', // Nombre de la aseguradora
+              quoter: '$budgetData.quoter._id', // Nombre del cotizador
+            },
             total: { $sum: 1 },
           },
         },

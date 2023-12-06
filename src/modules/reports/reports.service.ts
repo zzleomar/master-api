@@ -17,6 +17,7 @@ import {
   StatusRepairOrder,
   StatusVehicle,
 } from '../repair-orders/entities/repair-order.entity';
+import { groupBy, map } from 'lodash';
 
 @Injectable()
 export class ReportsService {
@@ -141,7 +142,10 @@ export class ReportsService {
   async insuranceReport(filter: FilterReportsDto) {
     const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
     const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
-    const data = await this.repairOrdersService.report(startDate, endDate);
+    const data = await this.repairOrdersService.reportInsurance(
+      startDate,
+      endDate,
+    );
     const insurances = await this.insurancesService.findAll();
     return insurances.map((insurance: any) => {
       const item = data.find((i: any) => {
@@ -151,6 +155,60 @@ export class ReportsService {
       return {
         name: insurance.name,
         total,
+      };
+    });
+  }
+
+  async quotersReport(filter: FilterReportsDto) {
+    const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
+    const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
+    let data: any = await this.repairOrdersService.reportQuoter(
+      startDate,
+      endDate,
+    );
+    const insurances = await this.insurancesService.findAll();
+    const quoters = await this.userService.findUserByFilter({
+      role: 'Cotizador',
+    });
+    data = groupBy(
+      map(data, (item: any) => {
+        return {
+          insurance: item._id.insurance,
+          quoter: item._id.quoter,
+          total: item.total,
+        };
+      }),
+      'insurance',
+    );
+    data = map(data, (quotes) =>
+      map(quotes, (quote) => {
+        const { insurance, quoter, total } = quote;
+        return { insurance, quoter, total };
+      }),
+    );
+    return insurances.map((insurance: any) => {
+      const item = data.find((i: any) => {
+        return insurance._id.equals(i[0].insurance);
+      });
+      return {
+        insurance: insurance.name,
+        quoters: quoters.map((quote: any) => {
+          if (item) {
+            const itemQ = item.find((i: any) => {
+              return quote._id.equals(i.quoter);
+            });
+            const total = itemQ ? itemQ.total : 0;
+            return {
+              name: `${quote?.firstName} ${quote?.lastName}`,
+              total,
+            };
+          } else {
+            return {
+              name: `${quote?.firstName} ${quote?.lastName}`,
+              total: 0,
+            };
+          }
+        }),
       };
     });
   }

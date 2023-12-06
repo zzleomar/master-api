@@ -55,4 +55,17 @@ export class ReportsController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Recepcion()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/quoters')
+  quotersReport(@Body() filter: FilterReportsDto) {
+    try {
+      return this.reportsService.quotersReport(filter);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }

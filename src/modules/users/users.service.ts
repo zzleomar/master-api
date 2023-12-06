@@ -18,7 +18,7 @@ export class UsersService {
   constructor(
     @InjectModel('User') private readonly userModel: Model<any>,
     private readonly workshopsService: WorkshopsService,
-  ) { }
+  ) {}
 
   async createMasterAndWorkshop(
     createUserDto: CreateUserDto,
