@@ -31,17 +31,28 @@ export class ReportsController {
   }
 
   @Recepcion()
-  @Cotizador()
   @Master()
   @Admin()
   @UseGuards(AuthGuard)
   @Post('/statusWorkshop')
-  statusWorkshop(@Request() request) {
+  statusWorkshop() {
     try {
-      // const user = request['user'];
       return this.reportsService.statusWorkshop();
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
-} 
+
+  @Recepcion()
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/insurances')
+  insuranceReport(@Body() filter: FilterReportsDto) {
+    try {
+      return this.reportsService.insuranceReport(filter);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+}

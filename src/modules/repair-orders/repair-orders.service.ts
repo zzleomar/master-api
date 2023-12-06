@@ -57,7 +57,6 @@ export class RepairOrdersService {
       body.workshop = new Types.ObjectId(body.workshop);
       const createdOrder = new this.repairOrderModel(body);
       createdOrder.budget = new Types.ObjectId(dataBudgets._id);
-      createdOrder.budgetData = dataBudgets.toObject();
       if (dataBudgets.type === 'Suplemento') {
         const orderPrincipal = await this.findBy({
           workshop: new Types.ObjectId(user.workshop),
@@ -83,7 +82,7 @@ export class RepairOrdersService {
         } else {
           createdOrder.statusVehicle = StatusVehicle.EsperandoPieza;
         }
-        this.budgetsSevice.updateStatus(
+        await this.budgetsSevice.updateStatus(
           dataBudgets,
           StatusBudget.Aprobado,
           StatusBudget.Espera,
@@ -101,7 +100,7 @@ export class RepairOrdersService {
         } else {
           createdOrder.statusVehicle = StatusVehicle.EsperandoPieza;
         }
-        this.budgetsSevice.updateStatus(
+        await this.budgetsSevice.updateStatus(
           dataBudgets,
           StatusBudget.Aprobado,
           StatusBudget.Espera,
@@ -131,6 +130,10 @@ export class RepairOrdersService {
         },
       ];
 
+      const dataBudgets2 = await this.budgetsSevice.findBy({
+        _id: new Types.ObjectId(dataBudgets._id),
+      });
+      createdOrder.budgetData = dataBudgets2[0].toObject();
       const order = await createdOrder.save();
       await this.historiesService.createHistory({
         message: `Creación de RO ${codeRO(order)}`,
@@ -218,14 +221,21 @@ export class RepairOrdersService {
               approved: data.approved,
             },
           );
-          const dataBudgets = await this.budgetsSevice.findBy({
+          let dataBudgets = await this.budgetsSevice.findBy({
             _id: dataRO.budgetData._id,
           });
-          this.budgetsSevice.updateStatus(
+          await this.budgetsSevice.updateStatus(
             dataBudgets[0],
             StatusBudget.Aprobado,
             StatusBudget.Espera,
             user,
+          );
+          dataBudgets = await this.budgetsSevice.findBy({
+            _id: dataRO.budgetData._id,
+          });
+          await this.repairOrderModel.updateOne(
+            { _id: dataRO._id },
+            { budgetData: dataBudgets[0].toObject() },
           );
         }
         break;
@@ -450,5 +460,34 @@ export class RepairOrdersService {
     );
     response = await Promise.all(response);
     return response;
+  }
+
+  async updateOne(filter: any, data: any) {
+    return this.repairOrderModel.updateOne(filter, data);
+  }
+
+  async report(initDate: any, endDate: any) {
+    const result = await this.repairOrderModel
+      .aggregate([
+        {
+          $match: {
+            'budgetData.statusChange': {
+              $elemMatch: {
+                status: StatusBudget.Espera,
+                endDate: { $gte: initDate, $lte: endDate, $ne: null },
+              },
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$budgetData.insuranceCompany',
+            total: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+
+    return result;
   }
 }

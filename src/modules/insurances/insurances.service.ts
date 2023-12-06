@@ -56,4 +56,41 @@ export class InsurancesService {
       throw new BadRequestException(`Error inesperado`);
     }
   }
+
+  async report(initDate: Date, endDate: Date): Promise<any> {
+    const result = await this.insuranceModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'repairOrders',
+            localField: '_id',
+            foreignField: 'budgetData.insuranceCompany',
+            as: 'orders',
+          },
+        },
+        {
+          $unwind: '$orders',
+        },
+        {
+          $match: {
+            'orders.budgetData.statusChange': {
+              $elemMatch: {
+                status: 'Esperando aprobación',
+                initDate: { $gte: initDate },
+                endDate: { $lte: endDate, $ne: null }, // Orden aprobada
+              },
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id',
+            name: { $first: '$name' }, // Ajusta según tus campos
+            totalOrdenesAprobadas: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+    return result;
+  }
 }

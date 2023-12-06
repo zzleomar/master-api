@@ -137,4 +137,21 @@ export class ReportsService {
       activeJobs: tabajosActivos,
     };
   }
+
+  async insuranceReport(filter: FilterReportsDto) {
+    const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
+    const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
+    const data = await this.repairOrdersService.report(startDate, endDate);
+    const insurances = await this.insurancesService.findAll();
+    return insurances.map((insurance: any) => {
+      const item = data.find((i: any) => {
+        return insurance._id.equals(i._id._id);
+      });
+      const total = item ? item.total : 0;
+      return {
+        name: insurance.name,
+        total,
+      };
+    });
+  }
 }

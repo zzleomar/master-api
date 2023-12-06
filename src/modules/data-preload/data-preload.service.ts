@@ -999,6 +999,16 @@ export class DataPreloadService {
             budgetDataInspection,
             recepcionData,
           );
+
+          const dataBudgets = await this.budgetsService.findBy({
+            _id: roData.budgetData._id,
+          });
+          if (approved) {
+            await this.repairOrdersService.updateOne(
+              { _id: roData._id },
+              { budgetData: dataBudgets[0].toObject() },
+            );
+          }
           const initOTBool = faker.datatype.boolean();
           if (
             approved &&
