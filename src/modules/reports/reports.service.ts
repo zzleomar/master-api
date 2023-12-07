@@ -18,6 +18,7 @@ import {
   StatusVehicle,
 } from '../repair-orders/entities/repair-order.entity';
 import { groupBy, map } from 'lodash';
+import { StatusBudget } from '../budgets/entities/budget.entity';
 
 @Injectable()
 export class ReportsService {
@@ -159,22 +160,45 @@ export class ReportsService {
     });
   }
 
-  async quotersReport(filter: FilterReportsDto) {
+  async quotersReport(
+    filter: FilterReportsDto,
+    status: StatusBudget = StatusBudget.Aprobado,
+  ) {
     const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
     const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
-    let data: any = await this.repairOrdersService.reportQuoter(
-      startDate,
-      endDate,
-    );
+    let data: any = [];
+    if (status === StatusBudget.Aprobado) {
+      data = await this.repairOrdersService.reportQuoterCompleted(
+        startDate,
+        endDate,
+        filter.type,
+      );
+    }
+    if (status === StatusBudget.Espera) {
+      data = await this.budgetsService.reportQuoterBudgetSubmissions(
+        startDate,
+        endDate,
+        filter.type,
+      );
+    }
+    if (status === StatusBudget.Expirado) {
+      data = await this.budgetsService.reportQuoterBudgetExpired(
+        startDate,
+        endDate,
+        filter.type,
+      );
+    }
+
     const insurances = await this.insurancesService.findAll();
     const quoters = await this.userService.findUserByFilter({
       role: 'Cotizador',
     });
     data = groupBy(
-      map(data, (item: any) => {
+      map(data, (row: any) => {
+        const item = row._id ? { ...row._id, total: row.total } : row;
         return {
-          insurance: item._id.insurance,
-          quoter: item._id.quoter,
+          insurance: item.insurance,
+          quoter: item.quoter,
           total: item.total,
         };
       }),
@@ -211,5 +235,16 @@ export class ReportsService {
         }),
       };
     });
+  }
+
+  async quotersOrderSatusReport(filter: FilterReportsDto) {
+    const failed = await this.quotersReport(filter, StatusBudget.Expirado);
+    const submissions = await this.quotersReport(filter, StatusBudget.Espera);
+    const completed = await this.quotersReport(filter, StatusBudget.Aprobado);
+    return {
+      failed,
+      submissions,
+      completed,
+    };
   }
 }

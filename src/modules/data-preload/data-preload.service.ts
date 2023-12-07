@@ -1129,4 +1129,38 @@ export class DataPreloadService {
       return 'faltan cargar datos importantes';
     }
   }
+  async loadDataExpideTestFull() {
+    const response = await this.budgetsService.findAll(
+      {},
+      5,
+      20,
+      StatusBudget.Espera,
+    );
+    const budgetsData = response.results;
+
+    const recepcion = await this.userService.findUserByFilter({
+      role: 'Recepcion',
+    });
+    let updated: any = [];
+    for (let i = 0; i < budgetsData.length; i++) {
+      const order = await this.repairOrdersService.findBy(
+        {
+          budget: budgetsData[i]._id,
+        },
+        false,
+      );
+      if (order && order.length === 0) {
+        updated.push(
+          await this.budgetsService.updateStatus(
+            budgetsData[i],
+            StatusBudget.Expirado,
+            budgetsData[i].status,
+            recepcion[0],
+          ),
+        );
+      }
+    }
+    updated = await Promise.all(updated);
+    return `updated ${updated.length}`;
+  }
 }
