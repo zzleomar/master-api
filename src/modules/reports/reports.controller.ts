@@ -68,4 +68,16 @@ export class ReportsController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Master()
+  @Admin()
+  @UseGuards(AuthGuard)
+  @Post('/quotersStatus')
+  quotersOrderSatusReport(@Body() filter: FilterReportsDto) {
+    try {
+      return this.reportsService.quotersOrderSatusReport(filter);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }

@@ -492,7 +492,11 @@ export class RepairOrdersService {
     return result;
   }
 
-  async reportQuoter(initDate: any, endDate: any) {
+  async reportQuoterCompleted(
+    initDate: any,
+    endDate: any,
+    type: string = 'today',
+  ) {
     const result = await this.repairOrderModel
       .aggregate([
         {
@@ -500,8 +504,11 @@ export class RepairOrdersService {
             'budgetData.type': 'Principal',
             'budgetData.statusChange': {
               $elemMatch: {
-                status: StatusBudget.Espera,
-                endDate: { $gte: initDate, $lte: endDate, $ne: null },
+                status: StatusBudget.Aprobado,
+                initDate:
+                  type === 'today'
+                    ? { $exists: true }
+                    : { $gte: initDate, $lte: endDate },
               },
             },
           },

@@ -64,6 +64,17 @@ export class DataPreloadController {
       throw new BadRequestException(error.message);
     }
   }
+  @Post('/expideBudget')
+  loadDataExpideTestFull() {
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        return this.dataPreload.loadDataExpideTestFull();
+      }
+      throw new NotFoundException();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 
   @Post('/clients')
   preloadClient() {
