@@ -18,16 +18,38 @@ import { AuthGuard } from '../auth/auth.guard';
 import { Master, SuperAdmin } from '../auth/utils/decorator';
 import mongoose, { Types } from 'mongoose';
 import { Role } from './entities/user.entity';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {}
 
   @UseGuards(AuthGuard)
   @Master()
   @Post()
-  async create(@Body() createUserDto: any) {
-    return this.usersService.create(createUserDto);
+  async create(@Request() request, @Body() createUserDto: any) {
+    const user = request['user'];
+
+    const generatePass = () => {
+      let stringAleatorio = '';
+      for (let i = 0; i < 8; i++) {
+        stringAleatorio += String.fromCharCode(
+          Math.floor(Math.random() * 26) + 97,
+        );
+      }
+      return stringAleatorio;
+    };
+
+    const data = {
+      ...createUserDto,
+      password: await this.authService.hashPassword(generatePass()),
+      workshop: new Types.ObjectId(user.workshop),
+    };
+
+    return this.usersService.create(data);
   }
 
   @UseGuards(AuthGuard)

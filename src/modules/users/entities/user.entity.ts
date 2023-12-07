@@ -27,6 +27,12 @@ export class User extends Document {
   @Prop()
   cell: string;
 
+  @Prop({ default: '+507', nullable: true })
+  prefixPhone: string;
+
+  @Prop({ default: '', nullable: true })
+  phone: string;
+
   @Prop({ default: 'https://cdn-icons-png.flaticon.com/512/4975/4975733.png' })
   avatar: string;
 
