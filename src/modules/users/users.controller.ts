@@ -56,7 +56,6 @@ export class UsersController {
       email: newUser.email,
       user: newUser.email,
       webUrl: process.env.WEBURL,
-      urlStorage: process.env.URLSTORAGE,
       fullname: `${newUser.firstName} ${newUser.lastName}`,
       role: newUser.role,
       password: newPassword,
