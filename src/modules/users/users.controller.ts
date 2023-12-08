@@ -16,15 +16,16 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateWorkshopDto } from 'src/modules/workshops/dto/create-workshop.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { Master, SuperAdmin } from '../auth/utils/decorator';
-import mongoose, { Types } from 'mongoose';
-import { Role } from './entities/user.entity';
+import { Types } from 'mongoose';
 import { AuthService } from '../auth/auth.service';
+import { EmailService } from '../email/email.service';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly emailService: EmailService,
   ) {}
 
   @UseGuards(AuthGuard)
@@ -43,13 +44,24 @@ export class UsersController {
       return stringAleatorio;
     };
 
+    const newPassword = generatePass();
     const data = {
       ...createUserDto,
-      password: await this.authService.hashPassword(generatePass()),
+      password: await this.authService.hashPassword(newPassword),
       workshop: new Types.ObjectId(user.workshop),
     };
+    const newUser = await this.usersService.create(data);
 
-    return this.usersService.create(data);
+    await this.emailService.findAndSend('newUser', {
+      email: newUser.email,
+      user: newUser.email,
+      webUrl: process.env.WEBURL,
+      urlStorage: process.env.URLSTORAGE,
+      fullname: `${newUser.firstName} ${newUser.lastName}`,
+      role: newUser.role,
+      password: newPassword,
+    });
+    return newUser;
   }
 
   @UseGuards(AuthGuard)

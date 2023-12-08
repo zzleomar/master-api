@@ -21,6 +21,7 @@ import { PartsModule } from './modules/parts/parts.module';
 import { FilesModule } from './modules/files/files.module';
 import { RepairOrdersModule } from './modules/repair-orders/repair-orders.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { EmailModule } from './modules/email/email.module';
 dotenv.config();
 
 @Module({
@@ -45,6 +46,7 @@ dotenv.config();
     FilesModule,
     RepairOrdersModule,
     ReportsModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthGuard],
