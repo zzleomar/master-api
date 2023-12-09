@@ -338,33 +338,66 @@ export class BudgetsService {
     }
   }
 
-  async reportQuoterBudgetExpired(initDate: any, endDate: any, type: string) {
+  async reportQuoterBudgetExpired(
+    initDate: any,
+    endDate: any,
+    type: string,
+    user: any = null,
+  ) {
+    let filterMatch: any = {
+      $or: [
+        {
+          type: 'Principal',
+          status: StatusBudget.Expirado,
+        },
+        {
+          type: 'Principal',
+          status: StatusBudget.Espera,
+          statusChange: {
+            $elemMatch: {
+              status: StatusBudget.Espera,
+              initDate:
+                type === 'today'
+                  ? { $exists: true }
+                  : {
+                      $lt: endDate,
+                    },
+            },
+          },
+        },
+      ],
+    };
+    if (user && user.role === 'Cotizador') {
+      filterMatch = {
+        $or: [
+          {
+            quoter: new Types.ObjectId(user._id),
+            type: 'Principal',
+            status: StatusBudget.Expirado,
+          },
+          {
+            quoter: new Types.ObjectId(user._id),
+            type: 'Principal',
+            status: StatusBudget.Espera,
+            statusChange: {
+              $elemMatch: {
+                status: StatusBudget.Espera,
+                initDate:
+                  type === 'today'
+                    ? { $exists: true }
+                    : {
+                        $lt: endDate,
+                      },
+              },
+            },
+          },
+        ],
+      };
+    }
     const docs = await this.budgetModel
       .aggregate([
         {
-          $match: {
-            $or: [
-              {
-                type: 'Principal',
-                status: StatusBudget.Expirado,
-              },
-              {
-                type: 'Principal',
-                status: StatusBudget.Espera,
-                statusChange: {
-                  $elemMatch: {
-                    status: StatusBudget.Espera,
-                    initDate:
-                      type === 'today'
-                        ? { $exists: true }
-                        : {
-                            $lt: endDate,
-                          },
-                  },
-                },
-              },
-            ],
-          },
+          $match: filterMatch,
         },
       ])
       .exec();
@@ -417,23 +450,41 @@ export class BudgetsService {
     initDate: any,
     endDate: any,
     type: string,
+    user: any = null,
   ) {
+    let filterMatch: any = {
+      type: 'Principal',
+      status: StatusBudget.Espera,
+      statusChange: {
+        $elemMatch: {
+          status: StatusBudget.Espera,
+          initDate:
+            type === 'today'
+              ? { $exists: true }
+              : { $gte: initDate, $lte: endDate },
+        },
+      },
+    };
+    if (user && user.role === 'Cotizador') {
+      filterMatch = {
+        type: 'Principal',
+        status: StatusBudget.Espera,
+        quoter: new Types.ObjectId(user._id),
+        statusChange: {
+          $elemMatch: {
+            status: StatusBudget.Espera,
+            initDate:
+              type === 'today'
+                ? { $exists: true }
+                : { $gte: initDate, $lte: endDate },
+          },
+        },
+      };
+    }
     const docs = await this.budgetModel
       .aggregate([
         {
-          $match: {
-            type: 'Principal',
-            status: StatusBudget.Espera,
-            statusChange: {
-              $elemMatch: {
-                status: StatusBudget.Espera,
-                initDate:
-                  type === 'today'
-                    ? { $exists: true }
-                    : { $gte: initDate, $lte: endDate },
-              },
-            },
-          },
+          $match: filterMatch,
         },
       ])
       .exec();

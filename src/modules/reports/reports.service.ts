@@ -19,6 +19,7 @@ import {
 } from '../repair-orders/entities/repair-order.entity';
 import { groupBy, map } from 'lodash';
 import { StatusBudget } from '../budgets/entities/budget.entity';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class ReportsService {
@@ -36,62 +37,122 @@ export class ReportsService {
     private readonly historiesService: HistoriesService,
     private readonly partsService: PartsService,
   ) {}
-  async reportOrders(filter: FilterReportsDto) {
+  async reportOrders(filter: FilterReportsDto, user: any) {
     const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
     const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
     let resultsOpen = 0;
     let resultsNule = 0;
     let resultsComplete = 0;
     if (filter.type === 'today') {
-      resultsOpen = await this.repairOrdersService.findByCount({
-        'budgetData.type': 'Principal',
-        status: StatusRepairOrder.Abierta,
-      });
-      resultsNule = await this.repairOrdersService.findByCount({
-        'budgetData.type': 'Principal',
-        status: StatusRepairOrder.Anulada,
-      });
-      resultsComplete = await this.repairOrdersService.findByCount({
-        'budgetData.type': 'Principal',
-        status: StatusRepairOrder.Completada,
-      });
+      if (user.role !== 'Cotizador') {
+        resultsOpen = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          status: StatusRepairOrder.Abierta,
+        });
+        resultsNule = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          status: StatusRepairOrder.Anulada,
+        });
+        resultsComplete = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          status: StatusRepairOrder.Completada,
+        });
+      } else {
+        resultsOpen = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          'budgetData.quoter._id': new Types.ObjectId(user._id),
+          status: StatusRepairOrder.Abierta,
+        });
+        resultsNule = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          'budgetData.quoter._id': new Types.ObjectId(user._id),
+          status: StatusRepairOrder.Anulada,
+        });
+        resultsComplete = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          'budgetData.quoter._id': new Types.ObjectId(user._id),
+          status: StatusRepairOrder.Completada,
+        });
+      }
     } else {
-      resultsOpen = await this.repairOrdersService.findByCount({
-        'budgetData.type': 'Principal',
-        statusChange: {
-          $elemMatch: {
-            status: StatusRepairOrder.Abierta,
-            initDate: {
-              $gte: startDate,
-              $lte: endDate,
+      if (user.role !== 'Cotizador') {
+        resultsOpen = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          statusChange: {
+            $elemMatch: {
+              status: StatusRepairOrder.Abierta,
+              initDate: {
+                $gte: startDate,
+                $lte: endDate,
+              },
             },
           },
-        },
-      });
-      resultsNule = await this.repairOrdersService.findByCount({
-        'budgetData.type': 'Principal',
-        statusChange: {
-          $elemMatch: {
-            status: StatusRepairOrder.Anulada,
-            initDate: {
-              $gte: startDate,
-              $lte: endDate,
+        });
+        resultsNule = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          statusChange: {
+            $elemMatch: {
+              status: StatusRepairOrder.Anulada,
+              initDate: {
+                $gte: startDate,
+                $lte: endDate,
+              },
             },
           },
-        },
-      });
-      resultsComplete = await this.repairOrdersService.findByCount({
-        'budgetData.type': 'Principal',
-        statusChange: {
-          $elemMatch: {
-            status: StatusRepairOrder.Completada,
-            initDate: {
-              $gte: startDate,
-              $lte: endDate,
+        });
+        resultsComplete = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          statusChange: {
+            $elemMatch: {
+              status: StatusRepairOrder.Completada,
+              initDate: {
+                $gte: startDate,
+                $lte: endDate,
+              },
             },
           },
-        },
-      });
+        });
+      } else {
+        resultsOpen = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          'budgetData.quoter._id': new Types.ObjectId(user._id),
+          statusChange: {
+            $elemMatch: {
+              status: StatusRepairOrder.Abierta,
+              initDate: {
+                $gte: startDate,
+                $lte: endDate,
+              },
+            },
+          },
+        });
+        resultsNule = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          'budgetData.quoter._id': new Types.ObjectId(user._id),
+          statusChange: {
+            $elemMatch: {
+              status: StatusRepairOrder.Anulada,
+              initDate: {
+                $gte: startDate,
+                $lte: endDate,
+              },
+            },
+          },
+        });
+        resultsComplete = await this.repairOrdersService.findByCount({
+          'budgetData.type': 'Principal',
+          'budgetData.quoter._id': new Types.ObjectId(user._id),
+          statusChange: {
+            $elemMatch: {
+              status: StatusRepairOrder.Completada,
+              initDate: {
+                $gte: startDate,
+                $lte: endDate,
+              },
+            },
+          },
+        });
+      }
     }
     return {
       Abierta: resultsOpen,
@@ -100,39 +161,73 @@ export class ReportsService {
     };
   }
 
-  async statusWorkshop() {
-    const esperandoAprobacion = await this.repairOrdersService.findByCount({
+  async statusWorkshop(user: any) {
+    const inWorkings = [
+      'Enderezado',
+      'Preparación',
+      'Pintura',
+      'Armado',
+      'Mecánica',
+      'Alineamiento',
+      'A. Acondicionado',
+      'Aire Acondicionado',
+      'Detalle',
+      'T. c/piezas pend.',
+      'Terminado con piezas pendientes',
+      'T. sin entregar',
+      'Terminado sin entregar',
+    ];
+    let filter1: any = {
       'budgetData.type': 'Principal',
       statusVehicle: StatusVehicle.EsperandoAprobacion,
-    });
-    const esperandoTurno = await this.repairOrdersService.findByCount({
+    };
+    if (user.role === 'Cotizador') {
+      filter1 = {
+        'budgetData.type': 'Principal',
+        'budgetData.quoter._id': new Types.ObjectId(user._id),
+        statusVehicle: StatusVehicle.EsperandoAprobacion,
+      };
+    }
+    const esperandoAprobacion =
+      await this.repairOrdersService.findByCount(filter1);
+
+    let filter2: any = {
       'budgetData.type': 'Principal',
       statusVehicle: StatusVehicle.EsperandoTurno,
       initOT: {
         $ne: null,
         $exists: true,
       },
-    });
-    const tabajosActivos = await this.repairOrdersService.findByCount({
+    };
+    if (user.role === 'Cotizador') {
+      filter2 = {
+        'budgetData.type': 'Principal',
+        'budgetData.quoter._id': new Types.ObjectId(user._id),
+        statusVehicle: StatusVehicle.EsperandoTurno,
+        initOT: {
+          $ne: null,
+          $exists: true,
+        },
+      };
+    }
+    const esperandoTurno = await this.repairOrdersService.findByCount(filter2);
+
+    let filter3: any = {
       'budgetData.type': 'Principal',
       statusVehicle: {
-        $in: [
-          'Enderezado',
-          'Preparación',
-          'Pintura',
-          'Armado',
-          'Mecánica',
-          'Alineamiento',
-          'A. Acondicionado',
-          'Aire Acondicionado',
-          'Detalle',
-          'T. c/piezas pend.',
-          'Terminado con piezas pendientes',
-          'T. sin entregar',
-          'Terminado sin entregar',
-        ],
+        $in: inWorkings,
       },
-    });
+    };
+    if (user.role === 'Cotizador') {
+      filter3 = {
+        'budgetData.type': 'Principal',
+        'budgetData.quoter._id': new Types.ObjectId(user._id),
+        statusVehicle: {
+          $in: inWorkings,
+        },
+      };
+    }
+    const tabajosActivos = await this.repairOrdersService.findByCount(filter3);
     return {
       waitingApproval: esperandoAprobacion,
       waitingTurn: esperandoTurno,
@@ -163,6 +258,7 @@ export class ReportsService {
   async quotersReport(
     filter: FilterReportsDto,
     status: StatusBudget = StatusBudget.Aprobado,
+    user: any = null,
   ) {
     const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
     const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
@@ -172,6 +268,7 @@ export class ReportsService {
         startDate,
         endDate,
         filter.type,
+        user,
       );
     }
     if (status === StatusBudget.Espera) {
@@ -179,6 +276,7 @@ export class ReportsService {
         startDate,
         endDate,
         filter.type,
+        user,
       );
     }
     if (status === StatusBudget.Expirado) {
@@ -186,13 +284,18 @@ export class ReportsService {
         startDate,
         endDate,
         filter.type,
+        user,
       );
     }
 
     const insurances = await this.insurancesService.findAll();
-    const quoters = await this.userService.findUserByFilter({
+
+    let quoters = await this.userService.findUserByFilter({
       role: 'Cotizador',
     });
+    if (user && user.role === 'Cotizador') {
+      quoters = quoters.filter((item: any) => item.email === user.email);
+    }
     data = groupBy(
       map(data, (row: any) => {
         const item = row._id ? { ...row._id, total: row.total } : row;
@@ -237,10 +340,22 @@ export class ReportsService {
     });
   }
 
-  async quotersOrderSatusReport(filter: FilterReportsDto) {
-    const failed = await this.quotersReport(filter, StatusBudget.Expirado);
-    const submissions = await this.quotersReport(filter, StatusBudget.Espera);
-    const completed = await this.quotersReport(filter, StatusBudget.Aprobado);
+  async quotersOrderSatusReport(filter: FilterReportsDto, user: any) {
+    const failed = await this.quotersReport(
+      filter,
+      StatusBudget.Expirado,
+      user,
+    );
+    const submissions = await this.quotersReport(
+      filter,
+      StatusBudget.Espera,
+      user,
+    );
+    const completed = await this.quotersReport(
+      filter,
+      StatusBudget.Aprobado,
+      user,
+    );
     return {
       failed,
       submissions,

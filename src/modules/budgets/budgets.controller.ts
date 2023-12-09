@@ -23,7 +23,7 @@ import {
 } from '../auth/utils/decorator';
 import { FilterBudgetDto } from './dto/filter-bugget.dto';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { StatusBudgetDto } from './dto/status-budget.dto';
 import { StatusBudget } from './entities/budget.entity';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
@@ -224,6 +224,7 @@ export class BudgetsController {
   @Master()
   @Admin()
   @Repuesto()
+  @Cotizador()
   @Recepcion()
   @UseGuards(AuthGuard)
   @Post('/list')
@@ -237,12 +238,21 @@ export class BudgetsController {
     const filtro: any = filters;
     const user = request['user'];
     if (!filtro.filter || filtro.filter === 'all') {
-      return this.budgetsService.findAll(
-        { workshop: user.workshop },
-        page,
-        pageSize,
-        statusTab,
-      );
+      if (user.role === 'Cotizador') {
+        return this.budgetsService.findAll(
+          { workshop: user.workshop, quoter: new Types.ObjectId(user._id) },
+          page,
+          pageSize,
+          statusTab,
+        );
+      } else {
+        return this.budgetsService.findAll(
+          { workshop: user.workshop },
+          page,
+          pageSize,
+          statusTab,
+        );
+      }
     } else if (filtro.value) {
       if (
         [
@@ -278,7 +288,14 @@ export class BudgetsController {
             filterField = 'vehicleData.plate';
             break;
         }
-
+        // if (user.role === 'Cotizador') {
+        //   return this.budgetsService.findBudgetsByFilter(
+        //     { workshop: user.workshop, quoter: new Types.ObjectId(user._id) },
+        //     { ...filtro, label: filterField },
+        //     page,
+        //     pageSize,
+        //   );
+        // }
         return this.budgetsService.findBudgetsByFilter(
           { workshop: user.workshop },
           { ...filtro, label: filterField },

@@ -23,8 +23,8 @@ export class ReportsController {
   @Post('/orders')
   reportOrders(@Request() request, @Body() filter: FilterReportsDto) {
     try {
-      // const user = request['user'];
-      return this.reportsService.reportOrders(filter);
+      const user = request['user'];
+      return this.reportsService.reportOrders(filter, user);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -33,11 +33,13 @@ export class ReportsController {
   @Recepcion()
   @Master()
   @Admin()
+  @Cotizador()
   @UseGuards(AuthGuard)
   @Post('/statusWorkshop')
-  statusWorkshop() {
+  statusWorkshop(@Request() request) {
     try {
-      return this.reportsService.statusWorkshop();
+      const user = request['user'];
+      return this.reportsService.statusWorkshop(user);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -71,11 +73,16 @@ export class ReportsController {
 
   @Master()
   @Admin()
+  @Cotizador()
   @UseGuards(AuthGuard)
   @Post('/quotersStatus')
-  quotersOrderSatusReport(@Body() filter: FilterReportsDto) {
+  quotersOrderSatusReport(
+    @Request() request,
+    @Body() filter: FilterReportsDto,
+  ) {
     try {
-      return this.reportsService.quotersOrderSatusReport(filter);
+      const user = request['user'];
+      return this.reportsService.quotersOrderSatusReport(filter, user);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
