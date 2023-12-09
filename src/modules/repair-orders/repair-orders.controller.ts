@@ -146,6 +146,7 @@ export class RepairOrdersController {
   @Master()
   @Cotizador()
   @Admin()
+  @Repuesto()
   @UseGuards(AuthGuard)
   @Post('/list')
   findAll(@Request() request, @Body() filters: FilterOrderDto) {

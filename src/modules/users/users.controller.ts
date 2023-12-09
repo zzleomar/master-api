@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
@@ -15,7 +16,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateWorkshopDto } from 'src/modules/workshops/dto/create-workshop.dto';
 import { AuthGuard } from '../auth/auth.guard';
-import { Master, SuperAdmin } from '../auth/utils/decorator';
+import {
+  Master,
+  SuperAdmin,
+  Admin,
+  Cotizador,
+  Recepcion,
+  Repuesto,
+} from '../auth/utils/decorator';
 import { Types } from 'mongoose';
 import { AuthService } from '../auth/auth.service';
 import { EmailService } from '../email/email.service';
@@ -156,6 +164,17 @@ export class UsersController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
+  }
+
+  @Master()
+  @SuperAdmin()
+  @Repuesto()
+  @UseGuards(AuthGuard)
+  @Patch('/profile')
+  updateProfile(@Request() request, @Body() updateUserDto: UpdateUserDto) {
+    const user = request['user'];
+
+    return this.usersService.update(user.id, updateUserDto);
   }
 
   @Master()

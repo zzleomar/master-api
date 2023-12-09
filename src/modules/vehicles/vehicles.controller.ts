@@ -20,6 +20,7 @@ import {
   Master,
   Recepcion,
   SuperAdmin,
+  Repuesto,
 } from '../auth/utils/decorator';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import mongoose from 'mongoose';
@@ -67,6 +68,7 @@ export class VehiclesController {
     return this.vehiclesService.remove(id);
   }
 
+  @Repuesto()
   @Master()
   @Recepcion()
   @Master()
