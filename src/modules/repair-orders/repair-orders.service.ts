@@ -496,22 +496,39 @@ export class RepairOrdersService {
     initDate: any,
     endDate: any,
     type: string = 'today',
+    user: any = null,
   ) {
+    let filterMatch: any = {
+      'budgetData.type': 'Principal',
+      'budgetData.statusChange': {
+        $elemMatch: {
+          status: StatusBudget.Aprobado,
+          initDate:
+            type === 'today'
+              ? { $exists: true }
+              : { $gte: initDate, $lte: endDate },
+        },
+      },
+    };
+    if (user && user.role === 'Cotizador') {
+      filterMatch = {
+        'budgetData.type': 'Principal',
+        'budgetData.quoter._id': new Types.ObjectId(user._id),
+        'budgetData.statusChange': {
+          $elemMatch: {
+            status: StatusBudget.Aprobado,
+            initDate:
+              type === 'today'
+                ? { $exists: true }
+                : { $gte: initDate, $lte: endDate },
+          },
+        },
+      };
+    }
     const result = await this.repairOrderModel
       .aggregate([
         {
-          $match: {
-            'budgetData.type': 'Principal',
-            'budgetData.statusChange': {
-              $elemMatch: {
-                status: StatusBudget.Aprobado,
-                initDate:
-                  type === 'today'
-                    ? { $exists: true }
-                    : { $gte: initDate, $lte: endDate },
-              },
-            },
-          },
+          $match: filterMatch,
         },
         {
           $group: {

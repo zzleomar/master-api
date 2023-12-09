@@ -153,9 +153,16 @@ export class RepairOrdersController {
     const user = request['user'];
 
     if (!filtro.filter || filtro.filter === 'all') {
-      return this.repairOrdersService.findAll({
-        workshop: new mongoose.Types.ObjectId(user.workshop),
-      });
+      if (user.role !== 'Cotizador') {
+        return this.repairOrdersService.findAll({
+          workshop: new mongoose.Types.ObjectId(user.workshop),
+        });
+      } else {
+        return this.repairOrdersService.findAll({
+          workshop: new mongoose.Types.ObjectId(user.workshop),
+          'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
+        });
+      }
     } else if (filtro.value) {
       if (
         [
@@ -191,11 +198,20 @@ export class RepairOrdersController {
             filterField = 'budgetData.vehicleData.plate';
             break;
         }
-
-        return this.repairOrdersService.findOrderByFilter(
-          { workshop: new mongoose.Types.ObjectId(user.workshop) },
-          { ...filtro, label: filterField },
-        );
+        if (user.role !== 'Cotizador') {
+          return this.repairOrdersService.findOrderByFilter(
+            { workshop: new mongoose.Types.ObjectId(user.workshop) },
+            { ...filtro, label: filterField },
+          );
+        } else {
+          return this.repairOrdersService.findOrderByFilter(
+            {
+              workshop: new mongoose.Types.ObjectId(user.workshop),
+              'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
+            },
+            { ...filtro, label: filterField },
+          );
+        }
       }
     } else {
       return new BadRequestException('value requerid');
