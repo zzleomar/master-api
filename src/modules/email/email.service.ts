@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { find, forEach } from 'lodash';
 import Mailgun from 'mailgun.js';
 import { readFileSync } from 'fs';
@@ -84,11 +84,15 @@ export class EmailService {
   }
 
   send(data: any) {
-    return new Promise((resolve, reject) => {
-      this.mg.messages
-        .create(process.env.MAILGUNDOMAIN, data)
-        .then((msg: any) => resolve(msg)) // logs response data
-        .catch((err: any) => reject(err)); // logs any error
-    });
+    try {
+      return new Promise((resolve, reject) => {
+        this.mg.messages
+          .create(process.env.MAILGUNDOMAIN, data)
+          .then((msg: any) => resolve(msg)) // logs response data
+          .catch((err: any) => reject(err)); // logs any error
+      });
+    } catch (error) {
+      throw new BadRequestException('error enviando el correo');
+    }
   }
 }
