@@ -544,4 +544,25 @@ export class RepairOrdersService {
 
     return result;
   }
+
+  async autoparts(filter: any, value: any): Promise<any[]> {
+    return this.repairOrderModel
+      .aggregate([
+        {
+          $match: {
+            ...filter,
+            [value.label]:
+              typeof value.value === 'string'
+                ? { $regex: value.value, $options: 'i' }
+                : value.value,
+          },
+        },
+        {
+          $sort: {
+            updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+          },
+        },
+      ])
+      .exec();
+  }
 }

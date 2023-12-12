@@ -37,7 +37,7 @@ export class RepairOrdersController {
     private readonly repairOrdersService: RepairOrdersService,
     private readonly historiesService: HistoriesService,
     private readonly budgetsService: BudgetsService,
-  ) {}
+  ) { }
 
   @Recepcion()
   @Master()
@@ -335,6 +335,89 @@ export class RepairOrdersController {
       }
     } else {
       return new NotFoundException('RO no encontrado');
+    }
+  }
+
+  @Master()
+  @Cotizador()
+  @Admin()
+  @Repuesto()
+  @UseGuards(AuthGuard)
+  @Post('/autoparts')
+  autoparts(@Request() request, @Body() filters: FilterOrderDto) {
+    const filtro: any = filters;
+    const user = request['user'];
+
+    if (!filtro.filter || filtro.filter === 'all') {
+      if (user.role !== 'Cotizador') {
+        return this.repairOrdersService.findAll({
+          workshop: new mongoose.Types.ObjectId(user.workshop),
+          statusVehicle: 'Esperando piezas',
+        });
+      } else {
+        return this.repairOrdersService.findAll({
+          workshop: new mongoose.Types.ObjectId(user.workshop),
+          statusVehicle: 'Esperando piezas',
+          'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
+        });
+      }
+    } else if (filtro.value) {
+      if (
+        [
+          'vehicle',
+          'insuranceCompany',
+          'client',
+          'plate',
+          'code',
+          'id',
+        ].includes(filtro.filter)
+      ) {
+        let filterField = 'vehicleData.plate';
+
+        switch (filtro.filter) {
+          case 'insuranceCompany':
+            filterField = 'budgetData.insuranceCompany.name';
+            break;
+          case 'client':
+            filterField = 'budgetData.clientData.fullName';
+            break;
+          case 'vehicle':
+            filterField = 'budgetData.vehicleData.plate';
+            break;
+          case 'code':
+            filterField = 'code';
+            filtro.value = parseInt(filtro.value);
+            break;
+          case 'id':
+            filterField = '_id';
+            filtro.value = new mongoose.Types.ObjectId(filtro.value);
+            break;
+          default:
+            filterField = 'budgetData.vehicleData.plate';
+            break;
+        }
+
+        if (user.role !== 'Cotizador') {
+          return this.repairOrdersService.autoparts(
+            {
+              workshop: new mongoose.Types.ObjectId(user.workshop),
+              statusVehicle: 'Esperando piezas',
+            },
+            { ...filtro, label: filterField },
+          );
+        } else {
+          return this.repairOrdersService.autoparts(
+            {
+              workshop: new mongoose.Types.ObjectId(user.workshop),
+              statusVehicle: 'Esperando piezas',
+              'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
+            },
+            { ...filtro, label: filterField },
+          );
+        }
+      }
+    } else {
+      return new BadRequestException('value requerid');
     }
   }
 }
