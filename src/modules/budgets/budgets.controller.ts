@@ -45,6 +45,7 @@ export class BudgetsController {
   ) {}
 
   @Recepcion()
+  @Cotizador()
   @Master()
   @Admin()
   @UseGuards(AuthGuard)
@@ -171,7 +172,6 @@ export class BudgetsController {
       _id: updateBudgetDto.id,
     });
     const dataBudget = dataBudgets[0];
-    //TODO falta el flujo de los presupuestos suplementarios
     if (updateBudgetDto.editOwner) {
       await this.clientsService.update(
         dataBudget.clientData._id,

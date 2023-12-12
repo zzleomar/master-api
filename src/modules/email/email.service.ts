@@ -83,16 +83,16 @@ export class EmailService {
     });
   }
 
-  send(data: any) {
+  async send(data: any) {
     try {
-      return new Promise((resolve, reject) => {
-        this.mg.messages
-          .create(process.env.MAILGUNDOMAIN, data)
-          .then((msg: any) => resolve(msg)) // logs response data
-          .catch((err: any) => reject(err)); // logs any error
-      });
+      const response = await this.mg.messages.create(
+        process.env.MAILGUNDOMAIN,
+        data,
+      );
+      return response;
     } catch (error) {
-      throw new BadRequestException('error enviando el correo');
+      console.log('error enviando el correo');
+      return new BadRequestException('error enviando el correo');
     }
   }
 }
