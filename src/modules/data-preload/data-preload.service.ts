@@ -925,7 +925,7 @@ export class DataPreloadService {
         year: faker.number.int({ min: 1980, max: 2025 }),
         color: color.color,
         colorType: faker.helpers.arrayElement(typesColors),
-        plate: faker.string.alphanumeric(5).toUpperCase(),
+        plate: faker.string.alphanumeric(6).toUpperCase(),
       },
       {
         insuranceCompany:
