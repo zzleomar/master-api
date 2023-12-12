@@ -34,13 +34,14 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
-  ) {}
+  ) { }
 
   @UseGuards(AuthGuard)
   @Master()
   @Post()
   async create(@Request() request, @Body() createUserDto: any) {
     const user = request['user'];
+    let sendedEmail: any = null;
 
     const generatePass = () => {
       let stringAleatorio = '';
@@ -58,17 +59,32 @@ export class UsersController {
       password: await this.authService.hashPassword(newPassword),
       workshop: new Types.ObjectId(user.workshop),
     };
-    const newUser = await this.usersService.create(data);
+    const newUser: any = await this.usersService.create(data);
 
-    await this.emailService.findAndSend('newUser', {
-      email: newUser.email,
-      user: newUser.email,
-      webUrl: process.env.WEBURL,
-      fullname: `${newUser.firstName} ${newUser.lastName}`,
-      role: newUser.role,
-      password: newPassword,
-    });
-    return newUser;
+    try {
+      await this.emailService.findAndSend('newUser', {
+        email: newUser.email,
+        user: newUser.email,
+        webUrl: process.env.WEBURL,
+        fullname: `${newUser.firstName} ${newUser.lastName}`,
+        role: newUser.role,
+        password: newPassword,
+      });
+
+      sendedEmail = {
+        success: true,
+      };
+    } catch (error) {
+      sendedEmail = {
+        success: false,
+        error: error,
+      };
+    }
+
+    return {
+      ...newUser,
+      sendedEmail: sendedEmail,
+    };
   }
 
   @UseGuards(AuthGuard)
