@@ -1,17 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { FilterReportsDto } from './dto/filter-reports.dto';
-import { MakesModelsService } from '../makes-models/makes-models.service';
-import { ColorsService } from '../colors/colors.service';
 import { InsurancesService } from '../insurances/insurances.service';
-import { HistoriesService } from '../histories/histories.service';
 import { BudgetsService } from '../budgets/budgets.service';
-import { VehiclesService } from '../vehicles/vehicles.service';
-import { ClientsService } from '../clients/clients.service';
-import { PartsService } from '../parts/parts.service';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import { UsersService } from '../users/users.service';
-import { AuthService } from '../auth/auth.service';
-import { WorkshopsService } from '../workshops/workshops.service';
 import * as moment from 'moment';
 import {
   StatusRepairOrder,
@@ -25,21 +17,17 @@ import { Types } from 'mongoose';
 export class ReportsService {
   constructor(
     private readonly userService: UsersService,
-    private readonly workshopService: WorkshopsService,
-    private readonly authService: AuthService,
-    private readonly makesModelsService: MakesModelsService,
-    private readonly colorsService: ColorsService,
     private readonly insurancesService: InsurancesService,
-    private readonly clientsService: ClientsService,
-    private readonly vehiclesService: VehiclesService,
     private readonly budgetsService: BudgetsService,
     private readonly repairOrdersService: RepairOrdersService,
-    private readonly historiesService: HistoriesService,
-    private readonly partsService: PartsService,
   ) {}
   async reportOrders(filter: FilterReportsDto, user: any) {
-    const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
-    const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
+    const startDate = new Date(
+      moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toISOString(),
+    );
+    const endDate = new Date(
+      moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toISOString(),
+    );
     let resultsOpen = 0;
     let resultsNule = 0;
     let resultsComplete = 0;
@@ -236,8 +224,12 @@ export class ReportsService {
   }
 
   async insuranceReport(filter: FilterReportsDto) {
-    const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
-    const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
+    const startDate = new Date(
+      moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toISOString(),
+    );
+    const endDate = new Date(
+      moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toISOString(),
+    );
     const data = await this.repairOrdersService.reportInsurance(
       startDate,
       endDate,
@@ -260,12 +252,12 @@ export class ReportsService {
     status: StatusBudget = StatusBudget.Aprobado,
     user: any = null,
   ) {
-    const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss')
-      .subtract(5, 'hours')
-      .toDate();
-    const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss')
-      .subtract(5, 'hours')
-      .toDate();
+    const startDate = new Date(
+      moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toISOString(),
+    );
+    const endDate = new Date(
+      moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toISOString(),
+    );
     let data: any = [];
     if (status === StatusBudget.Aprobado) {
       data = await this.repairOrdersService.reportQuoterCompleted(
