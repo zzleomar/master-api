@@ -260,8 +260,12 @@ export class ReportsService {
     status: StatusBudget = StatusBudget.Aprobado,
     user: any = null,
   ) {
-    const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss').toDate();
-    const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss').toDate();
+    const startDate = moment(filter.initDate, 'DD/MM/YYYY HH:mm:ss')
+      .subtract(5, 'hours')
+      .toDate();
+    const endDate = moment(filter.endDate, 'DD/MM/YYYY HH:mm:ss')
+      .subtract(5, 'hours')
+      .toDate();
     let data: any = [];
     if (status === StatusBudget.Aprobado) {
       data = await this.repairOrdersService.reportQuoterCompleted(
