@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserPayload } from './entities/user.payload';
@@ -18,7 +18,7 @@ export class UsersService {
   constructor(
     @InjectModel('User') private readonly userModel: Model<any>,
     private readonly workshopsService: WorkshopsService,
-  ) { }
+  ) {}
 
   async createMasterAndWorkshop(
     createUserDto: CreateUserDto,
@@ -102,8 +102,10 @@ export class UsersService {
     if (body.workshop) {
       await this.workshopsService.findOne(body.workshop);
     }
-    await this.userModel.updateOne({ id: id }, body);
-    const updatedUser = await this.userModel.findOne({ id: id }).exec();
+    await this.userModel.updateOne({ _id: new Types.ObjectId(id) }, body);
+    const updatedUser = await this.userModel
+      .findOne({ _id: new Types.ObjectId(id) })
+      .exec();
     return updatedUser;
   }
 

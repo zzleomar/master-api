@@ -34,7 +34,7 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
-  ) { }
+  ) {}
 
   @UseGuards(AuthGuard)
   @Master()
@@ -186,8 +186,7 @@ export class UsersController {
   @Post('/profile')
   updateProfile(@Request() request, @Body() updateUserDto: UpdateUserDto) {
     const user = request['user'];
-
-    return this.usersService.updateProfile(user.id, updateUserDto);
+    return this.usersService.updateProfile(user._id, updateUserDto);
   }
 
   @Master()
