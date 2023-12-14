@@ -37,7 +37,7 @@ export class RepairOrdersController {
     private readonly repairOrdersService: RepairOrdersService,
     private readonly historiesService: HistoriesService,
     private readonly budgetsService: BudgetsService,
-  ) { }
+  ) {}
 
   @Recepcion()
   @Master()

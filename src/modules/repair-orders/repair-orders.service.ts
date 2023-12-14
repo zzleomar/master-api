@@ -148,7 +148,31 @@ export class RepairOrdersService {
   }
 
   async findAll(filter: any): Promise<any[]> {
-    return this.repairOrderModel.find(filter).exec();
+    return this.repairOrderModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'users', // Nombre de la colección User
+            localField: 'budgetData.quoter._id',
+            foreignField: '_id',
+            as: 'budgetData.quoter',
+          },
+        },
+        {
+          $match: {
+            ...filter,
+          },
+        },
+        {
+          $unwind: '$budgetData.quoter', // Desagrupa el resultado del $lookup de User
+        },
+        {
+          $sort: {
+            updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+          },
+        },
+      ])
+      .exec();
   }
 
   async getLastCode(): Promise<number> {
@@ -302,6 +326,14 @@ export class RepairOrdersService {
     return this.repairOrderModel
       .aggregate([
         {
+          $lookup: {
+            from: 'users', // Nombre de la colección User
+            localField: 'budgetData.quoter._id',
+            foreignField: '_id',
+            as: 'budgetData.quoter',
+          },
+        },
+        {
           $match: {
             ...filter,
             [value.label]:
@@ -309,6 +341,9 @@ export class RepairOrdersService {
                 ? { $regex: value.value, $options: 'i' }
                 : value.value,
           },
+        },
+        {
+          $unwind: '$budgetData.quoter', // Desagrupa el resultado del $lookup de User
         },
         {
           $sort: {

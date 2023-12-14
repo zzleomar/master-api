@@ -182,9 +182,6 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Master()
-  @SuperAdmin()
-  @Repuesto()
   @UseGuards(AuthGuard)
   @Post('/profile')
   updateProfile(@Request() request, @Body() updateUserDto: UpdateUserDto) {
