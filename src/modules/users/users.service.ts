@@ -18,7 +18,7 @@ export class UsersService {
   constructor(
     @InjectModel('User') private readonly userModel: Model<any>,
     private readonly workshopsService: WorkshopsService,
-  ) {}
+  ) { }
 
   async createMasterAndWorkshop(
     createUserDto: CreateUserDto,
@@ -95,6 +95,15 @@ export class UsersService {
     }
     await this.userModel.updateOne({ _id: id }, body);
     const updatedUser = this.userModel.findById(id);
+    return updatedUser;
+  }
+
+  async updateProfile(id: string, body: UpdateUserDto): Promise<UserPayload> {
+    if (body.workshop) {
+      await this.workshopsService.findOne(body.workshop);
+    }
+    await this.userModel.updateOne({ id: id }, body);
+    const updatedUser = await this.userModel.findOne({ id: id }).exec();
     return updatedUser;
   }
 

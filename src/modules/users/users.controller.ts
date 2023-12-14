@@ -186,11 +186,11 @@ export class UsersController {
   @SuperAdmin()
   @Repuesto()
   @UseGuards(AuthGuard)
-  @Patch('/profile')
+  @Post('/profile')
   updateProfile(@Request() request, @Body() updateUserDto: UpdateUserDto) {
     const user = request['user'];
 
-    return this.usersService.update(user.id, updateUserDto);
+    return this.usersService.updateProfile(user.id, updateUserDto);
   }
 
   @Master()
