@@ -196,4 +196,24 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
+
+  @UseGuards(AuthGuard)
+  @Post('/existEmail')
+  async findEmail(
+    @Request() request,
+    @Body() createUserDto: { id: string; email: string },
+  ) {
+    const fndemail = await this.usersService.findOneByEmail(
+      createUserDto.email,
+      false,
+    );
+    if (fndemail) {
+      if (createUserDto.id === '') {
+        return false;
+      } else if (fndemail._id && fndemail._id != createUserDto.id) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
