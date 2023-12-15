@@ -51,7 +51,7 @@ export interface PiecesItem {
 
 @Schema({ collection: 'repairOrders', timestamps: true })
 export class RepairOrder extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   code: number;
 
   @Prop({ type: Boolean, default: true })

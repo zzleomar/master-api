@@ -23,7 +23,7 @@ import {
 } from '../auth/utils/decorator';
 import { FilterBudgetDto } from './dto/filter-bugget.dto';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { StatusBudgetDto } from './dto/status-budget.dto';
 import { StatusBudget } from './entities/budget.entity';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
@@ -32,6 +32,7 @@ import { UpdateVehicleDto } from '../vehicles/dto/update-vehicle.dto';
 import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
 import { StatusRepairOrder } from '../repair-orders/entities/repair-order.entity';
+import { codeBudget } from './utils/parseLabel';
 
 @Controller('budgets')
 export class BudgetsController {
@@ -44,6 +45,7 @@ export class BudgetsController {
   ) {}
 
   @Recepcion()
+  @Cotizador()
   @Master()
   @Admin()
   @UseGuards(AuthGuard)
@@ -170,7 +172,6 @@ export class BudgetsController {
       _id: updateBudgetDto.id,
     });
     const dataBudget = dataBudgets[0];
-    //TODO falta el flujo de los presupuestos suplementarios
     if (updateBudgetDto.editOwner) {
       await this.clientsService.update(
         dataBudget.clientData._id,
@@ -210,9 +211,7 @@ export class BudgetsController {
       await this.repairOrdersService.updateBudget(order[0], newBudget);
     }
     const log = await this.historiesService.createHistory({
-      message: `Datos del presupuesto ${newBudget.code
-        .toString()
-        .padStart(6, '0')} actualizado`,
+      message: `Datos del presupuesto ${codeBudget(newBudget)} actualizado`,
       user: user._id,
       budget: newBudget.id,
     });
@@ -225,6 +224,7 @@ export class BudgetsController {
   @Master()
   @Admin()
   @Repuesto()
+  @Cotizador()
   @Recepcion()
   @UseGuards(AuthGuard)
   @Post('/list')
@@ -238,12 +238,21 @@ export class BudgetsController {
     const filtro: any = filters;
     const user = request['user'];
     if (!filtro.filter || filtro.filter === 'all') {
-      return this.budgetsService.findAll(
-        { workshop: user.workshop },
-        page,
-        pageSize,
-        statusTab,
-      );
+      if (user.role === 'Cotizador') {
+        return this.budgetsService.findAll(
+          { workshop: user.workshop, quoter: new Types.ObjectId(user._id) },
+          page,
+          pageSize,
+          statusTab,
+        );
+      } else {
+        return this.budgetsService.findAll(
+          { workshop: user.workshop },
+          page,
+          pageSize,
+          statusTab,
+        );
+      }
     } else if (filtro.value) {
       if (
         [
@@ -279,7 +288,14 @@ export class BudgetsController {
             filterField = 'vehicleData.plate';
             break;
         }
-
+        // if (user.role === 'Cotizador') {
+        //   return this.budgetsService.findBudgetsByFilter(
+        //     { workshop: user.workshop, quoter: new Types.ObjectId(user._id) },
+        //     { ...filtro, label: filterField },
+        //     page,
+        //     pageSize,
+        //   );
+        // }
         return this.budgetsService.findBudgetsByFilter(
           { workshop: user.workshop },
           { ...filtro, label: filterField },
@@ -308,9 +324,9 @@ export class BudgetsController {
       data,
     );
     await this.historiesService.createHistory({
-      message: `Registro de inspección del presupuesto ${budgetUpdate.code
-        .toString()
-        .padStart(6, '0')}`,
+      message: `Registro de inspección del presupuesto ${codeBudget(
+        budgetUpdate,
+      )}`,
       user: user._id,
       budget: budgetUpdate.id,
     });

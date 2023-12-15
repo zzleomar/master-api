@@ -5,9 +5,11 @@ import { UsersSchema } from './entities/user.entity';
 import { MongooseModule } from '@nestjs/mongoose';
 import { WorkshopSchema } from '../workshops/entities/workshop.entity';
 import { WorkshopsService } from '../workshops/workshops.service';
+import { AuthService } from '../auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from '../auth/utils/constants';
 import { AuthGuard } from '../auth/auth.guard';
+import { EmailService } from '../email/email.service';
 
 @Module({
   imports: [
@@ -20,6 +22,12 @@ import { AuthGuard } from '../auth/auth.guard';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, WorkshopsService, AuthGuard],
+  providers: [
+    UsersService,
+    WorkshopsService,
+    AuthService,
+    AuthGuard,
+    EmailService,
+  ],
 })
 export class UsersModule {}

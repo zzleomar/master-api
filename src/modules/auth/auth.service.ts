@@ -13,12 +13,19 @@ export class AuthService {
 
   async signIn(email: string, pass: string) {
     const user = await this.usersService.findOneByEmail(email, false);
+
+    if (!user || !user.status) {
+      throw new UnauthorizedException();
+    }
+
     const isAuthenticated = await this.comparePasswords(user?.password, pass);
     if (!isAuthenticated) {
       throw new UnauthorizedException();
     }
+
     const { password, workshop, ...payload } = user.toObject();
     payload.workshop = workshop?._id;
+
     const token = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_SECRET,
     });

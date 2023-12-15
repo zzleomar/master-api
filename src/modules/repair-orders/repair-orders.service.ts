@@ -18,6 +18,7 @@ import { PiecesOrderDto } from './dto/pieces-order.dto';
 import { InitOTDto } from './dto/init-OT-order.dto';
 import * as moment from 'moment';
 import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
+import { codeRO } from './utils/parseLabel';
 @Injectable()
 export class RepairOrdersService {
   constructor(
@@ -56,8 +57,22 @@ export class RepairOrdersService {
       body.workshop = new Types.ObjectId(body.workshop);
       const createdOrder = new this.repairOrderModel(body);
       createdOrder.budget = new Types.ObjectId(dataBudgets._id);
-      createdOrder.budgetData = dataBudgets.toObject();
-      createdOrder.code = await this.getLastCode();
+      if (dataBudgets.type === 'Suplemento') {
+        const orderPrincipal = await this.findBy({
+          workshop: new Types.ObjectId(user.workshop),
+          'budgetData.code': dataBudgets.code,
+          'budgetData.type': 'Principal',
+        });
+        if (orderPrincipal.length > 0) {
+          createdOrder.code = orderPrincipal[0].code;
+        } else {
+          throw new BadRequestException(
+            'No se encontro la orden Madre del suplemento',
+          );
+        }
+      } else {
+        createdOrder.code = await this.getLastCode();
+      }
 
       createdOrder.pieces = pieces;
       //si la orden de compra esta aprobada y el carro esta en el taller
@@ -67,7 +82,7 @@ export class RepairOrdersService {
         } else {
           createdOrder.statusVehicle = StatusVehicle.EsperandoPieza;
         }
-        this.budgetsSevice.updateStatus(
+        await this.budgetsSevice.updateStatus(
           dataBudgets,
           StatusBudget.Aprobado,
           StatusBudget.Espera,
@@ -85,7 +100,7 @@ export class RepairOrdersService {
         } else {
           createdOrder.statusVehicle = StatusVehicle.EsperandoPieza;
         }
-        this.budgetsSevice.updateStatus(
+        await this.budgetsSevice.updateStatus(
           dataBudgets,
           StatusBudget.Aprobado,
           StatusBudget.Espera,
@@ -115,9 +130,13 @@ export class RepairOrdersService {
         },
       ];
 
+      const dataBudgets2 = await this.budgetsSevice.findBy({
+        _id: new Types.ObjectId(dataBudgets._id),
+      });
+      createdOrder.budgetData = dataBudgets2[0].toObject();
       const order = await createdOrder.save();
       await this.historiesService.createHistory({
-        message: `Creación de RO ${order.code.toString().padStart(6, '0')}`,
+        message: `Creación de RO ${codeRO(order)}`,
         user: user._id,
         ro: createdOrder.id,
       });
@@ -129,7 +148,31 @@ export class RepairOrdersService {
   }
 
   async findAll(filter: any): Promise<any[]> {
-    return this.repairOrderModel.find(filter).exec();
+    return this.repairOrderModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'users', // Nombre de la colección User
+            localField: 'budgetData.quoter._id',
+            foreignField: '_id',
+            as: 'budgetData.quoter',
+          },
+        },
+        {
+          $match: {
+            ...filter,
+          },
+        },
+        {
+          $unwind: '$budgetData.quoter', // Desagrupa el resultado del $lookup de User
+        },
+        {
+          $sort: {
+            updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+          },
+        },
+      ])
+      .exec();
   }
 
   async getLastCode(): Promise<number> {
@@ -151,6 +194,13 @@ export class RepairOrdersService {
       );
     }
 
+    return repairOrder;
+  }
+
+  async findByCount(filter: any): Promise<number> {
+    const repairOrder = await this.repairOrderModel
+      .countDocuments({ ...filter })
+      .exec();
     return repairOrder;
   }
 
@@ -195,14 +245,21 @@ export class RepairOrdersService {
               approved: data.approved,
             },
           );
-          const dataBudgets = await this.budgetsSevice.findBy({
+          let dataBudgets = await this.budgetsSevice.findBy({
             _id: dataRO.budgetData._id,
           });
-          this.budgetsSevice.updateStatus(
+          await this.budgetsSevice.updateStatus(
             dataBudgets[0],
             StatusBudget.Aprobado,
             StatusBudget.Espera,
             user,
+          );
+          dataBudgets = await this.budgetsSevice.findBy({
+            _id: dataRO.budgetData._id,
+          });
+          await this.repairOrderModel.updateOne(
+            { _id: dataRO._id },
+            { budgetData: dataBudgets[0].toObject() },
           );
         }
         break;
@@ -269,6 +326,14 @@ export class RepairOrdersService {
     return this.repairOrderModel
       .aggregate([
         {
+          $lookup: {
+            from: 'users', // Nombre de la colección User
+            localField: 'budgetData.quoter._id',
+            foreignField: '_id',
+            as: 'budgetData.quoter',
+          },
+        },
+        {
           $match: {
             ...filter,
             [value.label]:
@@ -276,6 +341,9 @@ export class RepairOrdersService {
                 ? { $regex: value.value, $options: 'i' }
                 : value.value,
           },
+        },
+        {
+          $unwind: '$budgetData.quoter', // Desagrupa el resultado del $lookup de User
         },
         {
           $sort: {
@@ -369,14 +437,54 @@ export class RepairOrdersService {
     return this.repairOrderModel.findById({ _id: order.id });
   }
 
-  async changeMovements(orders: RepairOrder[], data: MovementsRepairOrderDto) {
+  async changeMovements(
+    orders: RepairOrder[],
+    data: MovementsRepairOrderDto,
+    user: any,
+  ) {
     let response: RepairOrder[] | Promise<RepairOrder>[] = map(
       orders,
-      (order: RepairOrder) => {
+      async (order: RepairOrder) => {
         const item = find(
           data.movements,
           (movement: any) => movement.id === order.id,
         );
+        if (order.budgetData.type === 'Principal') {
+          const roSumplemnts = await this.findBy({
+            workshop: new Types.ObjectId(order.workshop),
+            'budgetData.code': order.budgetData.code,
+            'budgetData.type': 'Suplemento',
+            initOT: { $ne: null },
+          });
+          if (roSumplemnts.length > 0) {
+            this.changeMovements(
+              roSumplemnts,
+              {
+                movements: roSumplemnts.map((item2: RepairOrder) => {
+                  return {
+                    id: item2.id,
+                    statusInput: item.statusInput,
+                  };
+                }),
+              },
+              user,
+            );
+            let response = [];
+            for (let i = 0; i < roSumplemnts.length; i++) {
+              const ro = roSumplemnts[i];
+              response.push(
+                await this.historiesService.createHistory({
+                  message: `Cambio de estado del vehiculo de la RO ${codeRO(
+                    ro,
+                  )}`,
+                  user: user._id,
+                  ro: ro.id,
+                }),
+              );
+            }
+            response = await Promise.all(response);
+          }
+        }
         return this.updateStatusVehicle(
           order,
           item.statusInput,
@@ -387,5 +495,109 @@ export class RepairOrdersService {
     );
     response = await Promise.all(response);
     return response;
+  }
+
+  async updateOne(filter: any, data: any) {
+    return this.repairOrderModel.updateOne(filter, data);
+  }
+
+  async reportInsurance(initDate: any, endDate: any) {
+    const result = await this.repairOrderModel
+      .aggregate([
+        {
+          $match: {
+            'budgetData.type': 'Principal',
+            'budgetData.statusChange': {
+              $elemMatch: {
+                status: StatusBudget.Espera,
+                endDate: { $gte: initDate, $lte: endDate, $ne: null },
+              },
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$budgetData.insuranceCompany',
+            total: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+
+    return result;
+  }
+
+  async reportQuoterCompleted(
+    initDate: any,
+    endDate: any,
+    type: string = 'today',
+    user: any = null,
+  ) {
+    let filterMatch: any = {
+      'budgetData.type': 'Principal',
+      'budgetData.statusChange': {
+        $elemMatch: {
+          status: StatusBudget.Aprobado,
+          initDate:
+            type === 'today'
+              ? { $exists: true }
+              : { $gte: initDate, $lte: endDate },
+        },
+      },
+    };
+    if (user && user.role === 'Cotizador') {
+      filterMatch = {
+        'budgetData.type': 'Principal',
+        'budgetData.quoter._id': new Types.ObjectId(user._id),
+        'budgetData.statusChange': {
+          $elemMatch: {
+            status: StatusBudget.Aprobado,
+            initDate:
+              type === 'today'
+                ? { $exists: true }
+                : { $gte: initDate, $lte: endDate },
+          },
+        },
+      };
+    }
+    const result = await this.repairOrderModel
+      .aggregate([
+        {
+          $match: filterMatch,
+        },
+        {
+          $group: {
+            _id: {
+              insurance: '$budgetData.insuranceCompany._id', // Nombre de la aseguradora
+              quoter: '$budgetData.quoter._id', // Nombre del cotizador
+            },
+            total: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+
+    return result;
+  }
+
+  async autoparts(filter: any, value: any): Promise<any[]> {
+    return this.repairOrderModel
+      .aggregate([
+        {
+          $match: {
+            ...filter,
+            [value.label]:
+              typeof value.value === 'string'
+                ? { $regex: value.value, $options: 'i' }
+                : value.value,
+          },
+        },
+        {
+          $sort: {
+            updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+          },
+        },
+      ])
+      .exec();
   }
 }

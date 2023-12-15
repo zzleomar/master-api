@@ -871,13 +871,15 @@ export class DataPreloadService {
     makes: any,
     colors: any,
     insurances: any[],
-    contizadorData: any,
+    quoters: any,
     recepcionData: any,
     piecesData: any[],
     budgets: any[],
     ROs: any[],
     end: number = 0,
   ) {
+    const keyQuoter = faker.number.int({ min: 0, max: quoters.length - 1 });
+    const contizadorData = quoters[keyQuoter];
     const color = colors[faker.number.int({ min: 0, max: colors.length - 1 })];
     const make = makes[faker.number.int({ min: 0, max: makes.length - 1 })];
     const typesColors = [
@@ -923,7 +925,7 @@ export class DataPreloadService {
         year: faker.number.int({ min: 1980, max: 2025 }),
         color: color.color,
         colorType: faker.helpers.arrayElement(typesColors),
-        plate: faker.string.alphanumeric(5).toUpperCase(),
+        plate: faker.string.alphanumeric(6).toUpperCase(),
       },
       {
         insuranceCompany:
@@ -999,6 +1001,16 @@ export class DataPreloadService {
             budgetDataInspection,
             recepcionData,
           );
+
+          const dataBudgets = await this.budgetsService.findBy({
+            _id: roData.budgetData._id,
+          });
+          if (approved) {
+            await this.repairOrdersService.updateOne(
+              { _id: roData._id },
+              { budgetData: dataBudgets[0].toObject() },
+            );
+          }
           const initOTBool = faker.datatype.boolean();
           if (
             approved &&
@@ -1039,6 +1051,7 @@ export class DataPreloadService {
                     },
                   ],
                 },
+                recepcionData,
               );
               budgets.push(budgetDataInspection);
               ROs.push(movementRO[0]);
@@ -1066,7 +1079,7 @@ export class DataPreloadService {
         makes,
         colors,
         insurances,
-        contizadorData,
+        quoters,
         recepcionData,
         piecesData,
         budgets,
@@ -1084,9 +1097,9 @@ export class DataPreloadService {
     const makesModels = await this.makesModelsService.findAll();
     const colors = await this.colorsService.findAll();
     const insurances = await this.insurancesService.findAll();
-    const contizadorData = await this.userService.findOneByEmail(
-      'cotizador@prueba.com',
-    );
+    const contizadors = await this.userService.findUserByFilter({
+      role: 'Cotizador',
+    });
     const recepcionData = await this.userService.findOneByEmail(
       'recepcion@prueba.com',
     );
@@ -1098,14 +1111,14 @@ export class DataPreloadService {
       colors.length > 0 &&
       insurances.length > 0 &&
       piecesData.length > 0 &&
-      contizadorData
+      contizadors
     ) {
       const total = await this.loadOneBudgetOrder(
         workshops[0],
         makesModels,
         colors,
         insurances,
-        contizadorData,
+        contizadors,
         recepcionData,
         piecesData,
         [],
@@ -1115,5 +1128,39 @@ export class DataPreloadService {
     } else {
       return 'faltan cargar datos importantes';
     }
+  }
+  async loadDataExpideTestFull() {
+    const response = await this.budgetsService.findAll(
+      {},
+      5,
+      20,
+      StatusBudget.Espera,
+    );
+    const budgetsData = response.results;
+
+    const recepcion = await this.userService.findUserByFilter({
+      role: 'Recepcion',
+    });
+    let updated: any = [];
+    for (let i = 0; i < budgetsData.length; i++) {
+      const order = await this.repairOrdersService.findBy(
+        {
+          budget: budgetsData[i]._id,
+        },
+        false,
+      );
+      if (order && order.length === 0) {
+        updated.push(
+          await this.budgetsService.updateStatus(
+            budgetsData[i],
+            StatusBudget.Expirado,
+            budgetsData[i].status,
+            recepcion[0],
+          ),
+        );
+      }
+    }
+    updated = await Promise.all(updated);
+    return `updated ${updated.length}`;
   }
 }

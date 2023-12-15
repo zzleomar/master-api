@@ -6,7 +6,7 @@ import {
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { WorkshopsService } from '../workshops/workshops.service';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { ClientsService } from '../clients/clients.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { UsersService } from '../users/users.service';
@@ -22,6 +22,8 @@ import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { HistoriesService } from '../histories/histories.service';
 import * as moment from 'moment';
 import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
+import { codeBudget } from './utils/parseLabel';
+import { filter, find, groupBy } from 'lodash';
 
 export interface FindAllResponse {
   results: any[];
@@ -179,9 +181,9 @@ export class BudgetsService {
     await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
 
     await this.historiesService.createHistory({
-      message: `Cambio de estado del presupuesto ${budgetData.code
-        .toString()
-        .padStart(6, '0')} a ${budgetData.status} a ${StatusBudget.Espera}`,
+      message: `Cambio de estado del presupuesto ${codeBudget(budgetData)} a ${
+        budgetData.status
+      } a ${StatusBudget.Espera}`,
       user: user._id,
       budget: budgetData._id,
     });
@@ -334,5 +336,196 @@ export class BudgetsService {
     } else {
       return null;
     }
+  }
+
+  async reportQuoterBudgetExpired(
+    initDate: any,
+    endDate: any,
+    type: string,
+    user: any = null,
+  ) {
+    let filterMatch: any = {
+      $or: [
+        {
+          type: 'Principal',
+          status: StatusBudget.Expirado,
+        },
+        {
+          type: 'Principal',
+          status: StatusBudget.Espera,
+          statusChange: {
+            $elemMatch: {
+              status: StatusBudget.Espera,
+              initDate:
+                type === 'today'
+                  ? { $exists: true }
+                  : {
+                      $lt: endDate,
+                    },
+            },
+          },
+        },
+      ],
+    };
+    if (user && user.role === 'Cotizador') {
+      filterMatch = {
+        $or: [
+          {
+            quoter: new Types.ObjectId(user._id),
+            type: 'Principal',
+            status: StatusBudget.Expirado,
+          },
+          {
+            quoter: new Types.ObjectId(user._id),
+            type: 'Principal',
+            status: StatusBudget.Espera,
+            statusChange: {
+              $elemMatch: {
+                status: StatusBudget.Espera,
+                initDate:
+                  type === 'today'
+                    ? { $exists: true }
+                    : {
+                        $lt: endDate,
+                      },
+              },
+            },
+          },
+        ],
+      };
+    }
+    const docs = await this.budgetModel
+      .aggregate([
+        {
+          $match: filterMatch,
+        },
+      ])
+      .exec();
+    const result = filter(docs, (doc: Budget) => {
+      let diff = 60;
+      if (doc.insuranceData.name === 'Particular') {
+        diff = 30;
+      }
+      const itemChange = find(
+        doc.statusChange,
+        (item: any) => item.status === StatusBudget.Espera,
+      );
+      // fecha en la que quedo expirado el presupuesto
+      const expitedValidateToday = moment().add(diff, 'days');
+      const expitedValidateInit = moment(itemChange.initDate).add(diff, 'days');
+      // fecha final en la que el presupuesto esta expirado y entra en el reporte
+      const expitedValidateEnd = expitedValidateInit.clone();
+      expitedValidateEnd.add(
+        moment(endDate).diff(moment(initDate), 'days'),
+        'days',
+      );
+
+      return (
+        doc.status === StatusBudget.Expirado ||
+        (expitedValidateInit.isSameOrBefore(moment(initDate)) &&
+          expitedValidateEnd.isSameOrAfter(moment(endDate))) ||
+        (type === 'today' &&
+          expitedValidateInit.isSameOrAfter(expitedValidateToday))
+      );
+    });
+    // Agrupar por insuranceCompany y quoter
+    const groupedData = groupBy(
+      result,
+      (item) => `${item.insuranceCompany._id}-${item.quoter._id}`,
+    );
+
+    // Mapear los resultados a la forma deseada
+    const results = Object.keys(groupedData).map((key) => {
+      const [insuranceCompany, quoter] = key.split('-');
+      return {
+        insurance: new mongoose.Types.ObjectId(insuranceCompany),
+        quoter: new mongoose.Types.ObjectId(quoter),
+        total: groupedData[key].length,
+      };
+    });
+    return results;
+  }
+
+  async reportQuoterBudgetSubmissions(
+    initDate: any,
+    endDate: any,
+    type: string,
+    user: any = null,
+  ) {
+    let filterMatch: any = {
+      type: 'Principal',
+      status: StatusBudget.Espera,
+      statusChange: {
+        $elemMatch: {
+          status: StatusBudget.Espera,
+          initDate:
+            type === 'today'
+              ? { $exists: true }
+              : { $gte: initDate, $lte: endDate },
+        },
+      },
+    };
+    if (user && user.role === 'Cotizador') {
+      filterMatch = {
+        type: 'Principal',
+        status: StatusBudget.Espera,
+        quoter: new Types.ObjectId(user._id),
+        statusChange: {
+          $elemMatch: {
+            status: StatusBudget.Espera,
+            initDate:
+              type === 'today'
+                ? { $exists: true }
+                : { $gte: initDate, $lte: endDate },
+          },
+        },
+      };
+    }
+    const docs = await this.budgetModel
+      .aggregate([
+        {
+          $match: filterMatch,
+        },
+      ])
+      .exec();
+    const result = filter(docs, (doc: Budget) => {
+      let diff = 60;
+      if (doc.insuranceData.name === 'Particular') {
+        diff = 30;
+      }
+      const itemChange = find(
+        doc.statusChange,
+        (item: any) => item.status === StatusBudget.Espera,
+      );
+      // fecha en la que quedo expirado el presupuesto
+      const expitedValidateInit = moment(itemChange.initDate).add(diff, 'days');
+      // fecha final en la que el presupuesto esta expirado y entra en el reporte
+      const expitedValidateEnd = expitedValidateInit.clone();
+      expitedValidateEnd.add(
+        moment(endDate).diff(moment(initDate), 'days'),
+        'days',
+      );
+
+      return (
+        expitedValidateInit.isAfter(moment(endDate)) ||
+        (type === 'today' && expitedValidateInit.isAfter(moment()))
+      );
+    });
+    // Agrupar por insuranceCompany y quoter
+    const groupedData = groupBy(
+      result,
+      (item) => `${item.insuranceCompany._id}-${item.quoter._id}`,
+    );
+
+    // Mapear los resultados a la forma deseada
+    const results = Object.keys(groupedData).map((key) => {
+      const [insuranceCompany, quoter] = key.split('-');
+      return {
+        insurance: new mongoose.Types.ObjectId(insuranceCompany),
+        quoter: new mongoose.Types.ObjectId(quoter),
+        total: groupedData[key].length,
+      };
+    });
+    return results;
   }
 }
