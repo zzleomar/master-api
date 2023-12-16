@@ -30,6 +30,7 @@ import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
 import { map } from 'lodash';
 import { StatusRepairOrder } from './entities/repair-order.entity';
 import { codeRO } from './utils/parseLabel';
+import { WarrantyOrderDto } from './dto/warranty-order.dto';
 
 @Controller('repairOrders')
 export class RepairOrdersController {
@@ -418,6 +419,36 @@ export class RepairOrdersController {
       }
     } else {
       return new BadRequestException('value requerid');
+    }
+  }
+
+  @Master()
+  @UseGuards(AuthGuard)
+  @Post('/warranty')
+  async warranty(@Request() request, @Body() data: WarrantyOrderDto) {
+    const user = request['user'];
+    const orderData = await this.repairOrdersService.findBy({
+      workshop: new Types.ObjectId(user.workshop),
+      _id: new Types.ObjectId(data.id),
+      'budgetData.type': 'Principal',
+    });
+    if (orderData.length > 0) {
+      const updated = await this.repairOrdersService.generateWarranty(
+        orderData[0],
+        data,
+        user,
+      );
+      await this.historiesService.createHistory({
+        message:
+          data.mode === 'new'
+            ? `Genero una garantia de la RO ${codeRO(orderData[0])}`
+            : `Edito la garantía ${codeRO(updated)}`,
+        user: user._id,
+        ro: data.id,
+      });
+      return updated;
+    } else {
+      return new NotFoundException('RO no encontrado');
     }
   }
 }

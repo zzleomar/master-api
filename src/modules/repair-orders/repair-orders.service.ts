@@ -185,7 +185,7 @@ export class RepairOrdersService {
     return lastCode + 1; // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }
 
-  async findBy(filter: any, error: boolean = true): Promise<any[]> {
+  async findBy(filter: any, error: boolean = true): Promise<RepairOrder[]> {
     const repairOrder = await this.repairOrderModel.find({ ...filter }).exec();
 
     if (!repairOrder && repairOrder.length === 0 && error) {
@@ -584,6 +584,14 @@ export class RepairOrdersService {
     return this.repairOrderModel
       .aggregate([
         {
+          $lookup: {
+            from: 'users', // Nombre de la colección User
+            localField: 'budgetData.quoter._id',
+            foreignField: '_id',
+            as: 'budgetData.quoter',
+          },
+        },
+        {
           $match: {
             ...filter,
             [value.label]:
@@ -593,11 +601,78 @@ export class RepairOrdersService {
           },
         },
         {
+          $unwind: '$budgetData.quoter', // Desagrupa el resultado del $lookup de User
+        },
+        {
           $sort: {
             updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
           },
         },
       ])
       .exec();
+  }
+
+  async generateWarranty(ro: any, data: any, user: any) {
+    if (data.mode === 'new') {
+      const orderData = await this.findBy({
+        workshop: new Types.ObjectId(user.workshop),
+        code: ro.code,
+        status: StatusRepairOrder.Garantia,
+      });
+      const newOrderWarranty = new this.repairOrderModel(
+        JSON.parse(JSON.stringify(ro.toObject())),
+      );
+      newOrderWarranty._id = new Types.ObjectId();
+      newOrderWarranty.workshop = new Types.ObjectId(user.workshop);
+      newOrderWarranty.budget = new Types.ObjectId(newOrderWarranty.budget);
+      newOrderWarranty.budgetData.quoter._id = new Types.ObjectId(
+        newOrderWarranty.budgetData.quoter._id,
+      );
+      newOrderWarranty.numberWarranty = orderData.length;
+      newOrderWarranty.status = StatusRepairOrder.Garantia;
+      newOrderWarranty.statusVehicle = StatusVehicle.TGarantia;
+      newOrderWarranty.statusChangeVehicle = [
+        {
+          initDate: new Date(),
+          endDate: null,
+          status: newOrderWarranty.statusVehicle,
+        },
+      ];
+      newOrderWarranty.statusChange = [
+        {
+          initDate: new Date(),
+          endDate: null,
+          status: newOrderWarranty.status,
+        },
+      ];
+      newOrderWarranty.initOT = new Date();
+      newOrderWarranty.endOT = new Date(
+        moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+      );
+      newOrderWarranty.initWarranty = new Date();
+      newOrderWarranty.endWarranty = new Date(
+        moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+      );
+      newOrderWarranty.commentWarranty = data.commentWarranty;
+      await newOrderWarranty.save();
+      return newOrderWarranty;
+    } else {
+      const orderData = await this.findBy({
+        workshop: new Types.ObjectId(user.workshop),
+        _id: new Types.ObjectId(data.id),
+        status: StatusRepairOrder.Garantia,
+      });
+      if (orderData.length > 0) {
+        orderData[0].endWarranty = new Date(
+          moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+        );
+        orderData[0].commentWarranty = data.commentWarranty;
+        return await orderData[0].save();
+      } else {
+        throw new BadRequestException(
+          'No se encuentra la garantia que desea editar',
+        );
+      }
+    }
   }
 }
