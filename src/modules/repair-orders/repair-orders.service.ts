@@ -645,6 +645,7 @@ export class RepairOrdersService {
           status: newOrderWarranty.status,
         },
       ];
+      newOrderWarranty.createdAt = new Date();
       newOrderWarranty.initOT = new Date();
       newOrderWarranty.endOT = new Date(
         moment(data.endDate, 'DD/MM/YYYY').toISOString(),

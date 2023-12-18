@@ -15,6 +15,9 @@ export class Insurance extends Document {
   @Prop()
   address: string;
 
+  @Prop({ default: true })
+  status: boolean;
+
   @Prop()
   email: string;
 
