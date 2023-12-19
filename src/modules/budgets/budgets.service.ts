@@ -206,8 +206,33 @@ export class BudgetsService {
     body.insuranceData = insurances.toObject();
     delete body.vehicle;
     delete body.client;
+
+    if (body.creationDate) {
+      const newDate = new Date(
+        moment(body.creationDate, 'DD/MM/YYYY').toISOString(),
+      );
+
+      body.createdAt = newDate;
+      body.creationDate = newDate;
+
+      const budgetByUpdate = await this.budgetModel.findById(id);
+      const index = budgetByUpdate.statusChange.findIndex(
+        (item: any) =>
+          item.endDate === null && ['Esp. Aprob.'].includes(item.status),
+      );
+      if (index >= 0 && budgetByUpdate.statusChange[index]) {
+        budgetByUpdate.statusChange[index] = {
+          ...budgetByUpdate.statusChange[index],
+          initDate: newDate,
+        };
+
+        body.statusChange = budgetByUpdate.statusChange;
+      }
+    }
+
     await this.budgetModel.updateOne({ _id: id }, body);
-    const updatedBudget = this.budgetModel.findById(id);
+    const updatedBudget = await this.budgetModel.findById(id);
+
     return updatedBudget;
   }
 

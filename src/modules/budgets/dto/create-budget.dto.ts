@@ -74,4 +74,8 @@ export class CreateBudgetDto {
   @IsOptional()
   @IsString()
   comment?: string;
+
+  @IsOptional()
+  @IsString()
+  creationDate?: string;
 }

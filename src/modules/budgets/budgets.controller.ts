@@ -171,6 +171,7 @@ export class BudgetsController {
     const dataBudgets = await this.budgetsService.findBy({
       _id: updateBudgetDto.id,
     });
+
     const dataBudget = dataBudgets[0];
     if (updateBudgetDto.editOwner) {
       await this.clientsService.update(
@@ -183,6 +184,7 @@ export class BudgetsController {
         client: dataBudget.clientData._id,
       });
     }
+
     updateBudgetDto.client = dataBudget.clientData._id;
     if (updateBudgetDto.editVehicle) {
       await this.vehiclesService.update(
@@ -201,20 +203,24 @@ export class BudgetsController {
       dataBudget._id,
       updateBudgetDto,
     );
+
     const order = await this.repairOrdersService.findBy(
       {
         budget: newBudget._id,
       },
       false,
     );
+
     if (order.length === 1) {
       await this.repairOrdersService.updateBudget(order[0], newBudget);
     }
+
     const log = await this.historiesService.createHistory({
       message: `Datos del presupuesto ${codeBudget(newBudget)} actualizado`,
       user: user._id,
       budget: newBudget.id,
     });
+
     newBudget.history.push(log.id);
     newBudget.save();
     return newBudget;
