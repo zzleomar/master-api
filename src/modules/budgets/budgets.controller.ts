@@ -21,7 +21,7 @@ import {
   Recepcion,
   Repuesto,
 } from '../auth/utils/decorator';
-import { FilterBudgetDto } from './dto/filter-bugget.dto';
+import { FilterGetAllDto } from './dto/filter-bugget.dto';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 import mongoose, { Types } from 'mongoose';
 import { StatusBudgetDto } from './dto/status-budget.dto';
@@ -230,7 +230,7 @@ export class BudgetsController {
   @Post('/list')
   findAll(
     @Request() request,
-    @Body() filters: FilterBudgetDto,
+    @Body() filters: FilterGetAllDto,
     @Body('page') page: number = 1,
     @Body('pageSize') pageSize: number = 30,
     @Body('status') statusTab: string = 'all',

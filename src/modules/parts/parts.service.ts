@@ -17,8 +17,24 @@ export class PartsService {
     return createdPart;
   }
 
-  async findAll(): Promise<Part[]> {
-    return this.partModel.find().exec();
+  async findAll(
+    filter: any = {},
+    page: number = 0,
+    pageSize: number = 30,
+  ): Promise<any> {
+    if (page === 0) {
+      return this.partModel.find(filter).exec();
+    } else {
+      const countQuery = this.partModel.countDocuments(filter);
+      const results = await this.partModel
+        .find(filter)
+        .sort({ updatedAt: -1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .exec();
+      const total = await countQuery.exec();
+      return { results, total };
+    }
   }
 
   async findOne(filter: any): Promise<Part | null> {

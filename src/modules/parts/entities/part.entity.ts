@@ -8,6 +8,9 @@ export class Part extends Document {
 
   @Prop({ required: true })
   side: string;
+
+  @Prop({ default: true })
+  status: boolean;
 }
 
 export const PartsSchema = SchemaFactory.createForClass(Part);

@@ -11,6 +11,9 @@ export class Color extends Document {
 
   @Prop()
   nameEnglish: string;
+
+  @Prop({ default: true })
+  status: boolean;
 }
 
 export const ColorsSchema = SchemaFactory.createForClass(Color);
