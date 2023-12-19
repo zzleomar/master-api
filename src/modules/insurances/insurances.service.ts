@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Insurance } from './entities/insurance.entity';
@@ -47,14 +43,6 @@ export class InsurancesService {
     }
 
     return insurance;
-  }
-  async remove(id: string): Promise<any> {
-    try {
-      const doc = await this.insuranceModel.findByIdAndDelete(id).exec();
-      return doc;
-    } catch (err) {
-      throw new BadRequestException(`Error inesperado`);
-    }
   }
 
   async report(initDate: Date, endDate: Date): Promise<any> {
