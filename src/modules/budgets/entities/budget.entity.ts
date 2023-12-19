@@ -3,6 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Client } from 'src/modules/clients/entities/client.entity';
 import { Vehicle } from 'src/modules/vehicles/entities/vehicle.entity';
+import * as moment from 'moment';
 
 export enum StatusBudget {
   Espera = 'Esp. Aprob.',
@@ -125,6 +126,9 @@ export class Budget extends Document {
 
   @Prop({ default: 0 })
   tax: number;
+
+  @Prop({ default: new Date(moment().toISOString()) })
+  creationDate: Date;
 }
 
 export const BudgetSchema = SchemaFactory.createForClass(Budget);
