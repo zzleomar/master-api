@@ -216,4 +216,62 @@ export class UsersController {
     }
     return true;
   }
+
+  @Post('/reset-password')
+  async sendResetPassword(@Body() resetPasswordDto: { email: string }) {
+    let sendedEmail: any = null;
+    const findEmailUser = await this.usersService.findOneByEmail(
+      resetPasswordDto.email,
+      false,
+    );
+    if (findEmailUser) {
+      const { result, hashReset } =
+        await this.usersService.sendResetPassword(findEmailUser);
+      try {
+        await this.emailService.findAndSend('resetPassword', {
+          email: findEmailUser.email,
+          route: `${process.env.WEBURL}/reset/${hashReset}`,
+          fullname: `${findEmailUser.firstName} ${findEmailUser.lastName}`,
+        });
+
+        sendedEmail = {
+          success: true,
+        };
+      } catch (error) {
+        sendedEmail = {
+          success: false,
+          error: error,
+        };
+      }
+      return { ...result, ...sendedEmail };
+    }
+    throw new BadRequestException(
+      'El correo no existe registrado en el sistema o hast incorrecto',
+    );
+  }
+
+  @Patch('/reset-password/:hast')
+  async resetPassword(
+    @Param('hast') hast: string,
+    @Body() resetPasswordDto: { email: string; newPassword: string },
+  ) {
+    try {
+      const findEmailUser = await this.usersService.findAll({
+        email: resetPasswordDto.email,
+        hashReset: hast,
+      });
+      if (findEmailUser.length === 1 && hast.length > 0) {
+        const result = await this.usersService.resetPassword(
+          findEmailUser[0],
+          this.authService.hashPassword(resetPasswordDto.newPassword),
+        );
+        return result;
+      }
+      throw new BadRequestException(
+        'El correo no existe registrado en el sistema o hast incorrecto',
+      );
+    } catch (error) {
+      throw new BadRequestException('Ocurrio un error inesperado');
+    }
+  }
 }

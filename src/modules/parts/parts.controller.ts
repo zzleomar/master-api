@@ -43,7 +43,10 @@ export class PartsController {
       //TODO falta retornar cuando se busca por nombre de piezas
       return this.partsService.findAll(
         {
-          name: { $regex: filters.value, $options: 'i' },
+          $or: [
+            { name: { $regex: filters.value, $options: 'i' } },
+            { side: { $regex: filters.value, $options: 'i' } },
+          ],
         },
         page,
         pageSize,

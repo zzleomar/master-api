@@ -23,7 +23,6 @@ import { RepairOrdersService } from '../repair-orders/repair-orders.service';
 import { Types } from 'mongoose';
 import { faker } from '@faker-js/faker';
 import { UserPayload } from '../users/entities/user.payload';
-import { Part } from '../parts/entities/part.entity';
 
 @Injectable()
 export class DataPreloadService {
@@ -1105,7 +1104,7 @@ export class DataPreloadService {
       'recepcion@prueba.com',
     );
 
-    let piecesData = await this.partsService.findAll();
+    const piecesData = await this.partsService.findAll();
     if (
       workshops.length > 0 &&
       makesModels.length > 0 &&
