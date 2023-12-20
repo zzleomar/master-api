@@ -147,6 +147,7 @@ export class RepairOrdersController {
   @Master()
   @Cotizador()
   @Admin()
+  @Recepcion()
   @Repuesto()
   @UseGuards(AuthGuard)
   @Post('/list')

@@ -1105,7 +1105,7 @@ export class DataPreloadService {
       'recepcion@prueba.com',
     );
 
-    let piecesData = await this.partsService.findAll();
+    const piecesData = await this.partsService.findAll();
     if (
       workshops.length > 0 &&
       makesModels.length > 0 &&

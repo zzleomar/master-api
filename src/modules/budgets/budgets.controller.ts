@@ -198,6 +198,19 @@ export class BudgetsController {
       });
     }
 
+    if (
+      updateBudgetDto.creationDate &&
+      updateBudgetDto.creationDate !== dataBudget.creationDate
+    ) {
+      await this.historiesService.createHistory({
+        message: `Editó fecha de cotización del presupuesto ${dataBudget.code
+          .toString()
+          .padStart(6, '0')}`,
+        user: user._id,
+        budget: dataBudget._id,
+      });
+    }
+
     updateBudgetDto.workshop = user.workshop;
     const newBudget = await this.budgetsService.update(
       dataBudget._id,
