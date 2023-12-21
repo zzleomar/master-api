@@ -227,6 +227,7 @@ export class UsersController {
     if (findEmailUser) {
       const { result, hashReset } =
         await this.usersService.sendResetPassword(findEmailUser);
+
       try {
         await this.emailService.findAndSend('resetPassword', {
           email: findEmailUser.email,
@@ -238,13 +239,17 @@ export class UsersController {
           success: true,
         };
       } catch (error) {
+        console.log('error: ', error);
+
         sendedEmail = {
           success: false,
           error: error,
         };
       }
-      return { ...result, ...sendedEmail };
+
+      return { ...sendedEmail };
     }
+
     throw new BadRequestException(
       'El correo no existe registrado en el sistema o hast incorrecto',
     );
