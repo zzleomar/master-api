@@ -93,6 +93,7 @@ export class BudgetsController {
 
   @Recepcion()
   @Master()
+  @Cotizador()
   @Admin()
   @UseGuards(AuthGuard)
   @Post()
