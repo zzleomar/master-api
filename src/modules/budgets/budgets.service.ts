@@ -212,7 +212,7 @@ export class BudgetsService {
         moment(body.creationDate, 'DD/MM/YYYY').toISOString(),
       );
 
-      body.createdAt = newDate;
+      body.creationDate = newDate;
       body.creationDate = newDate;
 
       const budgetByUpdate = await this.budgetModel.findById(id);
@@ -230,7 +230,7 @@ export class BudgetsService {
       }
     }
 
-    await this.budgetModel.updateOne({ _id: id }, body);
+    await this.budgetModel.updateOne({ _id: id }, { $set: body });
     const updatedBudget = await this.budgetModel.findById(id);
 
     return updatedBudget;
