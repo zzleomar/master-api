@@ -29,7 +29,7 @@ export class PartsService {
       const results = await this.partModel
         .find(filter)
         .collation({ locale: 'en', strength: 2 })
-        .sort({ name: 1 })
+        .sort({ side: 1, name: 1 })
         .skip((page - 1) * pageSize)
         .limit(pageSize)
         .exec();
