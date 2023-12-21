@@ -209,7 +209,10 @@ export class BudgetsService {
 
     if (body.creationDate) {
       const newDate = new Date(
-        moment(body.creationDate, 'DD/MM/YYYY').toISOString(),
+        moment(
+          body.creationDate + ' 12:00:00',
+          'DD/MM/YYYY HH:mm:ss',
+        ).toISOString(),
       );
 
       body.creationDate = newDate;
@@ -221,12 +224,10 @@ export class BudgetsService {
           item.endDate === null && ['Esp. Aprob.'].includes(item.status),
       );
       if (index >= 0 && budgetByUpdate.statusChange[index]) {
-        budgetByUpdate.statusChange[index] = {
+        body.statusChange = {
           ...budgetByUpdate.statusChange[index],
           initDate: newDate,
         };
-
-        body.statusChange = budgetByUpdate.statusChange;
       }
     }
 

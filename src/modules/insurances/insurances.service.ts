@@ -20,7 +20,11 @@ export class InsurancesService {
   }
 
   async findAll(): Promise<Insurance[]> {
-    return this.insuranceModel.find().exec();
+    return this.insuranceModel
+      .find()
+      .collation({ locale: 'en', strength: 2 })
+      .sort({ name: 1 })
+      .exec();
   }
 
   async findOne(id: string): Promise<Insurance | null> {
@@ -34,7 +38,11 @@ export class InsurancesService {
   }
 
   async findBy(filter: any, error: boolean = true): Promise<any[]> {
-    const insurance = await this.insuranceModel.find({ ...filter }).exec();
+    const insurance = await this.insuranceModel
+      .find({ ...filter })
+      .collation({ locale: 'en', strength: 2 })
+      .sort({ name: 1 })
+      .exec();
 
     if (!insurance && insurance.length === 0 && error) {
       throw new NotFoundException(
