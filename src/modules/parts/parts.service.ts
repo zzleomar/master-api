@@ -28,7 +28,8 @@ export class PartsService {
       const countQuery = this.partModel.countDocuments(filter);
       const results = await this.partModel
         .find(filter)
-        .sort({ updatedAt: -1 })
+        .collation({ locale: 'en', strength: 2 })
+        .sort({ name: 1 })
         .skip((page - 1) * pageSize)
         .limit(pageSize)
         .exec();
