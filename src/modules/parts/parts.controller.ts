@@ -41,16 +41,24 @@ export class PartsController {
       return this.partsService.findAll({}, page, pageSize);
     } else {
       //TODO falta retornar cuando se busca por nombre de piezas
-      return this.partsService.findAll(
-        {
-          $or: [
-            { name: { $regex: filters.value, $options: 'i' } },
-            { side: { $regex: filters.value, $options: 'i' } },
-          ],
-        },
-        page,
-        pageSize,
-      );
+      if (filtro.filter === 'name') {
+        return this.partsService.findAll(
+          {
+            $or: [{ name: { $regex: filters.value, $options: 'i' } }],
+          },
+          page,
+          pageSize,
+        );
+      } else {
+        return this.partsService.findAll(
+          {
+            name: { $regex: filters.value, $options: 'i' },
+            side: { $regex: filters.filter, $options: 'i' },
+          },
+          page,
+          pageSize,
+        );
+      }
     }
   }
 
