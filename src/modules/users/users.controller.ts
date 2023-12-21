@@ -225,13 +225,15 @@ export class UsersController {
       false,
     );
     if (findEmailUser) {
-      const { result, hashReset } =
+      const { hashReset, result } =
         await this.usersService.sendResetPassword(findEmailUser);
+
+      console.log('hashReset: ', hashReset);
 
       try {
         await this.emailService.findAndSend('resetPassword', {
           email: findEmailUser.email,
-          route: `${process.env.WEBURL}/reset/${hashReset}`,
+          route: `${process.env.WEBURL}/auth/reset/${hashReset}`,
           fullname: `${findEmailUser.firstName} ${findEmailUser.lastName}`,
         });
 
@@ -251,32 +253,35 @@ export class UsersController {
     }
 
     throw new BadRequestException(
-      'El correo no existe registrado en el sistema o hast incorrecto',
+      'El correo no existe registrado en el sistema o hash incorrecto',
     );
   }
 
-  @Patch('/reset-password/:hast')
+  @Patch('/reset-password/:hash')
   async resetPassword(
-    @Param('hast') hast: string,
-    @Body() resetPasswordDto: { email: string; newPassword: string },
+    @Param('hash') hash: string,
+    @Body() resetPasswordDto: { email: string; password: string },
   ) {
     try {
       const findEmailUser = await this.usersService.findAll({
-        email: resetPasswordDto.email,
-        hashReset: hast,
+        hashReset: hash,
       });
-      if (findEmailUser.length === 1 && hast.length > 0) {
+
+      if (findEmailUser.length === 1 && hash.length > 0) {
         const result = await this.usersService.resetPassword(
           findEmailUser[0],
-          this.authService.hashPassword(resetPasswordDto.newPassword),
+          this.authService.hashPassword(resetPasswordDto.password),
         );
         return result;
+      } else {
+        throw new BadRequestException(
+          'El correo no existe registrado en el sistema o hash incorrecto',
+        );
       }
-      throw new BadRequestException(
-        'El correo no existe registrado en el sistema o hast incorrecto',
-      );
     } catch (error) {
-      throw new BadRequestException('Ocurrio un error inesperado');
+      throw new BadRequestException(
+        'El correo no existe registrado en el sistema o hash incorrecto',
+      );
     }
   }
 }

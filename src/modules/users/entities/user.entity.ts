@@ -42,7 +42,7 @@ export class User extends Document {
   @Prop()
   password: string;
 
-  @Prop()
+  @Prop({ default: '' })
   hashReset: string;
 
   @Prop({ default: true })
