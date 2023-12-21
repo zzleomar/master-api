@@ -153,8 +153,13 @@ export class UsersService {
   }
 
   async sendResetPassword(user: UserPayload) {
-    const hashReset = faker.string.alphanumeric(6).toUpperCase();
-    const result = this.userModel.updateOne({ _id: user._id }, { hashReset });
+    const hashReset = await faker.string.alphanumeric(6).toUpperCase();
+
+    const result = await this.userModel.findOneAndUpdate(
+      { _id: user._id },
+      { hashReset },
+    );
+
     return { hashReset, result };
   }
 

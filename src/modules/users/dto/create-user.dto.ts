@@ -36,4 +36,8 @@ export class CreateUserDto {
   @IsOptional() // El workshop es opcional para los SuperAdmin
   @IsMongoId() // Debe ser un ID válido de MongoDB
   workshop?: string;
+
+  @IsOptional()
+  @IsString()
+  hashReset?: string;
 }
