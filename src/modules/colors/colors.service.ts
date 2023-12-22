@@ -18,7 +18,7 @@ export class ColorsService {
   }
 
   async findAll(): Promise<Color[]> {
-    return this.colorModel.find().exec();
+    return this.colorModel.find().sort({ color: 1 }).exec();
   }
 
   async findOne(id: string): Promise<Color | null> {

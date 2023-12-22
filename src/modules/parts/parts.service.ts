@@ -23,7 +23,11 @@ export class PartsService {
     pageSize: number = 30,
   ): Promise<any> {
     if (page === 0) {
-      return this.partModel.find(filter).exec();
+      return this.partModel
+        .find(filter)
+        .collation({ locale: 'en', strength: 2 })
+        .sort({ side: 1, name: 1 })
+        .exec();
     } else {
       const countQuery = this.partModel.countDocuments(filter);
       const results = await this.partModel
