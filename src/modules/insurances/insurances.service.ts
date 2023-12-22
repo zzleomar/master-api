@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Insurance } from './entities/insurance.entity';
@@ -24,7 +20,11 @@ export class InsurancesService {
   }
 
   async findAll(): Promise<Insurance[]> {
-    return this.insuranceModel.find().exec();
+    return this.insuranceModel
+      .find()
+      .collation({ locale: 'en', strength: 2 })
+      .sort({ name: 1 })
+      .exec();
   }
 
   async findOne(id: string): Promise<Insurance | null> {
@@ -38,7 +38,11 @@ export class InsurancesService {
   }
 
   async findBy(filter: any, error: boolean = true): Promise<any[]> {
-    const insurance = await this.insuranceModel.find({ ...filter }).exec();
+    const insurance = await this.insuranceModel
+      .find({ ...filter })
+      .collation({ locale: 'en', strength: 2 })
+      .sort({ name: 1 })
+      .exec();
 
     if (!insurance && insurance.length === 0 && error) {
       throw new NotFoundException(
@@ -47,14 +51,6 @@ export class InsurancesService {
     }
 
     return insurance;
-  }
-  async remove(id: string): Promise<any> {
-    try {
-      const doc = await this.insuranceModel.findByIdAndDelete(id).exec();
-      return doc;
-    } catch (err) {
-      throw new BadRequestException(`Error inesperado`);
-    }
   }
 
   async report(initDate: Date, endDate: Date): Promise<any> {

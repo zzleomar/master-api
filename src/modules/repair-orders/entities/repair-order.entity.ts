@@ -6,6 +6,7 @@ export enum StatusRepairOrder {
   Abierta = 'Abierta',
   Completada = 'Completada',
   Anulada = 'Anulada',
+  Garantia = 'Garantía',
 }
 
 export enum StatusVehicle {
@@ -25,6 +26,7 @@ export enum StatusVehicle {
   PiezasPend = 'T. c/piezas pend.',
   SinEntregar = 'T. sin entregar',
   Terminado = 'Terminado',
+  TGarantia = 'T. Garantía',
 }
 
 export enum StatusPiece {
@@ -107,6 +109,18 @@ export class RepairOrder extends Document {
 
   @Prop({ type: Date, nullable: true, default: null })
   endOT: Date;
+
+  @Prop({ type: Date, nullable: true, default: null })
+  initWarranty: Date;
+
+  @Prop({ type: Date, nullable: true, default: null })
+  endWarranty: Date;
+
+  @Prop({ type: String, nullable: true, default: '' })
+  commentWarranty: string;
+
+  @Prop({ type: Number, nullable: true, default: null })
+  numberWarranty: number;
 }
 
 export const RepairOrderSchema = SchemaFactory.createForClass(RepairOrder);

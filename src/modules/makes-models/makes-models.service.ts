@@ -20,7 +20,11 @@ export class MakesModelsService {
   }
 
   async findAll(): Promise<MakesModels[]> {
-    return this.makeModelModel.find().exec();
+    return this.makeModelModel
+      .find()
+      .collation({ locale: 'en', strength: 2 })
+      .sort({ make: 1 })
+      .exec();
   }
 
   async findOne(id: string): Promise<MakesModels | null> {

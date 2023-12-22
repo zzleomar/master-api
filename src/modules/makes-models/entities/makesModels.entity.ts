@@ -6,6 +6,9 @@ export class MakesModels extends Document {
   @Prop({ required: true })
   make: string;
 
+  @Prop({ default: true })
+  status: boolean;
+
   @Prop([
     {
       model: { type: String, required: true },

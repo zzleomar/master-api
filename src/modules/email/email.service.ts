@@ -34,6 +34,27 @@ const templates = [
       },
     ],
   },
+  {
+    name: 'resetPassword',
+    type: 'html',
+    template: 'resetPassword.html',
+    subject: 'Restablecer Cuenta de Mega Shop',
+    vars: [
+      {
+        key: 'VAR_FULLNAME',
+        param: 'fullname',
+      },
+      {
+        key: 'VAR_EMAIL',
+        param: 'email',
+      },
+      {
+        key: 'VAR_WEB',
+        param: 'route',
+        multiple: true,
+      },
+    ],
+  },
 ];
 @Injectable()
 export class EmailService {

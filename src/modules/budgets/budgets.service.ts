@@ -74,6 +74,7 @@ export class BudgetsService {
         status: 'Estimado',
       },
     ];
+    createdBudge.creationDate = new Date(moment().hours(12).toISOString());
     const budget = await createdBudge.save();
     return budget;
   }
@@ -206,8 +207,34 @@ export class BudgetsService {
     body.insuranceData = insurances.toObject();
     delete body.vehicle;
     delete body.client;
-    await this.budgetModel.updateOne({ _id: id }, body);
-    const updatedBudget = this.budgetModel.findById(id);
+
+    if (body.creationDate) {
+      const newDate = new Date(
+        moment(
+          body.creationDate + ' 12:00:00',
+          'DD/MM/YYYY HH:mm:ss',
+        ).toISOString(),
+      );
+
+      body.creationDate = newDate;
+      body.creationDate = newDate;
+
+      const budgetByUpdate = await this.budgetModel.findById(id);
+      const index = budgetByUpdate.statusChange.findIndex(
+        (item: any) =>
+          item.endDate === null && ['Esp. Aprob.'].includes(item.status),
+      );
+      if (index >= 0 && budgetByUpdate.statusChange[index]) {
+        body.statusChange = {
+          ...budgetByUpdate.statusChange[index],
+          initDate: newDate,
+        };
+      }
+    }
+
+    await this.budgetModel.updateOne({ _id: id }, { $set: body });
+    const updatedBudget = await this.budgetModel.findById(id);
+
     return updatedBudget;
   }
 

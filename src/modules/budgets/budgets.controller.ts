@@ -21,7 +21,7 @@ import {
   Recepcion,
   Repuesto,
 } from '../auth/utils/decorator';
-import { FilterBudgetDto } from './dto/filter-bugget.dto';
+import { FilterGetAllDto } from './dto/filter-bugget.dto';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 import mongoose, { Types } from 'mongoose';
 import { StatusBudgetDto } from './dto/status-budget.dto';
@@ -93,6 +93,7 @@ export class BudgetsController {
 
   @Recepcion()
   @Master()
+  @Cotizador()
   @Admin()
   @UseGuards(AuthGuard)
   @Post()
@@ -156,6 +157,7 @@ export class BudgetsController {
     return newBudget;
   }
 
+  @Cotizador()
   @Recepcion()
   @Master()
   @Admin()
@@ -171,6 +173,7 @@ export class BudgetsController {
     const dataBudgets = await this.budgetsService.findBy({
       _id: updateBudgetDto.id,
     });
+
     const dataBudget = dataBudgets[0];
     if (updateBudgetDto.editOwner) {
       await this.clientsService.update(
@@ -183,6 +186,7 @@ export class BudgetsController {
         client: dataBudget.clientData._id,
       });
     }
+
     updateBudgetDto.client = dataBudget.clientData._id;
     if (updateBudgetDto.editVehicle) {
       await this.vehiclesService.update(
@@ -196,25 +200,42 @@ export class BudgetsController {
       });
     }
 
+    if (
+      updateBudgetDto.creationDate &&
+      updateBudgetDto.creationDate !== dataBudget.creationDate
+    ) {
+      await this.historiesService.createHistory({
+        message: `Editó fecha de cotización del presupuesto ${dataBudget.code
+          .toString()
+          .padStart(6, '0')}`,
+        user: user._id,
+        budget: dataBudget._id,
+      });
+    }
+
     updateBudgetDto.workshop = user.workshop;
     const newBudget = await this.budgetsService.update(
       dataBudget._id,
       updateBudgetDto,
     );
+
     const order = await this.repairOrdersService.findBy(
       {
         budget: newBudget._id,
       },
       false,
     );
+
     if (order.length === 1) {
       await this.repairOrdersService.updateBudget(order[0], newBudget);
     }
+
     const log = await this.historiesService.createHistory({
       message: `Datos del presupuesto ${codeBudget(newBudget)} actualizado`,
       user: user._id,
       budget: newBudget.id,
     });
+
     newBudget.history.push(log.id);
     newBudget.save();
     return newBudget;
@@ -230,7 +251,7 @@ export class BudgetsController {
   @Post('/list')
   findAll(
     @Request() request,
-    @Body() filters: FilterBudgetDto,
+    @Body() filters: FilterGetAllDto,
     @Body('page') page: number = 1,
     @Body('pageSize') pageSize: number = 30,
     @Body('status') statusTab: string = 'all',

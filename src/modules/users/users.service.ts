@@ -12,6 +12,7 @@ import { CreateWorkshopDto } from 'src/modules/workshops/dto/create-workshop.dto
 import { WorkshopsService } from 'src/modules/workshops/workshops.service';
 import { User } from './entities/user.entity';
 import { map, omit } from 'lodash';
+import { faker } from '@faker-js/faker';
 
 @Injectable()
 export class UsersService {
@@ -149,5 +150,25 @@ export class UsersService {
         },
       ])
       .exec();
+  }
+
+  async sendResetPassword(user: UserPayload) {
+    const hashReset = await faker.string.alphanumeric(6).toUpperCase();
+
+    const result = await this.userModel.findOneAndUpdate(
+      { _id: user._id },
+      { hashReset },
+    );
+
+    return { hashReset, result };
+  }
+
+  async resetPassword(user: UserPayload, newPassword: Promise<string>) {
+    const password = await newPassword;
+    const result = this.userModel.updateOne(
+      { _id: user._id },
+      { hashReset: '', password },
+    );
+    return result;
   }
 }
