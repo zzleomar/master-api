@@ -424,6 +424,9 @@ export class RepairOrdersController {
   }
 
   @Master()
+  @Admin()
+  @Cotizador()
+  @Recepcion()
   @UseGuards(AuthGuard)
   @Post('/warranty')
   async warranty(@Request() request, @Body() data: WarrantyOrderDto) {
