@@ -150,15 +150,8 @@ export class UsersController {
     }
   }
 
-  @Get()
-  @Master()
   @UseGuards(AuthGuard)
-  findAll() {
-    return this.usersService.findAll(null);
-  }
-
   @Get('/quoter')
-  @UseGuards(AuthGuard)
   findQuoter(@Request() request) {
     const user = request['user'];
     return this.usersService.findAll({

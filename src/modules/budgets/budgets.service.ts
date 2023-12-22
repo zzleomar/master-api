@@ -74,6 +74,7 @@ export class BudgetsService {
         status: 'Estimado',
       },
     ];
+    createdBudge.creationDate = new Date(moment().hours(12).toISOString());
     const budget = await createdBudge.save();
     return budget;
   }
