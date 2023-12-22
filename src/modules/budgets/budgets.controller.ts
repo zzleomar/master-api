@@ -157,6 +157,7 @@ export class BudgetsController {
     return newBudget;
   }
 
+  @Cotizador()
   @Recepcion()
   @Master()
   @Admin()
