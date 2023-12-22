@@ -239,7 +239,9 @@ export class RepairOrdersService {
         if (data.approved) {
           ro = await this.updateStatusVehicle(
             dataRO,
-            StatusVehicle.EsperandoPieza,
+            dataRO.pieces.length > 0
+              ? StatusVehicle.EsperandoPieza
+              : StatusVehicle.EsperandoTurno,
             dataRO.statusVehicle,
             {
               approved: data.approved,
