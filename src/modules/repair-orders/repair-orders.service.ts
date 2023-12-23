@@ -137,7 +137,7 @@ export class RepairOrdersService {
       createdOrder.budgetData = dataBudgets2[0].toObject();
       const order = await createdOrder.save();
       await this.historiesService.createHistory({
-        message: `Creación de RO ${codeRO(order)}`,
+        message: `Registró la RO ${codeRO(order)}`,
         user: user._id,
         ro: createdOrder.id,
       });
@@ -452,6 +452,7 @@ export class RepairOrdersService {
           data.movements,
           (movement: any) => movement.id === order.id,
         );
+
         if (order.budgetData.type === 'Principal') {
           const roSumplemnts = await this.findBy({
             workshop: new Types.ObjectId(order.workshop),
@@ -459,6 +460,7 @@ export class RepairOrdersService {
             'budgetData.type': 'Suplemento',
             initOT: { $ne: null },
           });
+
           if (roSumplemnts.length > 0) {
             this.changeMovements(
               roSumplemnts,
@@ -473,11 +475,12 @@ export class RepairOrdersService {
               user,
             );
             let response = [];
+
             for (let i = 0; i < roSumplemnts.length; i++) {
               const ro = roSumplemnts[i];
               response.push(
                 await this.historiesService.createHistory({
-                  message: `Cambio de estado del vehiculo de la RO ${codeRO(
+                  message: `Editó los datos del vehiculo en la RO ${codeRO(
                     ro,
                   )}`,
                   user: user._id,
@@ -488,6 +491,7 @@ export class RepairOrdersService {
             response = await Promise.all(response);
           }
         }
+
         return this.updateStatusVehicle(
           order,
           item.statusInput,

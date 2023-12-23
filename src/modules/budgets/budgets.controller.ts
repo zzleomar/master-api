@@ -72,9 +72,9 @@ export class BudgetsController {
       );
       if (budgetSupplement) {
         const log = await this.historiesService.createHistory({
-          message: `Creación un suplemento ${
+          message: `Registró un suplemento ${
             createSupplementBudgetDto.typeSupplement
-          } del presupuesto ${budgetData.code.toString().padStart(6, '0')}`,
+          } del presupuesto ${codeBudget(budgetData)}`,
           user: user._id,
           budget: budgetData.id,
         });
@@ -104,18 +104,16 @@ export class BudgetsController {
     @Body() createClientDto: CreateClientDto,
   ) {
     const user = request['user'];
+    let newClient: any = null;
+    let newVehicle: any = null;
+
     if (
       (!createBudgetDto.client && createBudgetDto.mode === 'normal') ||
       (createBudgetDto.mode === 'express' && createBudgetDto.newOwner)
     ) {
       createClientDto.workshop = user.workshop;
-      const newClient = await this.clientsService.create(createClientDto);
+      newClient = await this.clientsService.create(createClientDto);
       createBudgetDto.client = newClient.id;
-      await this.historiesService.createHistory({
-        message: `Registro de un nuevo cliente`,
-        user: user._id,
-        client: newClient.id,
-      });
     } else {
       createBudgetDto.client = createVehicleDto.owner;
     }
@@ -126,34 +124,51 @@ export class BudgetsController {
     ) {
       createVehicleDto.owner = createBudgetDto.client;
       createVehicleDto.workshop = user.workshop;
-      const newVehicle = await this.vehiclesService.create(createVehicleDto);
+      newVehicle = await this.vehiclesService.create(createVehicleDto);
       createBudgetDto.vehicle = newVehicle;
-      await this.historiesService.createHistory({
-        message:
-          createBudgetDto.mode === 'normal'
-            ? `Registro de un nuevo vehiculo`
-            : `Se actualizo los datos de un vehiculo`,
-        user: user._id,
-        vehicle: newVehicle.id,
-      });
     } else {
-      const newVehicle = await this.vehiclesService.findOne(
+      const vehicle = await this.vehiclesService.findOne(
         createBudgetDto.vehicle,
       );
-      createBudgetDto.vehicle = newVehicle;
+      createBudgetDto.vehicle = vehicle;
     }
+
     createBudgetDto.workshop = user.workshop;
     createBudgetDto.comment = '';
     const newBudget = await this.budgetsService.create(createBudgetDto);
     const log = await this.historiesService.createHistory({
-      message: `Creación del presupuesto ${newBudget.code
-        .toString()
-        .padStart(6, '0')}`,
+      message: `Registró el presup. ${codeBudget(newBudget)}`,
       user: user._id,
       budget: newBudget.id,
     });
     newBudget.history.push(log.id);
     newBudget.save();
+
+    if (newClient !== null) {
+      await this.historiesService.createHistory({
+        message: `Registró un nuevo cliente en el presup. ${codeBudget(
+          newBudget,
+        )}`,
+        user: user._id,
+        client: newClient.id,
+      });
+    }
+
+    if (newVehicle !== null) {
+      await this.historiesService.createHistory({
+        message:
+          createBudgetDto.mode === 'normal'
+            ? `Registró un nuevo vehículo en el presup. ${codeBudget(
+                newBudget,
+              )}`
+            : `Editó los datos del vehiculo en el presup. ${codeBudget(
+                newBudget,
+              )}`,
+        user: user._id,
+        vehicle: newVehicle.id,
+      });
+    }
+
     return newBudget;
   }
 
@@ -181,7 +196,9 @@ export class BudgetsController {
         updateClientDto,
       );
       await this.historiesService.createHistory({
-        message: `Datos del cliente actualizados`,
+        message: `Editó los datos de un cliente en el presup. ${codeBudget(
+          dataBudget,
+        )}`,
         user: user._id,
         client: dataBudget.clientData._id,
       });
@@ -194,7 +211,9 @@ export class BudgetsController {
         updateVehicleDto,
       );
       await this.historiesService.createHistory({
-        message: `Datos del vehiculo actualizados`,
+        message: `Editó los datos de un vehiculo en el presup. ${codeBudget(
+          dataBudget,
+        )}`,
         user: user._id,
         vehicle: dataBudget.vehicleData._id,
       });
@@ -205,9 +224,9 @@ export class BudgetsController {
       updateBudgetDto.creationDate !== dataBudget.creationDate
     ) {
       await this.historiesService.createHistory({
-        message: `Editó fecha de cotización del presupuesto ${dataBudget.code
-          .toString()
-          .padStart(6, '0')}`,
+        message: `Editó la fecha de cotización del presup. ${codeBudget(
+          dataBudget,
+        )}`,
         user: user._id,
         budget: dataBudget._id,
       });
@@ -231,7 +250,7 @@ export class BudgetsController {
     }
 
     const log = await this.historiesService.createHistory({
-      message: `Datos del presupuesto ${codeBudget(newBudget)} actualizado`,
+      message: `Editó los datos del presupuesto ${codeBudget(newBudget)}`,
       user: user._id,
       budget: newBudget.id,
     });
@@ -345,7 +364,7 @@ export class BudgetsController {
       data,
     );
     await this.historiesService.createHistory({
-      message: `Registro de inspección del presupuesto ${codeBudget(
+      message: `Registró la inspección del vehículo del presupuesto ${codeBudget(
         budgetUpdate,
       )}`,
       user: user._id,

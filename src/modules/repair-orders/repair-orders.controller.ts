@@ -98,9 +98,7 @@ export class RepairOrdersController {
       );
 
       await this.historiesService.createHistory({
-        message: `Actualización de estados de las piezas de la orden ${codeRO(
-          anulatedOrder,
-        )}`,
+        message: `Anuló la RO ${codeRO(anulatedOrder)}`,
         user: user._id,
         ro: anulatedOrder.id,
       });
@@ -117,6 +115,7 @@ export class RepairOrdersController {
   @Post('/status')
   async status(@Request() request, @Body() data: StatusRepairOrderstDto) {
     const user = request['user'];
+
     const ROData = await this.repairOrdersService.findBy({
       workshop: new Types.ObjectId(user.workshop),
       _id: new Types.ObjectId(data.id),
@@ -127,14 +126,16 @@ export class RepairOrdersController {
         data,
         user,
       );
+
       if (ROUpdate) {
         await this.historiesService.createHistory({
-          message: `Cambio de estado del vehiculo de la RO ${codeRO(
+          message: `Cambió estado del vehiculo de la RO ${codeRO(
             ROUpdate,
-          )} a ${ROUpdate.statusVehicle}`,
+          )} de ${ROData[0].statusVehicle} a ${ROUpdate.statusVehicle}`,
           user: user._id,
           ro: ROUpdate.id,
         });
+
         return ROUpdate;
       } else {
         return new BadRequestException('No es posible cambiar estado');
@@ -232,14 +233,14 @@ export class RepairOrdersController {
       workshop: new Types.ObjectId(user.workshop),
       _id: new Types.ObjectId(data.id),
     });
+
     const orderUpdate = await this.repairOrdersService.savePieces(
       orderData[0],
       data,
     );
+
     await this.historiesService.createHistory({
-      message: `Actualización de estados de las piezas de la orden ${codeRO(
-        orderUpdate,
-      )}`,
+      message: `Cambió estado de las piezas de la RO ${codeRO(orderUpdate)}`,
       user: user._id,
       ro: orderUpdate.id,
     });
@@ -258,21 +259,25 @@ export class RepairOrdersController {
       workshop: new Types.ObjectId(user.workshop),
       _id: new Types.ObjectId(data.id),
     });
+
     let orderUpdate = await this.repairOrdersService.generateOT(
       orderData[0],
       data,
     );
+
     await this.historiesService.createHistory({
-      message: `Genero la OT de la orden ${codeRO(orderUpdate)}`,
+      message: `Generó la OT de la RO ${codeRO(orderUpdate)}`,
       user: user._id,
       ro: orderUpdate.id,
     });
+
     if (orderUpdate.budgetData.type === 'Suplemento') {
       const orderPrincipal = await this.repairOrdersService.findBy({
         workshop: new Types.ObjectId(user.workshop),
         'budgetData.code': orderUpdate.budgetData.code,
         'budgetData.type': 'Principal',
       });
+
       if (orderPrincipal.length > 0) {
         const dataROs = await this.repairOrdersService.changeMovements(
           [orderUpdate],
@@ -286,10 +291,13 @@ export class RepairOrdersController {
           },
           user,
         );
+
         await this.historiesService.createHistory({
-          message: `Cambio de estado del vehiculo de la RO ${codeRO(
+          message: `Cambió estado del vehiculo de la RO ${codeRO(
             dataROs[0],
-          )}`,
+          )} de ${orderUpdate.statusVehicle} a ${
+            orderPrincipal[0].statusVehicle
+          }`,
           user: user._id,
           ro: dataROs[0].id,
         });
@@ -312,24 +320,29 @@ export class RepairOrdersController {
       workshop: new Types.ObjectId(user.workshop),
       _id: { $in: ids },
     });
+
     if (RODatas.length > 0) {
       const ROSUpdate = await this.repairOrdersService.changeMovements(
         RODatas,
         data,
         user,
       );
+
       if (ROSUpdate) {
         let response = [];
         for (let i = 0; i < ROSUpdate.length; i++) {
           const ro = ROSUpdate[i];
           response.push(
             await this.historiesService.createHistory({
-              message: `Cambio de estado del vehiculo de la RO ${codeRO(ro)}`,
+              message: `Cambió estado del vehiculo de la RO ${codeRO(ro)} de ${
+                RODatas[0].statusVehicle
+              } a ${ROSUpdate[i].statusVehicle}`,
               user: user._id,
               ro: ro.id,
             }),
           );
         }
+
         response = await Promise.all(response);
         return ROSUpdate;
       } else {
@@ -436,17 +449,19 @@ export class RepairOrdersController {
       _id: new Types.ObjectId(data.id),
       'budgetData.type': 'Principal',
     });
+
     if (orderData.length > 0) {
       const updated = await this.repairOrdersService.generateWarranty(
         orderData[0],
         data,
         user,
       );
+
       await this.historiesService.createHistory({
         message:
           data.mode === 'new'
-            ? `Genero una garantia de la RO ${codeRO(orderData[0])}`
-            : `Edito la garantía ${codeRO(updated)}`,
+            ? `Registró una garantia en la RO ${codeRO(orderData[0])}`
+            : `Edito la garantía de la RO ${codeRO(updated)}`,
         user: user._id,
         ro: data.id,
       });
