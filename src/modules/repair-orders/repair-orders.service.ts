@@ -20,6 +20,7 @@ import * as moment from 'moment';
 import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
 import { codeRO } from './utils/parseLabel';
 @Injectable()
+
 export class RepairOrdersService {
   constructor(
     @InjectModel('RepairOrder') private readonly repairOrderModel: Model<any>,
