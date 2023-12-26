@@ -269,7 +269,7 @@ export class RepairOrdersController {
     );
 
     await this.historiesService.createHistory({
-      message: `Generó la OT de la RO ${codeRO(orderUpdate)}`,
+      message: `Emitió la OT de la RO ${codeRO(orderUpdate)}`,
       user: user._id,
       ro: orderUpdate.id,
     });
@@ -464,7 +464,7 @@ export class RepairOrdersController {
         message:
           data.mode === 'new'
             ? `Agregó reclamo de garantía en la RO ${codeRO(orderData[0])}`
-            : `Edito la garantía de la RO ${codeRO(updated)}`,
+            : `Edito reclamo de garantía de la RO ${codeRO(updated)}`,
         user: user._id,
         ro: data.id,
       });
