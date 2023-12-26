@@ -359,18 +359,23 @@ export class BudgetsController {
   @Post('/inspection')
   async inspection(@Request() request, @Body() data: InspectionBudgetDto) {
     const user = request['user'];
-    const budgetData = await this.budgetsService.findBy({
+
+    const budgetData: any = await this.budgetsService.findBy({
       workshop: user.workshop,
       _id: data.budgetId,
     });
+
+    const mode: boolean = budgetData.inspection ? true : false;
+
     const budgetUpdate = await this.budgetsService.saveInspection(
       budgetData[0],
       data,
     );
+
     await this.historiesService.createHistory({
-      message: `Registró la inspección del vehículo del presupuesto ${codeBudget(
-        budgetUpdate,
-      )}`,
+      message: `${
+        mode ? 'Registró' : 'Editó'
+      } la inspección del vehículo del presupuesto ${codeBudget(budgetUpdate)}`,
       user: user._id,
       budget: budgetUpdate.id,
     });

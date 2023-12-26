@@ -137,7 +137,7 @@ export class RepairOrdersService {
       createdOrder.budgetData = dataBudgets2[0].toObject();
       const order = await createdOrder.save();
       await this.historiesService.createHistory({
-        message: `Registró la RO ${codeRO(order)}`,
+        message: `Generó la RO ${codeRO(order)}`,
         user: user._id,
         ro: createdOrder.id,
       });

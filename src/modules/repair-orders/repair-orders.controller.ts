@@ -120,6 +120,9 @@ export class RepairOrdersController {
       workshop: new Types.ObjectId(user.workshop),
       _id: new Types.ObjectId(data.id),
     });
+
+    const oldstatus: string = ROData[0].statusVehicle ?? '';
+
     if (ROData.length > 0) {
       const ROUpdate = await this.repairOrdersService.changeStatus(
         ROData[0],
@@ -131,7 +134,7 @@ export class RepairOrdersController {
         await this.historiesService.createHistory({
           message: `Cambió estado del vehiculo de la RO ${codeRO(
             ROUpdate,
-          )} de ${ROData[0].statusVehicle} a ${ROUpdate.statusVehicle}`,
+          )} de ${oldstatus} a ${ROUpdate.statusVehicle}`,
           user: user._id,
           ro: ROUpdate.id,
         });
@@ -238,7 +241,7 @@ export class RepairOrdersController {
       orderData[0],
       data,
     );
-
+/* --- */
     await this.historiesService.createHistory({
       message: `Cambió estado de las piezas de la RO ${codeRO(orderUpdate)}`,
       user: user._id,
@@ -291,7 +294,7 @@ export class RepairOrdersController {
           },
           user,
         );
-
+/* --- */
         await this.historiesService.createHistory({
           message: `Cambió estado del vehiculo de la RO ${codeRO(
             dataROs[0],
@@ -327,7 +330,7 @@ export class RepairOrdersController {
         data,
         user,
       );
-
+/* --- */
       if (ROSUpdate) {
         let response = [];
         for (let i = 0; i < ROSUpdate.length; i++) {
@@ -460,7 +463,7 @@ export class RepairOrdersController {
       await this.historiesService.createHistory({
         message:
           data.mode === 'new'
-            ? `Registró una garantia en la RO ${codeRO(orderData[0])}`
+            ? `Agregó reclamo de garantía en la RO ${codeRO(orderData[0])}`
             : `Edito la garantía de la RO ${codeRO(updated)}`,
         user: user._id,
         ro: data.id,
