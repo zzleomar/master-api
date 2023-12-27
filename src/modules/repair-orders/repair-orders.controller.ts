@@ -232,6 +232,7 @@ export class RepairOrdersController {
   @Post('/pieces')
   async pieces(@Request() request, @Body() data: PiecesOrderDto) {
     const user = request['user'];
+
     const orderData = await this.repairOrdersService.findBy({
       workshop: new Types.ObjectId(user.workshop),
       _id: new Types.ObjectId(data.id),
@@ -241,7 +242,7 @@ export class RepairOrdersController {
       orderData[0],
       data,
     );
-/* --- */
+
     await this.historiesService.createHistory({
       message: `Cambió estado de las piezas de la RO ${codeRO(orderUpdate)}`,
       user: user._id,
@@ -267,6 +268,8 @@ export class RepairOrdersController {
       orderData[0],
       data,
     );
+
+    const oldstatus = orderUpdate.statusVehicle ?? '';
 
     await this.historiesService.createHistory({
       message: `Emitió la OT de la RO ${codeRO(orderUpdate)}`,
@@ -294,13 +297,11 @@ export class RepairOrdersController {
           },
           user,
         );
-/* --- */
+
         await this.historiesService.createHistory({
           message: `Cambió estado del vehiculo de la RO ${codeRO(
             dataROs[0],
-          )} de ${orderUpdate.statusVehicle} a ${
-            orderPrincipal[0].statusVehicle
-          }`,
+          )} de ${oldstatus} a ${orderPrincipal[0].statusVehicle}`,
           user: user._id,
           ro: dataROs[0].id,
         });
@@ -319,10 +320,13 @@ export class RepairOrdersController {
   async movements(@Request() request, @Body() data: MovementsRepairOrderDto) {
     const user = request['user'];
     const ids = map(data.movements, (item: any) => new Types.ObjectId(item.id));
+
     const RODatas = await this.repairOrdersService.findBy({
       workshop: new Types.ObjectId(user.workshop),
       _id: { $in: ids },
     });
+
+    const oldstatus = RODatas[0].statusVehicle ?? '';
 
     if (RODatas.length > 0) {
       const ROSUpdate = await this.repairOrdersService.changeMovements(
@@ -330,16 +334,16 @@ export class RepairOrdersController {
         data,
         user,
       );
-/* --- */
+
       if (ROSUpdate) {
         let response = [];
         for (let i = 0; i < ROSUpdate.length; i++) {
           const ro = ROSUpdate[i];
           response.push(
             await this.historiesService.createHistory({
-              message: `Cambió estado del vehiculo de la RO ${codeRO(ro)} de ${
-                RODatas[0].statusVehicle
-              } a ${ROSUpdate[i].statusVehicle}`,
+              message: `Cambió estado del vehiculo de la RO ${codeRO(
+                ro,
+              )} de ${oldstatus} a ${ROSUpdate[i].statusVehicle}`,
               user: user._id,
               ro: ro.id,
             }),

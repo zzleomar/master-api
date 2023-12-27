@@ -254,7 +254,9 @@ export class BudgetsController {
     }
 
     const log = await this.historiesService.createHistory({
-      message: `Editó los datos del presupuesto ${codeBudget(newBudget)}`,
+      message: `Editó información general del presupuesto ${codeBudget(
+        newBudget,
+      )}`,
       user: user._id,
       budget: newBudget.id,
     });
