@@ -20,7 +20,6 @@ import * as moment from 'moment';
 import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
 import { codeRO } from './utils/parseLabel';
 @Injectable()
-
 export class RepairOrdersService {
   constructor(
     @InjectModel('RepairOrder') private readonly repairOrderModel: Model<any>,
@@ -137,7 +136,9 @@ export class RepairOrdersService {
       createdOrder.budgetData = dataBudgets2[0].toObject();
       const order = await createdOrder.save();
       await this.historiesService.createHistory({
-        message: `Generó la RO ${codeRO(order)}`,
+        message: `Generó la RO ${codeRO(order)} con el estado ${
+          order.statusVehicle
+        }`,
         user: user._id,
         ro: createdOrder.id,
       });
@@ -626,15 +627,18 @@ export class RepairOrdersService {
         code: ro.code,
         status: StatusRepairOrder.Garantia,
       });
+
       const newOrderWarranty = new this.repairOrderModel(
         JSON.parse(JSON.stringify(ro.toObject())),
       );
+
       newOrderWarranty._id = new Types.ObjectId();
       newOrderWarranty.workshop = new Types.ObjectId(user.workshop);
       newOrderWarranty.budget = new Types.ObjectId(newOrderWarranty.budget);
       newOrderWarranty.budgetData.quoter._id = new Types.ObjectId(
         newOrderWarranty.budgetData.quoter._id,
       );
+
       newOrderWarranty.numberWarranty = orderData.length;
       newOrderWarranty.status = StatusRepairOrder.Garantia;
       newOrderWarranty.statusVehicle = StatusVehicle.TGarantia;
@@ -645,6 +649,7 @@ export class RepairOrdersService {
           status: newOrderWarranty.statusVehicle,
         },
       ];
+
       newOrderWarranty.statusChange = [
         {
           initDate: new Date(),
@@ -652,15 +657,18 @@ export class RepairOrdersService {
           status: newOrderWarranty.status,
         },
       ];
+
       newOrderWarranty.createdAt = new Date();
       newOrderWarranty.initOT = new Date();
       newOrderWarranty.endOT = new Date(
         moment(data.endDate, 'DD/MM/YYYY').toISOString(),
       );
+
       newOrderWarranty.initWarranty = new Date();
       newOrderWarranty.endWarranty = new Date(
         moment(data.endDate, 'DD/MM/YYYY').toISOString(),
       );
+
       newOrderWarranty.commentWarranty = data.commentWarranty;
       await newOrderWarranty.save();
       return newOrderWarranty;
@@ -670,6 +678,7 @@ export class RepairOrdersService {
         _id: new Types.ObjectId(data.id),
         status: StatusRepairOrder.Garantia,
       });
+
       if (orderData.length > 0) {
         orderData[0].endWarranty = new Date(
           moment(data.endDate, 'DD/MM/YYYY').toISOString(),

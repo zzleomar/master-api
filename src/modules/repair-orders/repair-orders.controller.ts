@@ -132,9 +132,9 @@ export class RepairOrdersController {
 
       if (ROUpdate) {
         await this.historiesService.createHistory({
-          message: `Cambió estado del vehiculo de la RO ${codeRO(
-            ROUpdate,
-          )} de ${oldstatus} a ${ROUpdate.statusVehicle}`,
+          message: `Cambió estado RO ${codeRO(ROUpdate)} de ${oldstatus} a ${
+            ROUpdate.statusVehicle
+          }`,
           user: user._id,
           ro: ROUpdate.id,
         });
@@ -299,9 +299,9 @@ export class RepairOrdersController {
         );
 
         await this.historiesService.createHistory({
-          message: `Cambió estado del vehiculo de la RO ${codeRO(
-            dataROs[0],
-          )} de ${oldstatus} a ${orderPrincipal[0].statusVehicle}`,
+          message: `Cambió estado RO ${codeRO(dataROs[0])} de ${oldstatus} a ${
+            orderPrincipal[0].statusVehicle
+          }`,
           user: user._id,
           ro: dataROs[0].id,
         });
@@ -341,9 +341,9 @@ export class RepairOrdersController {
           const ro = ROSUpdate[i];
           response.push(
             await this.historiesService.createHistory({
-              message: `Cambió estado del vehiculo de la RO ${codeRO(
-                ro,
-              )} de ${oldstatus} a ${ROSUpdate[i].statusVehicle}`,
+              message: `Cambió estado RO ${codeRO(ro)} de ${oldstatus} a ${
+                ROSUpdate[i].statusVehicle
+              }`,
               user: user._id,
               ro: ro.id,
             }),
@@ -451,6 +451,7 @@ export class RepairOrdersController {
   @Post('/warranty')
   async warranty(@Request() request, @Body() data: WarrantyOrderDto) {
     const user = request['user'];
+
     const orderData = await this.repairOrdersService.findBy({
       workshop: new Types.ObjectId(user.workshop),
       _id: new Types.ObjectId(data.id),
@@ -464,11 +465,14 @@ export class RepairOrdersController {
         user,
       );
 
+      const code = updated.code.toString().padStart(6, '0');
+      const number = updated.numberWarranty === 0 ? '' : updated.numberWarranty;
+
       await this.historiesService.createHistory({
         message:
           data.mode === 'new'
             ? `Agregó reclamo de garantía en la RO ${codeRO(orderData[0])}`
-            : `Edito reclamo de garantía de la RO ${codeRO(updated)}`,
+            : `Edito reclamo de garantía ${code}-G${number}`,
         user: user._id,
         ro: data.id,
       });

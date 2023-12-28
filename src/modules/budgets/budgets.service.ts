@@ -183,7 +183,7 @@ export class BudgetsService {
     await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
 
     await this.historiesService.createHistory({
-      message: `Cambió el estado del presupuesto ${codeBudget(
+      message: `Cambió estado del presupuesto ${codeBudget(
         budgetData,
       )} de ${oldStatus} a ${statusNew}`,
       user: user._id,
