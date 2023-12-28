@@ -121,6 +121,9 @@ export class RepairOrder extends Document {
 
   @Prop({ type: Number, nullable: true, default: null })
   numberWarranty: number;
+
+  @Prop({ type: String, nullable: true, default: null })
+  masterRo: string;
 }
 
 export const RepairOrderSchema = SchemaFactory.createForClass(RepairOrder);
