@@ -55,6 +55,12 @@ export class BudgetsController {
     @Request() request,
     @Body() createSupplementBudgetDto: CreateSupplementBudgetDto,
   ) {
+    const TypeSupplement: any = {
+      Adicionales: 'Adicional',
+      Mecanica: 'Mecánica',
+      Otros: 'Otro',
+    };
+
     const user = request['user'];
     const budgetData = await this.budgetsService.findOne(
       createSupplementBudgetDto.budgetId,
@@ -73,9 +79,11 @@ export class BudgetsController {
       );
       if (budgetSupplement) {
         const log = await this.historiesService.createHistory({
-          message: `Registró un suplemento ${
-            createSupplementBudgetDto.typeSupplement
-          } del presupuesto ${codeBudget(budgetData)}`,
+          message: `Registró suplemento de tipo ${
+            TypeSupplement[
+              createSupplementBudgetDto.typeSupplement as keyof typeof TypeSupplement
+            ]
+          } al presupuesto ${codeBudget(budgetData)}`,
           user: user._id,
           budget: budgetData.id,
         });
@@ -163,7 +171,7 @@ export class BudgetsController {
             ? `Registró un nuevo vehículo en el presupuesto ${codeBudget(
                 newBudget,
               )}`
-            : `Editó datos del vehiculo del presupuesto ${codeBudget(
+            : `Editó datos del vehiculo en el presupuesto ${codeBudget(
                 newBudget,
               )}`,
         user: user._id,
@@ -199,8 +207,10 @@ export class BudgetsController {
       'DD/MM/YYYY',
     );
     const day2 = moment(dataBudget.creationDate).format('DD/MM/YYYY');
-    const ins1: string = updateBudgetDto.insuranceCompany;
-    const ins2: string = dataBudget.insuranceCompany._id;
+
+    const ins11: string = updateBudgetDto.insuranceCompany;
+    const ins21: string = dataBudget.insuranceCompany._id;
+
     const cot1: string = updateBudgetDto.quoter;
     const cot2: string = dataBudget.quoter._id;
 
@@ -210,7 +220,7 @@ export class BudgetsController {
         updateClientDto,
       );
       await this.historiesService.createHistory({
-        message: `Editó los datos de un cliente en el presupuesto ${codeBudget(
+        message: `Editó datos del cliente en el presupuesto ${codeBudget(
           dataBudget,
         )}`,
         user: user._id,
@@ -234,6 +244,8 @@ export class BudgetsController {
       updateBudgetDto,
     );
 
+    console.log('updateBudgetDto: ', updateBudgetDto);
+
     const order = await this.repairOrdersService.findBy(
       {
         budget: newBudget._id,
@@ -251,7 +263,14 @@ export class BudgetsController {
     if (cot1 != cot2) {
       modifyGeneral++;
     }
-    if (ins1 != ins2) {
+
+    if (
+      updateBudgetDto.insuranceCompany != dataBudget.insuranceCompany._id ||
+      updateBudgetDto.claimNumber != dataBudget.claimNumber ||
+      updateBudgetDto.adjusterEmail != dataBudget.adjusterEmail ||
+      updateBudgetDto.adjusterCell != dataBudget.adjusterCell ||
+      updateBudgetDto.adjuster != dataBudget.adjuster
+    ) {
       modifyGeneral++;
     }
 
@@ -267,7 +286,7 @@ export class BudgetsController {
     } else {
       if (updateBudgetDto.editVehicle) {
         const log1 = await this.historiesService.createHistory({
-          message: `Editó los datos del vehiculo en el presupuesto ${codeBudget(
+          message: `Editó datos del vehiculo en el presupuesto ${codeBudget(
             dataBudget,
           )}`,
           user: user._id,
@@ -276,7 +295,13 @@ export class BudgetsController {
         });
         newBudget.history.push(log1.id);
       }
-      if (ins1 != ins2) {
+      if (
+        updateBudgetDto.insuranceCompany != dataBudget.insuranceCompany._id ||
+        updateBudgetDto.claimNumber != dataBudget.claimNumber ||
+        updateBudgetDto.adjusterEmail != dataBudget.adjusterEmail ||
+        updateBudgetDto.adjusterCell != dataBudget.adjusterCell ||
+        updateBudgetDto.adjuster != dataBudget.adjuster
+      ) {
         const log2 = await this.historiesService.createHistory({
           message: `Editó datos del seguro vehícular del presupuesto ${codeBudget(
             dataBudget,
@@ -422,9 +447,7 @@ export class BudgetsController {
     await this.historiesService.createHistory({
       message: `${
         mode ? 'Editó' : 'Registró'
-      } datos de inspección del vehículo del presupuesto ${codeBudget(
-        budgetUpdate,
-      )}`,
+      } inspección del vehículo del presupuesto ${codeBudget(budgetUpdate)}`,
       user: user._id,
       budget: budgetUpdate.id,
     });

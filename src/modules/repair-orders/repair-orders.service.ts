@@ -19,6 +19,7 @@ import { InitOTDto } from './dto/init-OT-order.dto';
 import * as moment from 'moment';
 import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
 import { codeRO } from './utils/parseLabel';
+import { codeBudget } from '../budgets/utils/parseLabel';
 @Injectable()
 export class RepairOrdersService {
   constructor(
@@ -36,6 +37,7 @@ export class RepairOrdersService {
     try {
       const body: any = { ...createRepairOrderDto };
       await this.workshopsService.findOne(body.workshop);
+
       const pieces = map(
         filter(
           dataBudgets.inspection.pieces,
@@ -54,6 +56,7 @@ export class RepairOrdersService {
           };
         },
       );
+
       body.workshop = new Types.ObjectId(body.workshop);
       const createdOrder = new this.repairOrderModel(body);
       createdOrder.budget = new Types.ObjectId(dataBudgets._id);
@@ -115,6 +118,7 @@ export class RepairOrdersService {
       ) {
         createdOrder.statusVehicle = StatusVehicle.EsperandoAprobacion;
       }
+
       createdOrder.statusChangeVehicle = [
         {
           initDate: new Date(),
@@ -133,8 +137,18 @@ export class RepairOrdersService {
       const dataBudgets2 = await this.budgetsSevice.findBy({
         _id: new Types.ObjectId(dataBudgets._id),
       });
+
       createdOrder.budgetData = dataBudgets2[0].toObject();
       const order = await createdOrder.save();
+
+      await this.historiesService.createHistory({
+        message: `Convirtió el presupuesto ${codeBudget(
+          dataBudgets,
+        )} en una RO`,
+        user: user._id,
+        budget: dataBudgets._id,
+      });
+
       await this.historiesService.createHistory({
         message: `Generó la RO ${codeRO(order)} con el estado ${
           order.statusVehicle
@@ -481,9 +495,7 @@ export class RepairOrdersService {
               const ro = roSumplemnts[i];
               response.push(
                 await this.historiesService.createHistory({
-                  message: `Editó los datos del vehiculo en la RO ${codeRO(
-                    ro,
-                  )}`,
+                  message: `Editó datos del vehiculo en la RO ${codeRO(ro)}`,
                   user: user._id,
                   ro: ro.id,
                 }),

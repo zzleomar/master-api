@@ -56,12 +56,14 @@ export class RepairOrdersController {
       const dataBudgets = await this.budgetsService.findBy({
         _id: createRepairOrderDto.budgetId,
       });
+
       const order = await this.repairOrdersService.findBy(
         {
           budget: new Types.ObjectId(createRepairOrderDto.budgetId),
         },
         false,
       );
+
       if (dataBudgets[0].status == StatusBudget.Espera && order.length === 0) {
         return this.repairOrdersService.create(
           createRepairOrderDto,
@@ -69,6 +71,7 @@ export class RepairOrdersController {
           user,
         );
       }
+
       if (order.length > 0) {
         return new BadRequestException('Presupuesto ya posee una RO');
       }
