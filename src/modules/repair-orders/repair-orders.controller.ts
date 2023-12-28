@@ -465,17 +465,18 @@ export class RepairOrdersController {
         user,
       );
 
-      const code = updated.code.toString().padStart(6, '0');
+      const code = orderData[0].code.toString().padStart(6, '0');
       const number = updated.numberWarranty === 0 ? '' : updated.numberWarranty;
 
       await this.historiesService.createHistory({
         message:
           data.mode === 'new'
-            ? `Agregó reclamo de garantía en la RO ${codeRO(orderData[0])}`
+            ? `Agregó reclamo de garantía a RO ${codeRO(orderData[0])}`
             : `Edito reclamo de garantía ${code}-G${number}`,
         user: user._id,
-        ro: data.id,
+        ro: data.mode === 'new' ? orderData[0]._id : updated.masterRo,
       });
+
       return updated;
     } else {
       return new NotFoundException('RO no encontrado');

@@ -633,6 +633,7 @@ export class RepairOrdersService {
       );
 
       newOrderWarranty._id = new Types.ObjectId();
+      newOrderWarranty.masterRo = ro._id;
       newOrderWarranty.workshop = new Types.ObjectId(user.workshop);
       newOrderWarranty.budget = new Types.ObjectId(newOrderWarranty.budget);
       newOrderWarranty.budgetData.quoter._id = new Types.ObjectId(
