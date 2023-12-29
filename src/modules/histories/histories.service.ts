@@ -25,25 +25,30 @@ export class HistoriesService {
     return this.historyModel.find().exec();
   }
 
-  async findHistoryByFilter(filter: any): Promise<any[]> {
+  async findHistoryByFilter(
+    filter: any,
+    page: number = 1,
+    pageSize: number = 6,
+  ): Promise<any> {
     const data: any[] = [];
 
-    const history: any[] = await this.historyModel
-      .aggregate([
-        {
-          $match: {
-            ...filter,
-          },
+    const total = await this.historyModel.countDocuments(filter).exec();
+
+    const query: any = this.historyModel.aggregate([
+      {
+        $match: {
+          ...filter,
         },
-        {
-          $sort: {
-            createdAt: -1,
-          },
-        },
-      ])
+      },
+    ]);
+
+    const results: any[] = await query
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
       .exec();
 
-    for await (const iterator of history) {
+    for await (const iterator of results) {
       const userId = iterator.user ?? '';
 
       const user = await this.usersService.findOne(userId);
@@ -54,6 +59,6 @@ export class HistoriesService {
       });
     }
 
-    return data;
+    return { data, total };
   }
 }

@@ -207,10 +207,6 @@ export class BudgetsController {
       'DD/MM/YYYY',
     );
     const day2 = moment(dataBudget.creationDate).format('DD/MM/YYYY');
-
-    const ins11: string = updateBudgetDto.insuranceCompany;
-    const ins21: string = dataBudget.insuranceCompany._id;
-
     const cot1: string = updateBudgetDto.quoter;
     const cot2: string = dataBudget.quoter._id;
 

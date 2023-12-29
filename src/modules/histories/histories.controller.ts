@@ -54,9 +54,13 @@ export class HistoriesController {
           break;
       }
 
-      return this.historiesService.findHistoryByFilter({
-        [filterField]: filtro.value,
-      });
+      return this.historiesService.findHistoryByFilter(
+        {
+          [filterField]: filtro.value,
+        },
+        filtro.page,
+        filtro.pagesize,
+      );
     } else {
       return new BadRequestException('value requerid');
     }
