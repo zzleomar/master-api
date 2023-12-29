@@ -27,6 +27,31 @@ export class MakesModelsService {
       .exec();
   }
 
+  async search(
+    filter: any = {},
+    page: number = 0,
+    pageSize: number = 30,
+  ): Promise<any> {
+    if (page === 0) {
+      return this.makeModelModel
+        .find(filter)
+        .collation({ locale: 'en', strength: 2 })
+        .sort({ make: 1 })
+        .exec();
+    } else {
+      const countQuery = this.makeModelModel.countDocuments(filter);
+      const results = await this.makeModelModel
+        .find(filter)
+        .collation({ locale: 'en', strength: 2 })
+        .sort({ make: 1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .exec();
+      const total = await countQuery.exec();
+      return { results, total };
+    }
+  }
+
   async findOne(id: string): Promise<MakesModels | null> {
     return this.makeModelModel.findById(id).exec();
   }
