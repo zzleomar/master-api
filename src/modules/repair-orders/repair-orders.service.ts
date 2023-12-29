@@ -672,14 +672,16 @@ export class RepairOrdersService {
       ];
 
       newOrderWarranty.createdAt = new Date();
-      newOrderWarranty.initOT = new Date();
+      newOrderWarranty.initOT = new Date(moment().hours(12).toISOString());
       newOrderWarranty.endOT = new Date(
-        moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+        moment(data.endDate, 'DD/MM/YYYY').hours(13).toISOString(),
       );
 
-      newOrderWarranty.initWarranty = new Date();
+      newOrderWarranty.initWarranty = new Date(
+        moment().hours(12).toISOString(),
+      );
       newOrderWarranty.endWarranty = new Date(
-        moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+        moment(data.endDate, 'DD/MM/YYYY').hours(13).toISOString(),
       );
 
       newOrderWarranty.commentWarranty = data.commentWarranty;
@@ -694,7 +696,7 @@ export class RepairOrdersService {
 
       if (orderData.length > 0) {
         orderData[0].endWarranty = new Date(
-          moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+          moment(data.endDate, 'DD/MM/YYYY').hours(13).toISOString(),
         );
         orderData[0].commentWarranty = data.commentWarranty;
         return await orderData[0].save();
