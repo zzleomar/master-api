@@ -221,8 +221,6 @@ export class UsersController {
       const { hashReset, result } =
         await this.usersService.sendResetPassword(findEmailUser);
 
-      console.log('hashReset: ', hashReset);
-
       try {
         await this.emailService.findAndSend('resetPassword', {
           email: findEmailUser.email,

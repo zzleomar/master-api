@@ -74,6 +74,7 @@ export class BudgetsService {
         status: 'Estimado',
       },
     ];
+
     createdBudge.creationDate = new Date(moment().hours(12).toISOString());
     const budget = await createdBudge.save();
     return budget;
@@ -167,6 +168,7 @@ export class BudgetsService {
     user: any,
   ) {
     const now = new Date();
+    const oldStatus = budgetData.status;
     budgetData.status = statusNew;
     const itemKeyChange = budgetData.statusChange.findIndex(
       (item: any) => item.status === statusLast,
@@ -182,9 +184,9 @@ export class BudgetsService {
     await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
 
     await this.historiesService.createHistory({
-      message: `Cambio de estado del presupuesto ${codeBudget(budgetData)} a ${
-        budgetData.status
-      } a ${StatusBudget.Espera}`,
+      message: `Cambió estado del presupuesto ${codeBudget(
+        budgetData,
+      )} de ${oldStatus} a ${statusNew}`,
       user: user._id,
       budget: budgetData._id,
     });

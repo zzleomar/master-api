@@ -707,7 +707,7 @@ export class DataPreloadService {
       createBudgetDto.client = newClient.id;
 
       await this.historiesService.createHistory({
-        message: `Registro de un nuevo cliente`,
+        message: `Registró un nuevo cliente`,
         user: user._id,
         client: newClient.id,
       });
@@ -716,7 +716,7 @@ export class DataPreloadService {
       const newVehicle = await this.vehiclesService.create(createVehicleDto);
 
       await this.historiesService.createHistory({
-        message: `Registro de un nuevo vehiculo`,
+        message: `Registró un nuevo vehículo`,
         user: user._id,
         vehicle: newVehicle.id,
       });
@@ -725,7 +725,7 @@ export class DataPreloadService {
       const newBufget = await this.budgetsService.create(createBudgetDto);
 
       const log = await this.historiesService.createHistory({
-        message: `Creación del presupuesto ${newBufget.code
+        message: `Registró el presupuesto ${newBufget.code
           .toString()
           .padStart(6, '0')}`,
         user: user._id,
@@ -741,7 +741,7 @@ export class DataPreloadService {
       const newBufget = await this.budgetsService.create(createBudgetDto);
 
       const log = await this.historiesService.createHistory({
-        message: `Creación del presupuesto ${newBufget.code
+        message: `Registró el presupuesto ${newBufget.code
           .toString()
           .padStart(6, '0')}`,
         user: user._id,

@@ -19,6 +19,7 @@ import { InitOTDto } from './dto/init-OT-order.dto';
 import * as moment from 'moment';
 import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
 import { codeRO } from './utils/parseLabel';
+import { codeBudget } from '../budgets/utils/parseLabel';
 @Injectable()
 export class RepairOrdersService {
   constructor(
@@ -36,6 +37,7 @@ export class RepairOrdersService {
     try {
       const body: any = { ...createRepairOrderDto };
       await this.workshopsService.findOne(body.workshop);
+
       const pieces = map(
         filter(
           dataBudgets.inspection.pieces,
@@ -54,6 +56,7 @@ export class RepairOrdersService {
           };
         },
       );
+
       body.workshop = new Types.ObjectId(body.workshop);
       const createdOrder = new this.repairOrderModel(body);
       createdOrder.budget = new Types.ObjectId(dataBudgets._id);
@@ -115,6 +118,7 @@ export class RepairOrdersService {
       ) {
         createdOrder.statusVehicle = StatusVehicle.EsperandoAprobacion;
       }
+
       createdOrder.statusChangeVehicle = [
         {
           initDate: new Date(),
@@ -133,10 +137,22 @@ export class RepairOrdersService {
       const dataBudgets2 = await this.budgetsSevice.findBy({
         _id: new Types.ObjectId(dataBudgets._id),
       });
+
       createdOrder.budgetData = dataBudgets2[0].toObject();
       const order = await createdOrder.save();
+
       await this.historiesService.createHistory({
-        message: `Creación de RO ${codeRO(order)}`,
+        message: `Convirtió el presupuesto ${codeBudget(
+          dataBudgets,
+        )} en una RO`,
+        user: user._id,
+        budget: dataBudgets._id,
+      });
+
+      await this.historiesService.createHistory({
+        message: `Generó la RO ${codeRO(order)} con el estado ${
+          order.statusVehicle
+        }`,
         user: user._id,
         ro: createdOrder.id,
       });
@@ -451,6 +467,7 @@ export class RepairOrdersService {
           data.movements,
           (movement: any) => movement.id === order.id,
         );
+
         if (order.budgetData.type === 'Principal') {
           const roSumplemnts = await this.findBy({
             workshop: new Types.ObjectId(order.workshop),
@@ -458,6 +475,7 @@ export class RepairOrdersService {
             'budgetData.type': 'Suplemento',
             initOT: { $ne: null },
           });
+
           if (roSumplemnts.length > 0) {
             this.changeMovements(
               roSumplemnts,
@@ -472,13 +490,12 @@ export class RepairOrdersService {
               user,
             );
             let response = [];
+
             for (let i = 0; i < roSumplemnts.length; i++) {
               const ro = roSumplemnts[i];
               response.push(
                 await this.historiesService.createHistory({
-                  message: `Cambio de estado del vehiculo de la RO ${codeRO(
-                    ro,
-                  )}`,
+                  message: `Editó datos del vehiculo en la RO ${codeRO(ro)}`,
                   user: user._id,
                   ro: ro.id,
                 }),
@@ -487,6 +504,7 @@ export class RepairOrdersService {
             response = await Promise.all(response);
           }
         }
+
         return this.updateStatusVehicle(
           order,
           item.statusInput,
@@ -621,15 +639,19 @@ export class RepairOrdersService {
         code: ro.code,
         status: StatusRepairOrder.Garantia,
       });
+
       const newOrderWarranty = new this.repairOrderModel(
         JSON.parse(JSON.stringify(ro.toObject())),
       );
+
       newOrderWarranty._id = new Types.ObjectId();
+      newOrderWarranty.masterRo = ro._id;
       newOrderWarranty.workshop = new Types.ObjectId(user.workshop);
       newOrderWarranty.budget = new Types.ObjectId(newOrderWarranty.budget);
       newOrderWarranty.budgetData.quoter._id = new Types.ObjectId(
         newOrderWarranty.budgetData.quoter._id,
       );
+
       newOrderWarranty.numberWarranty = orderData.length;
       newOrderWarranty.status = StatusRepairOrder.Garantia;
       newOrderWarranty.statusVehicle = StatusVehicle.TGarantia;
@@ -640,6 +662,7 @@ export class RepairOrdersService {
           status: newOrderWarranty.statusVehicle,
         },
       ];
+
       newOrderWarranty.statusChange = [
         {
           initDate: new Date(),
@@ -647,15 +670,20 @@ export class RepairOrdersService {
           status: newOrderWarranty.status,
         },
       ];
+
       newOrderWarranty.createdAt = new Date();
-      newOrderWarranty.initOT = new Date();
+      newOrderWarranty.initOT = new Date(moment().hours(12).toISOString());
       newOrderWarranty.endOT = new Date(
-        moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+        moment(data.endDate, 'DD/MM/YYYY').hours(13).toISOString(),
       );
-      newOrderWarranty.initWarranty = new Date();
+
+      newOrderWarranty.initWarranty = new Date(
+        moment().hours(12).toISOString(),
+      );
       newOrderWarranty.endWarranty = new Date(
-        moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+        moment(data.endDate, 'DD/MM/YYYY').hours(13).toISOString(),
       );
+
       newOrderWarranty.commentWarranty = data.commentWarranty;
       await newOrderWarranty.save();
       return newOrderWarranty;
@@ -665,9 +693,10 @@ export class RepairOrdersService {
         _id: new Types.ObjectId(data.id),
         status: StatusRepairOrder.Garantia,
       });
+
       if (orderData.length > 0) {
         orderData[0].endWarranty = new Date(
-          moment(data.endDate, 'DD/MM/YYYY').toISOString(),
+          moment(data.endDate, 'DD/MM/YYYY').hours(13).toISOString(),
         );
         orderData[0].commentWarranty = data.commentWarranty;
         return await orderData[0].save();
