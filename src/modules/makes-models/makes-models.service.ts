@@ -40,6 +40,7 @@ export class MakesModelsService {
         .exec();
     } else {
       const countQuery = this.makeModelModel.countDocuments(filter);
+
       const results = await this.makeModelModel
         .find(filter)
         .collation({ locale: 'en', strength: 2 })
@@ -47,9 +48,66 @@ export class MakesModelsService {
         .skip((page - 1) * pageSize)
         .limit(pageSize)
         .exec();
+
       const total = await countQuery.exec();
       return { results, total };
     }
+  }
+
+  async searchModels(
+    filter: any = {},
+    page: number = 0,
+    pageSize: number = 30,
+  ): Promise<any> {
+    const query: any = this.makeModelModel.aggregate([
+      {
+        $match: {
+          ...filter,
+        },
+      },
+      {
+        $unwind: '$models',
+      },
+      {
+        $match: {
+          ...filter,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            _id: '$_id',
+            make: '$make',
+            status: '$status',
+          },
+          models: { $push: '$models' },
+        },
+      },
+      {
+        $unwind: '$models',
+      },
+      {
+        $project: {
+          make: '$_id',
+          _id: '$models._id',
+          status: '$models.status',
+          model: '$models.model',
+          year: '$models.year',
+          paint: '$models.paint',
+        },
+      },
+    ]);
+
+    const total = await query.exec();
+    // const total = await this.makeModelModel.countDocuments(filter).exec();
+
+    const results: any[] = await query
+      .sort({ 'make.make': 1, model: 1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .exec();
+
+    return { results, total: total.length };
   }
 
   async findOne(id: string): Promise<MakesModels | null> {

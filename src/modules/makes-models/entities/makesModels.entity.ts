@@ -12,11 +12,12 @@ export class MakesModels extends Document {
   @Prop([
     {
       model: { type: String, required: true },
+      status: { type: Boolean, default: true },
       year: { type: String },
       paint: { type: String },
     },
   ])
-  models: { model: string; year: string; paint: string }[];
+  models: { model: string; status: boolean; year: string; paint: string }[];
 }
 
 export const MakesModelsSchema = SchemaFactory.createForClass(MakesModels);
