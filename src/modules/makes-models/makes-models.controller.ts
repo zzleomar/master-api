@@ -50,7 +50,11 @@ export class MakesModelsController {
 
           makeData2.models.push({
             model: createMakesModelDto.model ?? '',
-            status: createMakesModelDto.status ?? false,
+            status:
+              createMakesModelDto.status !== undefined &&
+              createMakesModelDto.status !== null
+                ? createMakesModelDto.status
+                : true,
             year: '',
             paint: '',
           });
