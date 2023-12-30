@@ -19,12 +19,37 @@ export class InsurancesService {
     return createdInsurance;
   }
 
-  async findAll(): Promise<Insurance[]> {
+  /* async findAll(): Promise<Insurance[]> {
     return this.insuranceModel
       .find()
       .collation({ locale: 'en', strength: 2 })
       .sort({ name: 1 })
       .exec();
+  } */
+
+  async findAll(
+    filter: any = {},
+    page: number = 0,
+    pageSize: number = 30,
+  ): Promise<any> {
+    if (page === 0) {
+      return this.insuranceModel
+        .find(filter)
+        .collation({ locale: 'en', strength: 2 })
+        .sort({ side: 1, name: 1 })
+        .exec();
+    } else {
+      const countQuery = this.insuranceModel.countDocuments(filter);
+      const results = await this.insuranceModel
+        .find(filter)
+        .collation({ locale: 'en', strength: 2 })
+        .sort({ side: 1, name: 1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .exec();
+      const total = await countQuery.exec();
+      return { results, total };
+    }
   }
 
   async findOne(id: string): Promise<Insurance | null> {
