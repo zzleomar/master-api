@@ -9,8 +9,6 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { MakesModelsService } from './makes-models.service';
-import { CreateMakesModelDto } from './dto/create-makes-model.dto';
-import { UpdateMakesModelDto } from './dto/update-makes-model.dto';
 import { FilterGetAllDto } from '../budgets/dto/filter-bugget.dto';
 
 @Controller('makesModels')
@@ -18,8 +16,60 @@ export class MakesModelsController {
   constructor(private readonly makesModelsService: MakesModelsService) {}
 
   @Post()
-  create(@Body() createMakesModelDto: CreateMakesModelDto) {
-    return this.makesModelsService.create(createMakesModelDto);
+  async create(@Body() createMakesModelDto: any) {
+    const data = await this.makesModelsService.find(
+      createMakesModelDto.make,
+      'make',
+    );
+    if (!data || !data.length) {
+      return this.makesModelsService.create(createMakesModelDto);
+    } else {
+      console.log('error: La marca ya esta registrada en el sistema');
+      throw new BadRequestException(
+        `La marca ya esta registrada en el sistema`,
+      );
+    }
+  }
+
+  @Post('/model')
+  async createModel(@Body() createMakesModelDto: any) {
+    const data = await this.makesModelsService.find(
+      createMakesModelDto.model,
+      'models.model',
+    );
+    if (!data || !data.length) {
+      try {
+        const makeData2 = await this.makesModelsService.findOne(
+          createMakesModelDto.make._id,
+        );
+
+        if (makeData2) {
+          if (!makeData2.status) {
+            makeData2.status = true;
+          }
+
+          makeData2.models.push({
+            model: createMakesModelDto.model ?? '',
+            status: createMakesModelDto.status ?? false,
+            year: '',
+            paint: '',
+          });
+
+          return this.makesModelsService.update(
+            createMakesModelDto.make._id,
+            makeData2,
+          );
+        }
+      } catch (error) {
+        console.log('error: ', error);
+        throw new BadRequestException(`Error inesperado`);
+      }
+    } else {
+      console.log('error: El modelo ya esta registrado en el sistema');
+      throw new BadRequestException(
+        `El modelo ya esta registrado en el sistema`,
+      );
+    }
   }
 
   @Post('/list')
@@ -88,6 +138,10 @@ export class MakesModelsController {
           (item: any) => item._id == id,
         );
 
+        if (!makeData2.status && updateModelDto.status) {
+          makeData2.status = true;
+        }
+
         if (index2 >= 0) {
           makeData2.models[index2] = {
             model: updateModelDto.model ?? '',
@@ -133,7 +187,12 @@ export class MakesModelsController {
 
   @Get()
   findAll() {
-    return this.makesModelsService.findAll();
+    return this.makesModelsService.findAll(true);
+  }
+
+  @Get('/actives')
+  findActives() {
+    return this.makesModelsService.findAll(false);
   }
 
   @Get(':id')
@@ -141,12 +200,47 @@ export class MakesModelsController {
     return this.makesModelsService.findOne(id);
   }
 
+  @Get('/make/:make')
+  async existMake(@Param('make') make: string) {
+    const data = await this.makesModelsService.find(make, 'make');
+    return !data.length ? true : false;
+  }
+
+  @Get('/model/:model')
+  async existModel(@Param('model') model: string) {
+    const data = await this.makesModelsService.find(model, 'models.model');
+    return !data.length ? true : false;
+  }
+
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateMakesModelDto: UpdateMakesModelDto,
-  ) {
-    return this.makesModelsService.update(id, updateMakesModelDto);
+  async update(@Param('id') id: string, @Body() updateMakesModelDto: any) {
+    const makeData = await this.makesModelsService.findOne(id);
+    if (makeData) {
+      if (updateMakesModelDto.make && updateMakesModelDto.make !== '') {
+        makeData.make = updateMakesModelDto.make;
+      }
+
+      if (
+        updateMakesModelDto.status !== undefined &&
+        updateMakesModelDto.status !== null
+      ) {
+        makeData.status = updateMakesModelDto.status;
+
+        if (!updateMakesModelDto.status) {
+          for (let index = 0; index < makeData.models.length; index++) {
+            makeData.models[index].status = false;
+          }
+        }
+      }
+
+      if (updateMakesModelDto.models) {
+        makeData.models = updateMakesModelDto.models;
+      }
+
+      return await this.makesModelsService.update(id, makeData);
+    } else {
+      throw new BadRequestException(`Error inesperado`);
+    }
   }
 
   @Delete(':id')

@@ -19,12 +19,43 @@ export class MakesModelsService {
     return createdMakesModels;
   }
 
-  async findAll(): Promise<MakesModels[]> {
-    return this.makeModelModel
-      .find()
-      .collation({ locale: 'en', strength: 2 })
-      .sort({ make: 1 })
-      .exec();
+  async findAll(all: boolean = true): Promise<MakesModels[]> {
+    if (all) {
+      return this.makeModelModel
+        .find()
+        .collation({ locale: 'en', strength: 2 })
+        .sort({ make: 1 })
+        .exec();
+    } else {
+      return this.makeModelModel
+        .aggregate([
+          {
+            $match: {
+              status: true,
+              'models.status': true,
+            },
+          },
+          {
+            $project: {
+              make: 1,
+              models: {
+                $filter: {
+                  input: '$models',
+                  as: 'model',
+                  cond: { $eq: ['$$model.status', true] }, // Solo modelos con status en verdadero
+                },
+              },
+            },
+          },
+          /* {
+            $collation: { locale: 'en', strength: 2 },
+          }, */
+          {
+            $sort: { make: 1 },
+          },
+        ])
+        .exec();
+    }
   }
 
   async search(
@@ -112,6 +143,16 @@ export class MakesModelsService {
 
   async findOne(id: string): Promise<MakesModels | null> {
     return this.makeModelModel.findById(id).exec();
+  }
+
+  async find(name: string, makemode: string): Promise<any> {
+    return (
+      this.makeModelModel
+        // .find({ [makemode]: { $regex: name, $options: 'i' } })
+        // .find({ [makemode]: { $regex: new RegExp(name, 'i') } })
+        .find({ [makemode]: { $regex: new RegExp(`^${name}$`, 'i') } })
+        .exec()
+    );
   }
 
   async update(id: string, makesModelsData: any): Promise<MakesModels | null> {
