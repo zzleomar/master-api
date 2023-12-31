@@ -23,7 +23,8 @@ import { HistoriesService } from '../histories/histories.service';
 import * as moment from 'moment';
 import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
 import { codeBudget } from './utils/parseLabel';
-import { filter, find, groupBy } from 'lodash';
+import { filter, find, groupBy, map } from 'lodash';
+import { RepairOrder } from '../repair-orders/entities/repair-order.entity';
 
 export interface FindAllResponse {
   results: any[];
@@ -33,6 +34,7 @@ export interface FindAllResponse {
 export class BudgetsService {
   constructor(
     @InjectModel('Budget') private readonly budgetModel: Model<any>,
+    @InjectModel('RepairOrder') private readonly repairOrderModel: Model<any>,
     private readonly workshopsService: WorkshopsService,
     private readonly clientsService: ClientsService,
     private readonly vehiclesService: VehiclesService,
@@ -155,10 +157,62 @@ export class BudgetsService {
     budgetData.tax = data.tax ?? 0;
 
     await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
-    return this.budgetModel
+    const budgetUpdate = await this.budgetModel
       .findById(budgetData._id)
       .populate(['vehicle', 'insuranceCompany', 'quoter'])
       .exec();
+    const RO = await this.repairOrderModel
+      .find({
+        'budgetData._id': budgetUpdate._id,
+      })
+      .exec();
+
+    if (RO.length > 0) {
+      await this.updateInspection(RO[0], budgetUpdate);
+    }
+    return budgetUpdate;
+  }
+
+  async updateInspection(orderData: RepairOrder, dataBudgets: Budget) {
+    const piecesNames = map(
+      filter(
+        dataBudgets.inspection.pieces,
+        (item: any) =>
+          item.operation === 'Cambiar' || item.operation === 'Cambiar y pintar',
+      ),
+      (item2: any) => item2.piece.name,
+    );
+
+    const piecesOld = orderData.pieces;
+    const piecesOldNames = map(orderData.pieces, (piece: any) => piece.name);
+
+    const pieces = filter(piecesOld, (piece: any) =>
+      piecesNames.includes(piece.piece),
+    );
+    const newPieces = filter(piecesNames, (piece: any) =>
+      piecesOldNames.includes(piece),
+    );
+
+    if (newPieces.length > 0) {
+      for (let i = 0; i < newPieces.length; i++) {
+        pieces.push({
+          piece: newPieces[i],
+          price: null,
+          status: null,
+          receptionDate: null,
+          provider: null,
+          comment: null,
+        });
+      }
+    }
+
+    const budget = await this.findBy({
+      _id: orderData.budgetData._id,
+    });
+    await this.repairOrderModel.updateOne(
+      { _id: orderData._id },
+      { pieces, budgetData: budget[0].toObject() },
+    );
   }
 
   async updateStatus(

@@ -430,7 +430,6 @@ export class BudgetsController {
       workshop: user.workshop,
       _id: data.budgetId,
     });
-
     const mode: boolean =
       budgetData[0] && budgetData[0].inspection !== undefined;
 

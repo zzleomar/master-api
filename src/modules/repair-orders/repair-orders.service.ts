@@ -163,6 +163,48 @@ export class RepairOrdersService {
     }
   }
 
+  // async updateInspection(orderData: RepairOrder, dataBudgets: Budget) {
+  //   const piecesNames = map(
+  //     filter(
+  //       dataBudgets.inspection.pieces,
+  //       (item: any) =>
+  //         item.operation === 'Cambiar' || item.operation === 'Cambiar y pintar',
+  //     ),
+  //     (item2: any) => item2.piece.name,
+  //   );
+
+  //   const piecesOld = orderData.pieces;
+  //   const piecesOldNames = map(orderData.pieces, (piece: any) => piece.name);
+
+  //   const pieces = filter(piecesOld, (piece: any) =>
+  //     piecesNames.includes(piece.piece),
+  //   );
+  //   const newPieces = filter(piecesNames, (piece: any) =>
+  //     piecesOldNames.includes(piece),
+  //   );
+
+  //   if (newPieces.length > 0) {
+  //     for (let i = 0; i < newPieces.length; i++) {
+  //       pieces.push({
+  //         piece: newPieces[i],
+  //         price: null,
+  //         status: null,
+  //         receptionDate: null,
+  //         provider: null,
+  //         comment: null,
+  //       });
+  //     }
+  //   }
+
+  //   const budget = await this.budgetsSevice.findBy({
+  //     _id: orderData.budgetData._id,
+  //   });
+  //   await this.repairOrderModel.updateOne(
+  //     { _id: orderData._id },
+  //     { pieces, budgetData: budget[0].toObject() },
+  //   );
+  // }
+
   async findAll(filter: any): Promise<any[]> {
     return this.repairOrderModel
       .aggregate([
