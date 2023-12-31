@@ -15,8 +15,8 @@ export class Vehicle extends Document {
   @Prop({ required: true })
   color: string;
 
-  @Prop({ required: true })
-  colorType: string;
+  @Prop({ required: false })
+  colorType?: string;
 
   @Prop()
   chassis: string;
