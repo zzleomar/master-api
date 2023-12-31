@@ -230,10 +230,8 @@ export class MakesModelsController {
       ) {
         makeData.status = updateMakesModelDto.status;
 
-        if (!updateMakesModelDto.status) {
-          for (let index = 0; index < makeData.models.length; index++) {
-            makeData.models[index].status = false;
-          }
+        for (let index = 0; index < makeData.models.length; index++) {
+          makeData.models[index].status = updateMakesModelDto.status;
         }
       }
 
