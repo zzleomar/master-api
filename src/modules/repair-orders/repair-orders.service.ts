@@ -13,7 +13,7 @@ import { HistoriesService } from '../histories/histories.service';
 import { StatusRepairOrderstDto } from './dto/status-order.dto';
 import { StatusRepairOrder } from './entities/repair-order.entity';
 import { RepairOrder, StatusVehicle } from './entities/repair-order.entity';
-import { BudgetsService } from '../budgets/budgets.service';
+import { BudgetsService, FindAllResponse } from '../budgets/budgets.service';
 import { PiecesOrderDto } from './dto/pieces-order.dto';
 import { InitOTDto } from './dto/init-OT-order.dto';
 import * as moment from 'moment';
@@ -205,8 +205,30 @@ export class RepairOrdersService {
   //   );
   // }
 
-  async findAll(filter: any): Promise<any[]> {
-    return this.repairOrderModel
+  async findAll(
+    filterData: any,
+    page: number = 1,
+    pageSize: number = 30,
+    statusTab: string = 'all',
+  ): Promise<FindAllResponse> {
+    let filter: any = {};
+    if (statusTab === 'all') {
+      filter = { ...filterData };
+    } else {
+      filter = { ...filterData };
+      filter.status = statusTab;
+    }
+    const totalDocs = await this.repairOrderModel
+      .aggregate([
+        {
+          $match: {
+            ...filter,
+          },
+        },
+      ])
+      .exec();
+
+    const results = await this.repairOrderModel
       .aggregate([
         {
           $lookup: {
@@ -229,8 +251,15 @@ export class RepairOrdersService {
             updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
           },
         },
+        {
+          $skip: (page - 1) * pageSize,
+        },
+        {
+          $limit: pageSize,
+        },
       ])
       .exec();
+    return { results, total: totalDocs.length };
   }
 
   async getLastCode(): Promise<number> {
@@ -382,36 +411,96 @@ export class RepairOrdersService {
     return dataRO;
   }
 
-  async findOrderByFilter(filter: any, value: any): Promise<any[]> {
-    return this.repairOrderModel
-      .aggregate([
-        {
-          $lookup: {
-            from: 'users', // Nombre de la colección User
-            localField: 'budgetData.quoter._id',
-            foreignField: '_id',
-            as: 'budgetData.quoter',
+  async findOrderByFilter(
+    filter: any,
+    value: any,
+    page: number = 1,
+    pageSize: number = 30,
+  ): Promise<FindAllResponse> {
+    let totalDocs: any[] = [];
+    let results: any[] = [];
+    if (page === 0) {
+      totalDocs = await this.repairOrderModel
+        .aggregate([
+          {
+            $lookup: {
+              from: 'users', // Nombre de la colección User
+              localField: 'budgetData.quoter._id',
+              foreignField: '_id',
+              as: 'budgetData.quoter',
+            },
           },
-        },
-        {
-          $match: {
-            ...filter,
-            [value.label]:
-              typeof value.value === 'string'
-                ? { $regex: value.value, $options: 'i' }
-                : value.value,
+          {
+            $match: {
+              ...filter,
+              [value.label]:
+                typeof value.value === 'string'
+                  ? { $regex: value.value, $options: 'i' }
+                  : value.value,
+            },
           },
-        },
-        {
-          $unwind: '$budgetData.quoter', // Desagrupa el resultado del $lookup de User
-        },
-        {
-          $sort: {
-            updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+          {
+            $unwind: '$budgetData.quoter', // Desagrupa el resultado del $lookup de User
           },
-        },
-      ])
-      .exec();
+          {
+            $sort: {
+              updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+            },
+          },
+        ])
+        .exec();
+      results = totalDocs;
+    } else {
+      totalDocs = await this.repairOrderModel
+        .aggregate([
+          {
+            $match: {
+              ...filter,
+              [value.label]:
+                typeof value.value === 'string'
+                  ? { $regex: value.value, $options: 'i' }
+                  : value.value,
+            },
+          },
+        ])
+        .exec();
+      results = await this.repairOrderModel
+        .aggregate([
+          {
+            $lookup: {
+              from: 'users', // Nombre de la colección User
+              localField: 'budgetData.quoter._id',
+              foreignField: '_id',
+              as: 'budgetData.quoter',
+            },
+          },
+          {
+            $match: {
+              ...filter,
+              [value.label]:
+                typeof value.value === 'string'
+                  ? { $regex: value.value, $options: 'i' }
+                  : value.value,
+            },
+          },
+          {
+            $unwind: '$budgetData.quoter', // Desagrupa el resultado del $lookup de User
+          },
+          {
+            $sort: {
+              updatedAt: -1, // Ordena por la placa del vehículo en orden descendente
+            },
+          },
+          {
+            $skip: (page - 1) * pageSize,
+          },
+          {
+            $limit: pageSize,
+          },
+        ])
+        .exec();
+    }
+    return { results, total: totalDocs.length };
   }
 
   async changeStatusOrder(

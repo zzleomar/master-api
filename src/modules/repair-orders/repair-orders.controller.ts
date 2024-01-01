@@ -158,20 +158,36 @@ export class RepairOrdersController {
   @Repuesto()
   @UseGuards(AuthGuard)
   @Post('/list')
-  findAll(@Request() request, @Body() filters: FilterOrderDto) {
+  findAll(
+    @Request() request,
+    @Body() filters: FilterOrderDto,
+    @Body('page') page: number = 1,
+    @Body('pageSize') pageSize: number = 30,
+    @Body('status') statusTab: string = 'all',
+  ) {
     const filtro: any = filters;
     const user = request['user'];
 
     if (!filtro.filter || filtro.filter === 'all') {
       if (user.role !== 'Cotizador') {
-        return this.repairOrdersService.findAll({
-          workshop: new mongoose.Types.ObjectId(user.workshop),
-        });
+        return this.repairOrdersService.findAll(
+          {
+            workshop: new mongoose.Types.ObjectId(user.workshop),
+          },
+          page,
+          pageSize,
+          statusTab,
+        );
       } else {
-        return this.repairOrdersService.findAll({
-          workshop: new mongoose.Types.ObjectId(user.workshop),
-          'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
-        });
+        return this.repairOrdersService.findAll(
+          {
+            workshop: new mongoose.Types.ObjectId(user.workshop),
+            'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
+          },
+          page,
+          pageSize,
+          statusTab,
+        );
       }
     } else if (filtro.value) {
       if (
@@ -212,6 +228,8 @@ export class RepairOrdersController {
           return this.repairOrdersService.findOrderByFilter(
             { workshop: new mongoose.Types.ObjectId(user.workshop) },
             { ...filtro, label: filterField },
+            page,
+            pageSize,
           );
         } else {
           return this.repairOrdersService.findOrderByFilter(
@@ -220,6 +238,8 @@ export class RepairOrdersController {
               'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
             },
             { ...filtro, label: filterField },
+            page,
+            pageSize,
           );
         }
       }

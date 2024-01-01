@@ -9,7 +9,7 @@ export class Client extends Document {
   @Prop({ required: true })
   documentType: string;
 
-  @Prop({ required: true })
+  @Prop()
   document: string;
 
   @Prop()
