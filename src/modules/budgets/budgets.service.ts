@@ -404,6 +404,11 @@ export class BudgetsService {
       budgetNew.comment = '';
       budgetNew.inspection = undefined;
       budgetNew.history = undefined;
+
+      budgetNew.quoter = budgetData.quoter;
+      budgetNew.insuranceCompany = budgetData.insuranceCompany;
+      budgetNew.vehicle = budgetData.vehicle;
+      budgetNew.updatedAt = new Date();
       budgetNew.status = StatusBudget.Estimado;
       budgetNew.type = TypeBudget.Suplemento;
       budgetNew.typeSupplement = data.typeSupplement;
