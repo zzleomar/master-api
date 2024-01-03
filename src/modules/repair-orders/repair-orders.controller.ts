@@ -389,22 +389,32 @@ export class RepairOrdersController {
   @Repuesto()
   @UseGuards(AuthGuard)
   @Post('/autoparts')
-  autoparts(@Request() request, @Body() filters: FilterOrderDto) {
+  async autoparts(@Request() request, @Body() filters: FilterOrderDto) {
     const filtro: any = filters;
     const user = request['user'];
 
     if (!filtro.filter || filtro.filter === 'all') {
       if (user.role !== 'Cotizador') {
-        return this.repairOrdersService.findAll({
-          workshop: new mongoose.Types.ObjectId(user.workshop),
-          statusVehicle: 'Esperando piezas',
-        });
+        const data = await this.repairOrdersService.findAll(
+          {
+            workshop: new mongoose.Types.ObjectId(user.workshop),
+            status: 'Abierta',
+          },
+          1,
+          999999,
+        );
+        return this.repairOrdersService.autopartsMapping(data.results);
       } else {
-        return this.repairOrdersService.findAll({
-          workshop: new mongoose.Types.ObjectId(user.workshop),
-          statusVehicle: 'Esperando piezas',
-          'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
-        });
+        const data = await this.repairOrdersService.findAll(
+          {
+            workshop: new mongoose.Types.ObjectId(user.workshop),
+            status: 'Abierta',
+            'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
+          },
+          1,
+          999999,
+        );
+        return this.repairOrdersService.autopartsMapping(data.results);
       }
     } else if (filtro.value) {
       if (
@@ -446,7 +456,7 @@ export class RepairOrdersController {
           return this.repairOrdersService.autoparts(
             {
               workshop: new mongoose.Types.ObjectId(user.workshop),
-              statusVehicle: 'Esperando piezas',
+              status: 'Abierta',
             },
             { ...filtro, label: filterField },
           );
@@ -454,7 +464,7 @@ export class RepairOrdersController {
           return this.repairOrdersService.autoparts(
             {
               workshop: new mongoose.Types.ObjectId(user.workshop),
-              statusVehicle: 'Esperando piezas',
+              status: 'Abierta',
               'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
             },
             { ...filtro, label: filterField },

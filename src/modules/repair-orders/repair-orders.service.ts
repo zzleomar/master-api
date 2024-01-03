@@ -731,8 +731,17 @@ export class RepairOrdersService {
     return result;
   }
 
+  async autopartsMapping(orders: RepairOrder[]) {
+    return filter(orders, (item: RepairOrder) => {
+      const result = find(item.pieces, (itemP: any) => {
+        return itemP.status === null || itemP.status === 'Pedido';
+      });
+      return item.pieces.length > 0 && result !== undefined;
+    });
+  }
+
   async autoparts(filter: any, value: any): Promise<any[]> {
-    return this.repairOrderModel
+    const data = await this.repairOrderModel
       .aggregate([
         {
           $lookup: {
@@ -761,6 +770,7 @@ export class RepairOrdersService {
         },
       ])
       .exec();
+    return this.autopartsMapping(data);
   }
 
   async generateWarranty(ro: any, data: any, user: any) {
