@@ -33,6 +33,9 @@ export class RepairOrdersService {
     createRepairOrderDto: CreateRepairOrderDto,
     dataBudgets: Budget,
     user: any,
+    oldCode: number = null,
+    creationDate: any = null,
+    statusAux: boolean = false,
   ) {
     try {
       const body: any = { ...createRepairOrderDto };
@@ -70,17 +73,20 @@ export class RepairOrdersService {
           createdOrder.code = orderPrincipal[0].code;
         } else {
           throw new BadRequestException(
-            'No se encontro la orden Madre del suplemento',
+            `No se encontro la orden Madre del suplemento ${dataBudgets.code}`,
           );
         }
       } else {
-        createdOrder.code = await this.getLastCode();
+        createdOrder.code = oldCode ?? (await this.getLastCode());
       }
 
       createdOrder.pieces = pieces;
       //si la orden de compra esta aprobada y el carro esta en el taller
       if (createRepairOrderDto.approved && createRepairOrderDto.inTheWorkshop) {
-        if (pieces.length === 0) {
+        if (
+          (pieces.length === 0 && !statusAux) ||
+          (oldCode !== null && !statusAux)
+        ) {
           createdOrder.statusVehicle = StatusVehicle.EsperandoTurno;
         } else {
           createdOrder.statusVehicle = StatusVehicle.EsperandoPieza;
@@ -121,14 +127,14 @@ export class RepairOrdersService {
 
       createdOrder.statusChangeVehicle = [
         {
-          initDate: new Date(),
+          initDate: creationDate ?? new Date(),
           endDate: null,
           status: createdOrder.statusVehicle,
         },
       ];
       createdOrder.statusChange = [
         {
-          initDate: new Date(),
+          initDate: creationDate ?? new Date(),
           endDate: null,
           status: 'Abierta',
         },
@@ -269,7 +275,9 @@ export class RepairOrdersService {
       { sort: { code: -1 } },
     );
     const lastCode = lastOrder ? lastOrder.code : 0; // Si no hay documentos, devuelve 0 como valor predeterminado.
-    return lastCode + 1; // Incrementa el último código encontrado en uno para obtener el nuevo código.
+    return lastCode > Number(process.env.RO_INIT)
+      ? lastCode + 1
+      : Number(process.env.RO_INIT); // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }
 
   async findBy(filter: any, error: boolean = true): Promise<RepairOrder[]> {
@@ -507,10 +515,11 @@ export class RepairOrdersService {
     data: { id: string; comment?: string },
     dataRO: RepairOrder,
     newStatus: StatusRepairOrder = StatusRepairOrder.Anulada,
+    creationDate: any = null,
   ) {
     const statusChange = dataRO.statusChange;
     const statusVehicleChange = dataRO.statusChangeVehicle;
-    const now = new Date();
+    const now = creationDate ?? new Date();
     const itemKeyChange = statusChange.findIndex(
       (item: any) =>
         item.status === StatusRepairOrder.Abierta && item.endDate == null,
@@ -519,7 +528,7 @@ export class RepairOrdersService {
       statusChange[itemKeyChange].endDate = now;
     }
     statusChange.push({
-      initDate: new Date(),
+      initDate: creationDate ?? new Date(),
       endDate: null,
       status: newStatus,
     });
@@ -534,7 +543,7 @@ export class RepairOrdersService {
     ) {
       statusVehicleChange[itemKeyChange].endDate = now;
       statusVehicleChange.push({
-        initDate: new Date(),
+        initDate: creationDate ?? new Date(),
         endDate: null,
         status: StatusVehicle.NoSeTrabajo,
       });
@@ -553,7 +562,7 @@ export class RepairOrdersService {
           newStatus === StatusRepairOrder.Anulada ? data.comment : undefined,
         anullationDate:
           newStatus === StatusRepairOrder.Anulada
-            ? moment(new Date()).format('DD/MM/YYYY')
+            ? moment(creationDate ?? new Date()).format('DD/MM/YYYY')
             : undefined,
       },
     );
@@ -567,8 +576,8 @@ export class RepairOrdersService {
     return order;
   }
 
-  async generateOT(order: RepairOrder, data: InitOTDto) {
-    order.initOT = new Date();
+  async generateOT(order: RepairOrder, data: InitOTDto, initDate: any = null) {
+    order.initOT = initDate ?? new Date();
     order.endOT = moment(data.endDate, 'DD/MM/YYYY').toDate();
     order.save();
     return order;

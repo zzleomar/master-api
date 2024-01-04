@@ -22,8 +22,8 @@ export class CreateVehicleDto {
   @IsString()
   color: string;
 
-  @IsString()
-  colorType: string;
+  @IsOptional()
+  colorType?: string;
 
   @IsOptional()
   @IsString()
@@ -43,4 +43,7 @@ export class CreateVehicleDto {
 
   @IsOptional()
   owner?: string;
+
+  @IsOptional()
+  oldId?: number;
 }

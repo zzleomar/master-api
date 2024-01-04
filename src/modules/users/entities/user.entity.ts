@@ -42,6 +42,9 @@ export class User extends Document {
   @Prop()
   password: string;
 
+  @Prop({ default: null, nullable: true })
+  oldId: number;
+
   @Prop({ default: '' })
   hashReset: string;
 

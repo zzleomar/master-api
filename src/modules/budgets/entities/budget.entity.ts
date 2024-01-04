@@ -129,6 +129,9 @@ export class Budget extends Document {
 
   @Prop({ default: new Date(moment().toISOString()) })
   creationDate: Date;
+
+  @Prop({ default: false })
+  oldData: boolean;
 }
 
 export const BudgetSchema = SchemaFactory.createForClass(Budget);

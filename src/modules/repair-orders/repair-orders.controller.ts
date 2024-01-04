@@ -51,6 +51,19 @@ export class RepairOrdersController {
     @Body() createRepairOrderDto: CreateRepairOrderDto,
   ) {
     const user = request['user'];
+    if (createRepairOrderDto.oldCode && createRepairOrderDto.oldCode > 0) {
+      const roValid = await this.repairOrdersService.findBy(
+        {
+          code: createRepairOrderDto.oldCode,
+        },
+        false,
+      );
+      if (roValid && roValid.length > 0) {
+        return new BadRequestException('Ya ese código se encuentra en uso');
+      }
+    } else {
+      createRepairOrderDto.oldCode = null;
+    }
     if (createRepairOrderDto.approved || createRepairOrderDto.inTheWorkshop) {
       createRepairOrderDto.workshop = user.workshop;
       const dataBudgets = await this.budgetsService.findBy({
@@ -69,6 +82,7 @@ export class RepairOrdersController {
           createRepairOrderDto,
           dataBudgets[0],
           user,
+          createRepairOrderDto.oldCode,
         );
       }
 

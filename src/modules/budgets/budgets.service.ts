@@ -43,7 +43,11 @@ export class BudgetsService {
     private readonly historiesService: HistoriesService,
   ) {}
 
-  async create(data: CreateBudgetDto): Promise<Budget> {
+  async create(
+    data: CreateBudgetDto,
+    creationDate: any = null,
+    oldCode: any = null,
+  ): Promise<Budget> {
     const body: any = { ...data };
     await this.workshopsService.findOne(body.workshop);
     const owner = await this.clientsService.findOne(body.client);
@@ -64,20 +68,21 @@ export class BudgetsService {
     ) {
       throw new BadRequestException(`code principal is requerid`);
     } else {
-      createdBudge.code = await this.getLastCode();
+      createdBudge.code = oldCode ?? (await this.getLastCode());
     }
     createdBudge.clientData = owner.toObject();
     createdBudge.vehicleData = vehicle.toObject();
     createdBudge.insuranceData = insurances.toObject();
     createdBudge.statusChange = [
       {
-        initDate: new Date(),
+        initDate: creationDate ?? new Date(moment().hours(12).toISOString()),
         endDate: null,
         status: 'Estimado',
       },
     ];
-
-    createdBudge.creationDate = new Date(moment().hours(12).toISOString());
+    createdBudge.creationDate =
+      creationDate ?? new Date(moment().hours(12).toISOString());
+    createdBudge.oldData = oldCode !== null;
     const budget = await createdBudge.save();
     return budget;
   }
@@ -113,7 +118,9 @@ export class BudgetsService {
       { sort: { code: -1 } },
     );
     const lastCode = lastBudget ? lastBudget.code : 0; // Si no hay documentos, devuelve 0 como valor predeterminado.
-    return lastCode + 1; // Incrementa el último código encontrado en uno para obtener el nuevo código.
+    return lastCode > Number(process.env.BUDGET_INIT)
+      ? lastCode + 1
+      : Number(process.env.BUDGET_INIT); // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }
 
   async findAll(
@@ -144,14 +151,18 @@ export class BudgetsService {
     return { results, total };
   }
 
-  async saveInspection(budgetData: Budget, data: InspectionBudgetDto) {
+  async saveInspection(
+    budgetData: Budget,
+    data: InspectionBudgetDto,
+    creationDate: any = null,
+  ) {
     budgetData.inspection = {
       pieces: data.pieces,
       others: data.others,
       photos: data.photos,
       documents: data.documents,
-      updated: new Date(),
-      created: new Date(),
+      updated: creationDate ?? new Date(),
+      created: creationDate ?? new Date(),
     };
     budgetData.comment = data.comment ?? '';
     budgetData.tax = data.tax ?? 0;
@@ -209,6 +220,7 @@ export class BudgetsService {
     const budget = await this.findBy({
       _id: orderData.budgetData._id,
     });
+    // console.log(pieces, 'pieces')
     await this.repairOrderModel.updateOne(
       { _id: orderData._id },
       { pieces, budgetData: budget[0].toObject() },
@@ -220,8 +232,9 @@ export class BudgetsService {
     statusNew: StatusBudget,
     statusLast: StatusBudget,
     user: any,
+    creationDate: any = null,
   ) {
-    const now = new Date();
+    const now = creationDate ?? new Date();
     const oldStatus = budgetData.status;
     budgetData.status = statusNew;
     const itemKeyChange = budgetData.statusChange.findIndex(
@@ -231,7 +244,7 @@ export class BudgetsService {
       budgetData.statusChange[itemKeyChange].endDate = now;
     }
     budgetData.statusChange.push({
-      initDate: new Date(),
+      initDate: now,
       endDate: null,
       status: statusNew,
     });
@@ -272,7 +285,6 @@ export class BudgetsService {
         ).toISOString(),
       );
 
-      body.creationDate = newDate;
       body.creationDate = newDate;
 
       const budgetByUpdate = await this.budgetModel.findById(id);
@@ -388,12 +400,20 @@ export class BudgetsService {
     await this.budgetModel.updateOne({ _id: budgetData._id }, budgetData);
   }
 
-  async createSupplement(budgetData: Budget, data: CreateSupplementBudgetDto) {
-    const budgets = await this.findBy({
-      code: budgetData.code,
-      type: 'Suplemento',
-      typeSupplement: data.typeSupplement,
-    });
+  async createSupplement(
+    budgetData: Budget,
+    data: CreateSupplementBudgetDto,
+    numberSupplement: number = null,
+    creationDate: any = null,
+  ) {
+    let budgets: any = [];
+    if (creationDate !== null) {
+      budgets = await this.findBy({
+        code: budgetData.code,
+        type: 'Suplemento',
+        typeSupplement: data.typeSupplement,
+      });
+    }
     if (
       (data.typeSupplement === TypeSupplement.A && budgets.length < 3) ||
       (data.typeSupplement === TypeSupplement.M && budgets.length < 2) ||
@@ -412,10 +432,10 @@ export class BudgetsService {
       budgetNew.status = StatusBudget.Estimado;
       budgetNew.type = TypeBudget.Suplemento;
       budgetNew.typeSupplement = data.typeSupplement;
-      budgetNew.numberSupplement = budgets.length;
+      budgetNew.numberSupplement = numberSupplement ?? budgets.length;
       budgetNew.statusChange = [
         {
-          initDate: new Date(),
+          initDate: creationDate ?? new Date(),
           endDate: null,
           status: StatusBudget.Estimado,
         },

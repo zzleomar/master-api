@@ -5,12 +5,18 @@ import {
   IsEnum,
   IsMongoId,
   IsNotEmpty,
+  IsNumber,
+  IsBoolean,
 } from 'class-validator';
 import { Role } from '../entities/user.entity';
 
 export class CreateUserDto {
   @IsString()
   firstName: string;
+
+  @IsOptional()
+  @IsNumber()
+  oldId?: number;
 
   @IsString()
   @IsNotEmpty()
@@ -40,4 +46,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   hashReset?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  status?: boolean;
 }

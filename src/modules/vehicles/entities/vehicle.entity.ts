@@ -32,6 +32,9 @@ export class Vehicle extends Document {
 
   @Prop({ required: true, type: String, ref: 'Client' })
   owner: string;
+
+  @Prop({ type: Number, default: null })
+  oldId: number;
 }
 
 export const VehicleSchema = SchemaFactory.createForClass(Vehicle);

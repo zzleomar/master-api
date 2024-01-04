@@ -33,6 +33,9 @@ export class Client extends Document {
   @Prop({ required: true, type: String, ref: 'Workshop' })
   workshop: string;
 
+  @Prop({ type: Number, default: null })
+  oldId: number;
+
   constructor(partial: Partial<Client>) {
     super();
     Object.assign(this, partial);

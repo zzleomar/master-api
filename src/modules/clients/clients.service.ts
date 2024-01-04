@@ -53,6 +53,10 @@ export class ClientsService {
     return clients;
   }
 
+  async find(filter: any) {
+    return this.clientModel.find(filter);
+  }
+
   async update(id: string, body: UpdateClientDto): Promise<ClientPayload> {
     await this.clientModel.updateOne({ _id: id }, body);
     const updatedClient = this.clientModel.findById(id);
