@@ -194,36 +194,25 @@ export class BudgetsService {
       (item2: any) => item2.piece.name,
     );
 
-    const piecesOld = orderData.pieces;
-    const piecesOldNames = map(orderData.pieces, (piece: any) => piece.name);
-
-    const pieces = filter(piecesOld, (piece: any) =>
-      piecesNames.includes(piece.piece),
-    );
-    const newPieces = filter(piecesNames, (piece: any) =>
-      piecesOldNames.includes(piece),
-    );
-
-    if (newPieces.length > 0) {
-      for (let i = 0; i < newPieces.length; i++) {
-        pieces.push({
-          piece: newPieces[i],
+    const newPieces = map(piecesNames, (piece: any) => {
+      const old = find(orderData.pieces, (item: any) => item.piece === piece);
+      return (
+        old ?? {
+          piece: piece,
           price: null,
           status: null,
           receptionDate: null,
           provider: null,
           comment: null,
-        });
-      }
-    }
-
+        }
+      );
+    });
     const budget = await this.findBy({
       _id: orderData.budgetData._id,
     });
-    // console.log(pieces, 'pieces')
     await this.repairOrderModel.updateOne(
       { _id: orderData._id },
-      { pieces, budgetData: budget[0].toObject() },
+      { pieces: newPieces, budgetData: budget[0].toObject() },
     );
   }
 
