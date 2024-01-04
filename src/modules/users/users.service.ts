@@ -66,7 +66,7 @@ export class UsersService {
       .populate(['workshop'])
       .exec();
     if (!user) {
-      throw new NotFoundException(`User with email id:${id} not found `);
+      throw new NotFoundException(`User with id:${id} not found `);
     }
     return user;
   }

@@ -6,7 +6,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FilesService } from './files.service';
-import { Admin, Cotizador, Master } from '../auth/utils/decorator';
+import {
+  Admin,
+  Cotizador,
+  Master,
+  Recepcion,
+  Repuesto,
+} from '../auth/utils/decorator';
 import { AuthGuard } from '../auth/auth.guard';
 import { S3 } from 'aws-sdk';
 // import * as fs from 'fs';
@@ -29,6 +35,8 @@ export class FilesController {
   @Cotizador()
   @Master()
   @Admin()
+  @Recepcion()
+  @Repuesto()
   @UseGuards(AuthGuard)
   @Post('/')
   async laodFile(@Body() body: FileCreateDto) {

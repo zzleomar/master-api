@@ -15,8 +15,8 @@ export class Vehicle extends Document {
   @Prop({ required: true })
   color: string;
 
-  @Prop({ required: true })
-  colorType: string;
+  @Prop({ required: false })
+  colorType?: string;
 
   @Prop()
   chassis: string;
@@ -32,6 +32,9 @@ export class Vehicle extends Document {
 
   @Prop({ required: true, type: String, ref: 'Client' })
   owner: string;
+
+  @Prop({ type: Number, default: null })
+  oldId: number;
 }
 
 export const VehicleSchema = SchemaFactory.createForClass(Vehicle);

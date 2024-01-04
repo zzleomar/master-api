@@ -88,9 +88,11 @@ export class VehiclesController {
         value: new mongoose.Types.ObjectId(id),
         label: 'budgetData.vehicleData._id',
       },
+      0,
     );
 
-    return budgets.filter((item: any) => item.budgetData.type === 'Principal')
-      .length;
+    return budgets.results.filter(
+      (item: any) => item.budgetData.type === 'Principal',
+    ).length;
   }
 }

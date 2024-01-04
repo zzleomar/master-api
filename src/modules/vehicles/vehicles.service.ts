@@ -72,6 +72,10 @@ export class VehiclesService {
     return vehicles;
   }
 
+  async find(filter: any) {
+    return this.vehicleModel.find(filter);
+  }
+
   async remove(id: string): Promise<void> {
     let workshop = null;
     const vehicle = await this.vehicleModel.findOne({ plate: id }).exec();

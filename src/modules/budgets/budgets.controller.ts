@@ -240,8 +240,6 @@ export class BudgetsController {
       updateBudgetDto,
     );
 
-    console.log('updateBudgetDto: ', updateBudgetDto);
-
     const order = await this.repairOrdersService.findBy(
       {
         budget: newBudget._id,
@@ -291,6 +289,7 @@ export class BudgetsController {
         });
         newBudget.history.push(log1.id);
       }
+
       if (
         updateBudgetDto.insuranceCompany != dataBudget.insuranceCompany._id ||
         updateBudgetDto.claimNumber != dataBudget.claimNumber ||
@@ -431,7 +430,6 @@ export class BudgetsController {
       workshop: user.workshop,
       _id: data.budgetId,
     });
-
     const mode: boolean =
       budgetData[0] && budgetData[0].inspection !== undefined;
 

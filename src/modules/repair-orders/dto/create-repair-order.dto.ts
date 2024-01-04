@@ -15,4 +15,7 @@ export class CreateRepairOrderDto {
   @IsString()
   @IsMongoId()
   workshop?: Types.ObjectId;
+
+  @IsOptional()
+  oldCode?: number;
 }

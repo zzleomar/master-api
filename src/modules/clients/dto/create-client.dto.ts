@@ -47,4 +47,7 @@ export class CreateClientDto {
   @IsOptional()
   @IsMongoId()
   workshop?: string;
+
+  @IsOptional()
+  oldId?: number;
 }

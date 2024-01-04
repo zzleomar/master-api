@@ -51,6 +51,19 @@ export class RepairOrdersController {
     @Body() createRepairOrderDto: CreateRepairOrderDto,
   ) {
     const user = request['user'];
+    if (createRepairOrderDto.oldCode && createRepairOrderDto.oldCode > 0) {
+      const roValid = await this.repairOrdersService.findBy(
+        {
+          code: createRepairOrderDto.oldCode,
+        },
+        false,
+      );
+      if (roValid && roValid.length > 0) {
+        return new BadRequestException('Ya ese código se encuentra en uso');
+      }
+    } else {
+      createRepairOrderDto.oldCode = null;
+    }
     if (createRepairOrderDto.approved || createRepairOrderDto.inTheWorkshop) {
       createRepairOrderDto.workshop = user.workshop;
       const dataBudgets = await this.budgetsService.findBy({
@@ -69,6 +82,7 @@ export class RepairOrdersController {
           createRepairOrderDto,
           dataBudgets[0],
           user,
+          createRepairOrderDto.oldCode,
         );
       }
 
@@ -158,20 +172,36 @@ export class RepairOrdersController {
   @Repuesto()
   @UseGuards(AuthGuard)
   @Post('/list')
-  findAll(@Request() request, @Body() filters: FilterOrderDto) {
+  findAll(
+    @Request() request,
+    @Body() filters: FilterOrderDto,
+    @Body('page') page: number = 1,
+    @Body('pageSize') pageSize: number = 30,
+    @Body('status') statusTab: string = 'all',
+  ) {
     const filtro: any = filters;
     const user = request['user'];
 
     if (!filtro.filter || filtro.filter === 'all') {
       if (user.role !== 'Cotizador') {
-        return this.repairOrdersService.findAll({
-          workshop: new mongoose.Types.ObjectId(user.workshop),
-        });
+        return this.repairOrdersService.findAll(
+          {
+            workshop: new mongoose.Types.ObjectId(user.workshop),
+          },
+          page,
+          pageSize,
+          statusTab,
+        );
       } else {
-        return this.repairOrdersService.findAll({
-          workshop: new mongoose.Types.ObjectId(user.workshop),
-          'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
-        });
+        return this.repairOrdersService.findAll(
+          {
+            workshop: new mongoose.Types.ObjectId(user.workshop),
+            'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
+          },
+          page,
+          pageSize,
+          statusTab,
+        );
       }
     } else if (filtro.value) {
       if (
@@ -212,6 +242,8 @@ export class RepairOrdersController {
           return this.repairOrdersService.findOrderByFilter(
             { workshop: new mongoose.Types.ObjectId(user.workshop) },
             { ...filtro, label: filterField },
+            page,
+            pageSize,
           );
         } else {
           return this.repairOrdersService.findOrderByFilter(
@@ -220,6 +252,8 @@ export class RepairOrdersController {
               'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
             },
             { ...filtro, label: filterField },
+            page,
+            pageSize,
           );
         }
       }
@@ -369,22 +403,32 @@ export class RepairOrdersController {
   @Repuesto()
   @UseGuards(AuthGuard)
   @Post('/autoparts')
-  autoparts(@Request() request, @Body() filters: FilterOrderDto) {
+  async autoparts(@Request() request, @Body() filters: FilterOrderDto) {
     const filtro: any = filters;
     const user = request['user'];
 
     if (!filtro.filter || filtro.filter === 'all') {
       if (user.role !== 'Cotizador') {
-        return this.repairOrdersService.findAll({
-          workshop: new mongoose.Types.ObjectId(user.workshop),
-          statusVehicle: 'Esperando piezas',
-        });
+        const data = await this.repairOrdersService.findAll(
+          {
+            workshop: new mongoose.Types.ObjectId(user.workshop),
+            status: 'Abierta',
+          },
+          1,
+          999999,
+        );
+        return this.repairOrdersService.autopartsMapping(data.results);
       } else {
-        return this.repairOrdersService.findAll({
-          workshop: new mongoose.Types.ObjectId(user.workshop),
-          statusVehicle: 'Esperando piezas',
-          'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
-        });
+        const data = await this.repairOrdersService.findAll(
+          {
+            workshop: new mongoose.Types.ObjectId(user.workshop),
+            status: 'Abierta',
+            'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
+          },
+          1,
+          999999,
+        );
+        return this.repairOrdersService.autopartsMapping(data.results);
       }
     } else if (filtro.value) {
       if (
@@ -426,7 +470,7 @@ export class RepairOrdersController {
           return this.repairOrdersService.autoparts(
             {
               workshop: new mongoose.Types.ObjectId(user.workshop),
-              statusVehicle: 'Esperando piezas',
+              status: 'Abierta',
             },
             { ...filtro, label: filterField },
           );
@@ -434,7 +478,7 @@ export class RepairOrdersController {
           return this.repairOrdersService.autoparts(
             {
               workshop: new mongoose.Types.ObjectId(user.workshop),
-              statusVehicle: 'Esperando piezas',
+              status: 'Abierta',
               'budgetData.quoter._id': new mongoose.Types.ObjectId(user._id),
             },
             { ...filtro, label: filterField },
