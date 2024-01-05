@@ -420,6 +420,7 @@ export class BudgetsController {
 
   @Cotizador()
   @Master()
+  @Recepcion()
   @Admin()
   @UseGuards(AuthGuard)
   @Post('/inspection')
