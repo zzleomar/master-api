@@ -277,7 +277,7 @@ export class RepairOrdersService {
       { sort: { code: -1 } },
     );
     const lastCode = lastOrder ? lastOrder.code : 0; // Si no hay documentos, devuelve 0 como valor predeterminado.
-    return lastCode > Number(process.env.RO_INIT)
+    return lastCode + 1 > Number(process.env.RO_INIT)
       ? lastCode + 1
       : Number(process.env.RO_INIT); // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }

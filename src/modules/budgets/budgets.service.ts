@@ -120,7 +120,7 @@ export class BudgetsService {
       { sort: { code: -1 } },
     );
     const lastCode = lastBudget ? lastBudget.code : 0; // Si no hay documentos, devuelve 0 como valor predeterminado.
-    return lastCode > Number(process.env.BUDGET_INIT)
+    return lastCode + 1 > Number(process.env.BUDGET_INIT)
       ? lastCode + 1
       : Number(process.env.BUDGET_INIT); // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }
