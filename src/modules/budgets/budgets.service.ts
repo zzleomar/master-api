@@ -418,8 +418,7 @@ export class BudgetsService {
       budgetNew.insuranceCompany = budgetData.insuranceCompany;
       budgetNew.vehicle = budgetData.vehicle;
       budgetNew.updatedAt = new Date();
-      budgetNew.creationDate =
-        creationDate ?? new Date(moment().hours(12).toISOString());
+      budgetNew.creationDate = creationDate ?? moment().hours(12).toISOString();
       budgetNew.status = StatusBudget.Estimado;
       budgetNew.type = TypeBudget.Suplemento;
       budgetNew.typeSupplement = data.typeSupplement;
