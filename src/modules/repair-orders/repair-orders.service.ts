@@ -16,7 +16,7 @@ import { RepairOrder, StatusVehicle } from './entities/repair-order.entity';
 import { BudgetsService, FindAllResponse } from '../budgets/budgets.service';
 import { PiecesOrderDto } from './dto/pieces-order.dto';
 import { InitOTDto } from './dto/init-OT-order.dto';
-import * as moment from 'moment';
+import * as moment from 'moment-timezone';
 import { MovementsRepairOrderDto } from './dto/movements-repair-order.dto';
 import { codeRO } from './utils/parseLabel';
 import { codeBudget } from '../budgets/utils/parseLabel';
@@ -27,7 +27,9 @@ export class RepairOrdersService {
     private readonly workshopsService: WorkshopsService,
     private readonly historiesService: HistoriesService,
     private readonly budgetsSevice: BudgetsService,
-  ) {}
+  ) {
+    moment.tz.setDefault('America/Panama');
+  }
 
   async create(
     createRepairOrderDto: CreateRepairOrderDto,
@@ -275,7 +277,7 @@ export class RepairOrdersService {
       { sort: { code: -1 } },
     );
     const lastCode = lastOrder ? lastOrder.code : 0; // Si no hay documentos, devuelve 0 como valor predeterminado.
-    return lastCode > Number(process.env.RO_INIT)
+    return lastCode + 1 > Number(process.env.RO_INIT)
       ? lastCode + 1
       : Number(process.env.RO_INIT); // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }
