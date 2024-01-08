@@ -20,11 +20,11 @@ import { InsurancesService } from '../insurances/insurances.service';
 import { InspectionBudgetDto } from './dto/inspection-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
 import { HistoriesService } from '../histories/histories.service';
-import * as moment from 'moment';
 import { CreateSupplementBudgetDto } from './dto/create-supplement-budget.dto';
 import { codeBudget } from './utils/parseLabel';
 import { filter, find, groupBy, map } from 'lodash';
 import { RepairOrder } from '../repair-orders/entities/repair-order.entity';
+import * as moment from 'moment-timezone';
 
 export interface FindAllResponse {
   results: any[];
@@ -41,7 +41,9 @@ export class BudgetsService {
     private readonly usersService: UsersService,
     private readonly insurancesService: InsurancesService,
     private readonly historiesService: HistoriesService,
-  ) {}
+  ) {
+    moment.tz.setDefault('America/Panama');
+  }
 
   async create(
     data: CreateBudgetDto,
@@ -118,7 +120,7 @@ export class BudgetsService {
       { sort: { code: -1 } },
     );
     const lastCode = lastBudget ? lastBudget.code : 0; // Si no hay documentos, devuelve 0 como valor predeterminado.
-    return lastCode > Number(process.env.BUDGET_INIT)
+    return lastCode + 1 > Number(process.env.BUDGET_INIT)
       ? lastCode + 1
       : Number(process.env.BUDGET_INIT); // Incrementa el último código encontrado en uno para obtener el nuevo código.
   }
@@ -396,7 +398,7 @@ export class BudgetsService {
     creationDate: any = null,
   ) {
     let budgets: any = [];
-    if (creationDate !== null) {
+    if (creationDate === null) {
       budgets = await this.findBy({
         code: budgetData.code,
         type: 'Suplemento',
@@ -418,7 +420,7 @@ export class BudgetsService {
       budgetNew.insuranceCompany = budgetData.insuranceCompany;
       budgetNew.vehicle = budgetData.vehicle;
       budgetNew.updatedAt = new Date();
-      budgetNew.creationDate = creationDate ?? moment().hours(12).toISOString();
+      budgetNew.creationDate = creationDate ?? moment().toISOString();
       budgetNew.status = StatusBudget.Estimado;
       budgetNew.type = TypeBudget.Suplemento;
       budgetNew.typeSupplement = data.typeSupplement;
@@ -509,7 +511,9 @@ export class BudgetsService {
         (item: any) => item.status === StatusBudget.Espera,
       );
       // fecha en la que quedo expirado el presupuesto
-      const expitedValidateToday = moment().add(diff, 'days');
+      const expitedValidateToday = moment()
+        .tz('America/Panama')
+        .add(diff, 'days');
       const expitedValidateInit = moment(itemChange.initDate).add(diff, 'days');
       // fecha final en la que el presupuesto esta expirado y entra en el reporte
       const expitedValidateEnd = expitedValidateInit.clone();
