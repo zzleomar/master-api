@@ -5,4 +5,5 @@ export class UserPayload extends PartialType(User) {
   createdA?: string;
   updateAt?: string;
   password?: string;
+  _id?: any;
 }

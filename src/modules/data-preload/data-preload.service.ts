@@ -78,7 +78,7 @@ export class DataPreloadService {
       };
 
       const createWorkshopDto: CreateWorkshopDto = {
-        name: 'MegaShop',
+        name: 'Master',
         url: 'logo',
       };
       const { master, workshop } =
@@ -89,10 +89,12 @@ export class DataPreloadService {
 
       //carga de los modelos y marcas
       let relativePath = './utils/marcamodelos.json';
+      console.log(__dirname, "__dirname")
       let absolutePath = path.join(
-        replace(__dirname, 'dist', 'src'),
+        replace(__dirname, 'dist', 'src/src'),
         relativePath,
       );
+      console.log(absolutePath, "absolutePath")
       let rawData = fs.readFileSync(absolutePath, 'utf8');
       let jsonData = JSON.parse(rawData);
       const formattedData = map(
@@ -120,7 +122,7 @@ export class DataPreloadService {
 
       //carga de los colores
       relativePath = './utils/vehiclecolor.json';
-      absolutePath = path.join(replace(__dirname, 'dist', 'src'), relativePath);
+      absolutePath = path.join(replace(__dirname, 'dist', 'src/src'), relativePath);
       rawData = fs.readFileSync(absolutePath, 'utf8');
       jsonData = JSON.parse(rawData);
       const formattedDataColor = map(
@@ -142,7 +144,7 @@ export class DataPreloadService {
 
       //carga de las aseguradoras
       relativePath = './utils/insurance.json';
-      absolutePath = path.join(replace(__dirname, 'dist', 'src'), relativePath);
+      absolutePath = path.join(replace(__dirname, 'dist', 'src/src'), relativePath);
       rawData = fs.readFileSync(absolutePath, 'utf8');
       jsonData = JSON.parse(rawData);
       const formattedDataInsurance = map(
@@ -163,7 +165,7 @@ export class DataPreloadService {
 
       //carga de las partes
       relativePath = './utils/parts.json';
-      absolutePath = path.join(replace(__dirname, 'dist', 'src'), relativePath);
+      absolutePath = path.join(replace(__dirname, 'dist', 'src/src'), relativePath);
       rawData = fs.readFileSync(absolutePath, 'utf8');
       jsonData = JSON.parse(rawData);
       const formattedDataParts = map(jsonData, (item) => {
@@ -199,7 +201,7 @@ export class DataPreloadService {
       const admin: CreateUserDto = {
         firstName: 'José',
         lastName: 'Perez',
-        email: 'cmoreno@megashopty.com',
+        email: 'admin@master.com',
         cell: '8339911',
         role: 'Admin',
         password: await this.authService.hashPassword('admin123'),

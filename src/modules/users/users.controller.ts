@@ -14,7 +14,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateWorkshopDto } from 'src/modules/workshops/dto/create-workshop.dto';
+import { CreateWorkshopDto } from '../workshops/dto/create-workshop.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import {
   Master,

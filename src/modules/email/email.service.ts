@@ -76,7 +76,7 @@ export class EmailService {
 
   async handleEmail(data: any, params: any) {
     let html: any = readFileSync(
-      `src/modules/email/template/${data.template}`,
+      `../../email/template/${data.template}`,
       'utf-8',
     );
     if (data.type === 'html') {

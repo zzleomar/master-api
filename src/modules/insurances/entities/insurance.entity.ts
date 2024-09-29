@@ -1,28 +1,5 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { InsuranceModel, InsurancesSchema } from './insurance.model.entity';
+import { Insurance } from './insurance.data.entity';
 
-@Schema({ collection: 'insurances', timestamps: true })
-export class Insurance extends Document {
-  @Prop()
-  oldId: string;
 
-  @Prop({ required: true })
-  name: string;
-
-  @Prop()
-  phone: string;
-
-  @Prop()
-  address: string;
-
-  @Prop({ default: true })
-  status: boolean;
-
-  @Prop()
-  email: string;
-
-  @Prop()
-  fitter: string;
-}
-
-export const InsurancesSchema = SchemaFactory.createForClass(Insurance);
+export { InsuranceModel, Insurance, InsurancesSchema }

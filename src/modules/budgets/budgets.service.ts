@@ -70,6 +70,9 @@ export class BudgetsService {
     ) {
       throw new BadRequestException(`code principal is requerid`);
     } else {
+      console.log(oldCode, "oldCode")
+      let data = await this.getLastCode()
+      console.log(data, "await this.getLastCode()")
       createdBudge.code = oldCode ?? (await this.getLastCode());
     }
     createdBudge.clientData = owner.toObject();
@@ -119,6 +122,7 @@ export class BudgetsService {
       { code: 1 },
       { sort: { code: -1 } },
     );
+    console.log(lastBudget, "lastBudget")
     const lastCode = lastBudget ? lastBudget.code : 0; // Si no hay documentos, devuelve 0 como valor predeterminado.
     return lastCode + 1 > Number(process.env.BUDGET_INIT)
       ? lastCode + 1
@@ -186,7 +190,8 @@ export class BudgetsService {
     return budgetUpdate;
   }
 
-  async updateInspection(orderData: RepairOrder, dataBudgets: Budget) {
+  async updateInspection(orderData: any, dataBudgets: Budget) {
+    // async updateInspection(orderData: RepairOrder, dataBudgets: Budget) {
     const piecesNames = map(
       filter(
         dataBudgets.inspection.pieces,
@@ -219,7 +224,8 @@ export class BudgetsService {
   }
 
   async updateStatus(
-    budgetData: Budget,
+    budgetData: any,
+    // budgetData: Budget,
     statusNew: StatusBudget,
     statusLast: StatusBudget,
     user: any,
